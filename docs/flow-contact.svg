@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="380" viewBox="0 0 1100 380">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0891b2"/></marker></defs>
+  <style>.box{fill:#ecfeff;stroke:#0891b2;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#0891b2;stroke-width:3;marker-end:url(#a);fill:none}</style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng gửi form liên hệ</text>
+  <rect x="65" y="115" width="200" height="95" class="box"/><text x="165" y="150" text-anchor="middle" class="t">ContactPage</text><text x="165" y="176" text-anchor="middle" class="s">submit form liên hệ</text>
+  <rect x="335" y="115" width="220" height="95" class="box"/><text x="445" y="150" text-anchor="middle" class="t">useContactActions</text><text x="445" y="176" text-anchor="middle" class="s">đọc FormData</text>
+  <rect x="625" y="115" width="200" height="95" class="api"/><text x="725" y="150" text-anchor="middle" class="t">Contact API</text><text x="725" y="176" text-anchor="middle" class="s">POST /contact</text>
+  <rect x="895" y="115" width="160" height="95" class="box"/><text x="975" y="150" text-anchor="middle" class="t">Notification</text><text x="975" y="176" text-anchor="middle" class="s">setNotice + reset</text>
+  <path d="M265 162 H335" class="ar"/><path d="M555 162 H625" class="ar"/><path d="M825 162 H895" class="ar"/>
+</svg>

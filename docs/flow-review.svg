@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ca8a04"/></marker></defs>
+  <style>.box{fill:#fefce8;stroke:#ca8a04;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#ca8a04;stroke-width:3;marker-end:url(#a);fill:none}</style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng đánh giá sản phẩm</text>
+  <rect x="45" y="95" width="190" height="100" class="box"/><text x="140" y="132" text-anchor="middle" class="t">ProductPage</text><text x="140" y="160" text-anchor="middle" class="s">chọn sao + nhập review</text>
+  <rect x="300" y="95" width="215" height="100" class="box"/><text x="407" y="132" text-anchor="middle" class="t">useReviewActions</text><text x="407" y="160" text-anchor="middle" class="s">submitReview</text>
+  <rect x="570" y="80" width="210" height="130" class="store"/><text x="675" y="118" text-anchor="middle" class="t">Kiểm tra user</text><text x="675" y="146" text-anchor="middle" class="s">chưa login: mở modal</text><text x="675" y="170" text-anchor="middle" class="s">đã login: gọi API</text>
+  <rect x="840" y="95" width="200" height="100" class="api"/><text x="940" y="132" text-anchor="middle" class="t">Review API</text><text x="940" y="160" text-anchor="middle" class="s">POST /reviews</text>
+  <rect x="240" y="300" width="210" height="90" class="store"/><text x="345" y="334" text-anchor="middle" class="t">uiSlice</text><text x="345" y="360" text-anchor="middle" class="s">showReviewLogin = true</text>
+  <rect x="520" y="300" width="220" height="90" class="store"/><text x="630" y="334" text-anchor="middle" class="t">reviewsSlice</text><text x="630" y="360" text-anchor="middle" class="s">prependReview(review)</text>
+  <path d="M235 145 H300" class="ar"/><path d="M515 145 H570" class="ar"/><path d="M780 145 H840" class="ar"/><path d="M650 210 C590 285 450 315 450 330" class="ar"/><path d="M940 195 C900 280 765 325 740 338" class="ar"/>
+</svg>

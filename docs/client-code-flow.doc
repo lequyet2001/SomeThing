@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đặc tả luồng code client - Marseille04 Shop</title>
+  <style>
+    body {
+      font-family: "Times New Roman", serif;
+      font-size: 12pt;
+      line-height: 1.45;
+      color: #111827;
+    }
+
+    h1 {
+      font-size: 22pt;
+      text-align: center;
+      margin: 0 0 18pt;
+    }
+
+    h2 {
+      font-size: 16pt;
+      margin: 20pt 0 8pt;
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 4pt;
+    }
+
+    h3 {
+      font-size: 13.5pt;
+      margin: 14pt 0 6pt;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8pt 0 12pt;
+    }
+
+    th,
+    td {
+      border: 1px solid #9ca3af;
+      padding: 6pt;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: bold;
+    }
+
+    code,
+    pre {
+      font-family: Consolas, monospace;
+      font-size: 10.5pt;
+    }
+
+    pre {
+      background: #f9fafb;
+      border: 1px solid #d1d5db;
+      padding: 8pt;
+      white-space: pre-wrap;
+    }
+
+    figure.flow-diagram {
+      margin: 8pt 0 12pt;
+      text-align: center;
+    }
+
+    figure.flow-diagram img {
+      max-width: 100%;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+    }
+
+    figure.flow-diagram figcaption {
+      margin-top: 4pt;
+      font-size: 10.5pt;
+      color: #4b5563;
+    }
+
+    .muted {
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <h1>Đặc tả luồng code client<br>Marseille04 Shop</h1>
+
+  <p><strong>Phạm vi:</strong> Tài liệu này mô tả cách client React/Vite hoạt động, cách dữ liệu đi qua Redux, router, service API và các page/component chính.</p>
+  <p><strong>Thư mục áp dụng:</strong> <code>client/src</code></p>
+  <p><strong>Công nghệ chính:</strong> React, Vite, React Router, Redux Toolkit, React Redux, Lucide React.</p>
+
+  <h2>1. Tổng quan kiến trúc client</h2>
+
+  <p>Client được tổ chức theo hướng SPA. Toàn bộ ứng dụng bắt đầu từ <code>main.jsx</code>, bọc các provider cần thiết rồi render <code>App</code>. State dùng chung được quản lý trong Redux store. Các page không gọi Redux trực tiếp mà nhận dữ liệu và callback thông qua object <code>shop</code> từ hook <code>useShopState</code>.</p>
+
+  <pre>
+main.jsx
+  └── Provider Redux
+      └── LanguageProvider
+          └── BrowserRouter
+              └── App
+                  ├── Header
+                  ├── Notification
+                  ├── AppRoutes
+                  ├── LoginModal
+                  └── Footer
+  </pre>
+
+  <h2>2. Luồng khởi động ứng dụng</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Bước</th>
+        <th>File</th>
+        <th>Mô tả</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><code>src/main.jsx</code></td>
+        <td>Import CSS toàn cục, tạo React root, bọc ứng dụng bằng <code>Provider</code>, <code>LanguageProvider</code> và <code>BrowserRouter</code>.</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><code>src/store/shopStore.js</code></td>
+        <td>Tạo Redux store, ghép các reducer: cart, catalog, notice, orders, reviews, ui, user.</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><code>src/App.jsx</code></td>
+        <td>Gọi <code>useShopState()</code> để lấy toàn bộ state và actions dùng cho UI.</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><code>src/routes/AppRoutes.jsx</code></td>
+        <td>Khai báo route và truyền dữ liệu/actions xuống từng page.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Cấu trúc thư mục client</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Thư mục</th>
+        <th>Vai trò</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>components/</code></td>
+        <td>Các component dùng chung như Header, Footer, Notification, LoginModal, OrderSummary.</td>
+      </tr>
+      <tr>
+        <td><code>pages/</code></td>
+        <td>Các màn hình chính: Home, Shop, Product, Cart, Checkout, Payment, Contact, Account, Auth, Admin.</td>
+      </tr>
+      <tr>
+        <td><code>routes/</code></td>
+        <td>Khai báo route app và xử lý route sản phẩm dạng slug.</td>
+      </tr>
+      <tr>
+        <td><code>store/</code></td>
+        <td>Redux store và các slice state.</td>
+      </tr>
+      <tr>
+        <td><code>hooks/</code></td>
+        <td>Hook tổng hợp state/actions cho app. Nhóm <code>hooks/shop/</code> chứa derived state, side effects và action handlers.</td>
+      </tr>
+      <tr>
+        <td><code>services/</code></td>
+        <td>Lớp gọi API backend, xử lý token, auth localStorage.</td>
+      </tr>
+      <tr>
+        <td><code>i18n/</code></td>
+        <td>Context đổi ngôn ngữ Việt/Anh.</td>
+      </tr>
+      <tr>
+        <td><code>styles/</code></td>
+        <td>CSS tách theo khu vực giao diện.</td>
+      </tr>
+      <tr>
+        <td><code>utils/</code></td>
+        <td>Hàm tiện ích: định dạng tiền, slug sản phẩm, nhãn danh mục.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Redux store và slices</h2>
+
+  <p>Redux store được cấu hình trong <code>src/store/shopStore.js</code>. File này chỉ ghép reducer và export action groups. Logic từng phần nằm trong <code>src/store/slices/</code>.</p>
+
+  <p style="text-align:center;">
+    <img src="client-redux-overview.svg" alt="Sơ đồ tổng quan luồng Redux trong client" style="width:100%; max-width:720pt;">
+  </p>
+  <p class="muted" style="text-align:center;">Hình 1. Tổng quan cách Page, useShopState, Redux Store và shopApi phối hợp.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Slice</th>
+        <th>State chính</th>
+        <th>Vai trò</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>catalogSlice</code></td>
+        <td><code>products</code>, <code>categories</code>, <code>category</code>, <code>query</code>, <code>sortOrder</code></td>
+        <td>Quản lý danh sách sản phẩm, danh mục, từ khóa tìm kiếm và sắp xếp.</td>
+      </tr>
+      <tr>
+        <td><code>cartSlice</code></td>
+        <td><code>items</code></td>
+        <td>Quản lý giỏ hàng phía client và đồng bộ với backend khi user đăng nhập.</td>
+      </tr>
+      <tr>
+        <td><code>userSlice</code></td>
+        <td><code>current</code></td>
+        <td>Lưu user hiện tại. Giá trị khởi tạo lấy từ localStorage.</td>
+      </tr>
+      <tr>
+        <td><code>ordersSlice</code></td>
+        <td><code>current</code>, <code>history</code></td>
+        <td>Lưu đơn hàng vừa thanh toán và lịch sử đơn hàng.</td>
+      </tr>
+      <tr>
+        <td><code>reviewsSlice</code></td>
+        <td><code>items</code></td>
+        <td>Lưu danh sách đánh giá sản phẩm.</td>
+      </tr>
+      <tr>
+        <td><code>noticeSlice</code></td>
+        <td><code>message</code></td>
+        <td>Lưu thông báo đang hiển thị.</td>
+      </tr>
+      <tr>
+        <td><code>uiSlice</code></td>
+        <td><code>showReviewLogin</code></td>
+        <td>Quản lý trạng thái UI như popup đăng nhập khi đánh giá.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>4.1 Vai trò của Redux trong dự án</h3>
+
+  <p>Redux được dùng cho các dữ liệu cần chia sẻ giữa nhiều màn hình hoặc cần đồng bộ với API. Ví dụ: giỏ hàng được dùng ở Header, CartPage, CheckoutPage; user được dùng ở Header, AccountPage, Admin route; catalog được dùng ở HomePage, ShopPage, ProductSlugRoute và admin sau khi thay đổi sản phẩm.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Loại dữ liệu</th>
+        <th>Có đưa vào Redux không?</th>
+        <th>Lý do</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>User hiện tại</td>
+        <td>Có</td>
+        <td>Nhiều khu vực cần biết trạng thái đăng nhập và role admin.</td>
+      </tr>
+      <tr>
+        <td>Catalog sản phẩm</td>
+        <td>Có</td>
+        <td>Dùng cho Home, Shop, Product route, cart lines và reload sau thao tác admin.</td>
+      </tr>
+      <tr>
+        <td>Giỏ hàng</td>
+        <td>Có</td>
+        <td>Header cần count, CartPage cần item, CheckoutPage cần tổng tiền.</td>
+      </tr>
+      <tr>
+        <td>Thông báo</td>
+        <td>Có</td>
+        <td>Action từ bất kỳ màn hình nào đều có thể hiển thị Notification ở App.</td>
+      </tr>
+      <tr>
+        <td>Ngôn ngữ Việt/Anh</td>
+        <td>Không</td>
+        <td>Được quản lý bằng LanguageContext riêng vì đây là state UI độc lập.</td>
+      </tr>
+      <tr>
+        <td>Form input tạm thời</td>
+        <td>Không</td>
+        <td>Form dùng DOM/FormData hoặc local component state, không cần chia sẻ toàn app.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Luồng đọc state từ Redux</h3>
+
+  <pre>
+Redux store
+  → useShopDerivedState dùng useSelector()
+  → tính dữ liệu dẫn xuất:
+      - filteredProducts
+      - cartLines
+      - subtotal / shipping / total
+  → useShopState trả về object shop
+  → AppRoutes truyền shop xuống từng page
+  → Page render UI
+  </pre>
+
+  <p>Page hiện tại không tự gọi <code>useSelector</code>. Điều này giúp page đơn giản hơn và giữ logic Redux tập trung tại lớp hook.</p>
+
+  <h3>4.3 Luồng ghi state vào Redux</h3>
+
+  <pre>
+User thao tác UI
+  → Page gọi callback trong props
+  → callback nằm trong shop.actions
+  → useShopActions chọn action handler phù hợp
+  → dispatch(sliceActions.someAction(payload))
+  → reducer cập nhật state
+  → component dùng state đó tự render lại
+  </pre>
+
+  <p>Nếu thao tác cần backend, action handler thường cập nhật optimistic state trước, sau đó gọi API và đồng bộ lại bằng response từ server. Ví dụ: thêm giỏ hàng sẽ dispatch local trước để UI phản hồi nhanh, rồi nếu user đăng nhập thì gọi <code>shopApi.addCartItem()</code>.</p>
+
+  <h3>4.4 Chi tiết từng slice</h3>
+
+  <h4>catalogSlice</h4>
+  <pre>
+State:
+  products: danh sách sản phẩm hiện tại
+  categories: danh sách danh mục
+  category: danh mục đang chọn
+  query: từ khóa tìm kiếm
+  sortOrder: kiểu sắp xếp
+
+Actions:
+  setCatalog(data)
+  setCategory(category)
+  setQuery(query)
+  setSortOrder(sortOrder)
+  </pre>
+  <p>Slice này không trực tiếp tính danh sách đã lọc. Việc lọc/sắp xếp nằm trong <code>useShopDerivedState</code> để tránh lưu dữ liệu trùng trong store.</p>
+
+  <h4>cartSlice</h4>
+  <pre>
+State:
+  items: [{ productId, quantity }]
+
+Actions:
+  setCart(cart)
+  addCartItem({ productId, quantity })
+  updateCartItem({ productId, quantity })
+  removeCartItem(productId)
+  clearCart()
+  </pre>
+  <p>Store chỉ lưu productId và quantity. Thông tin sản phẩm đầy đủ được ghép từ <code>catalog.products</code> thành <code>cartLines</code> trong derived state.</p>
+
+  <h4>userSlice</h4>
+  <pre>
+State:
+  current: user hoặc null
+
+Actions:
+  setUser(user)
+  clearUser()
+  </pre>
+  <p>Initial state lấy từ <code>localStorage</code> qua <code>getStoredUser()</code>, sau đó <code>useShopEffects</code> refresh lại bằng API <code>/me</code> nếu có token.</p>
+
+  <h4>ordersSlice</h4>
+  <pre>
+State:
+  current: đơn hàng vừa tạo
+  history: lịch sử đơn hàng của user
+
+Actions:
+  setCurrentOrder(order)
+  setOrders(orders)
+  prependOrder(order)
+  </pre>
+
+  <h4>reviewsSlice</h4>
+  <pre>
+State:
+  items: danh sách review
+
+Actions:
+  setReviews(reviews)
+  prependReview(review)
+  </pre>
+
+  <h4>noticeSlice</h4>
+  <pre>
+State:
+  message: text thông báo
+
+Actions:
+  setNotice(message)
+  </pre>
+
+  <h4>uiSlice</h4>
+  <pre>
+State:
+  showReviewLogin: boolean
+
+Actions:
+  setShowReviewLogin(boolean)
+  </pre>
+
+  <h3>4.5 Quy tắc cập nhật Redux trong dự án</h3>
+
+  <ul>
+    <li>Không dispatch trực tiếp trong page nếu logic đó có thể dùng lại. Page nên gọi callback trong <code>shop.actions</code>.</li>
+    <li>Reducer chỉ cập nhật state đơn giản, không gọi API trong reducer.</li>
+    <li>API call nằm trong action handlers hoặc effects.</li>
+    <li>Dữ liệu dẫn xuất không lưu lại trong store nếu có thể tính từ state gốc.</li>
+    <li>Thông báo lỗi/thành công dùng <code>noticeActions.setNotice()</code>.</li>
+  </ul>
+
+  <h2>5. Hook trung tâm useShopState</h2>
+
+  <p><code>useShopState</code> là lớp kết nối giữa Redux, router, API và UI. File này không còn chứa toàn bộ logic chi tiết mà ghép ba nhóm hook nhỏ hơn:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Hook</th>
+        <th>Vai trò</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>useShopDerivedState</code></td>
+        <td>Đọc Redux bằng <code>useSelector</code>, tính <code>filteredProducts</code>, <code>cartLines</code>, <code>subtotal</code>, <code>shipping</code>, <code>total</code>.</td>
+      </tr>
+      <tr>
+        <td><code>useShopEffects</code></td>
+        <td>Chạy side effects: refresh profile, tải sản phẩm, tải reviews, tải orders, đồng bộ cart.</td>
+      </tr>
+      <tr>
+        <td><code>useShopActions</code></td>
+        <td>Ghép các action handlers theo domain để truyền xuống pages/components.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.1 useShopState trả về những gì?</h3>
+
+  <pre>
+useShopState() returns:
+  authMessage
+  cart, cartLines
+  categories, category, filteredProducts
+  order, orders
+  products, query, reviews
+  shipping, subtotal, total
+  showReviewLogin
+  sortOrder
+  user
+  actions
+  </pre>
+
+  <p>Object trả về được đặt tên là <code>shop</code> trong <code>App.jsx</code>. Đây là contract chính giữa state layer và UI layer.</p>
+
+  <h3>5.2 useShopDerivedState</h3>
+
+  <p>Hook này đọc Redux store bằng <code>useSelector</code>. Sau đó dùng <code>useMemo</code> để tính các dữ liệu dẫn xuất.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Dữ liệu dẫn xuất</th>
+        <th>Nguồn</th>
+        <th>Cách tính</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>filteredProducts</code></td>
+        <td><code>catalog.products</code>, <code>catalog.query</code>, <code>catalog.category</code>, <code>catalog.sortOrder</code></td>
+        <td>Lọc theo từ khóa, lọc danh mục, sắp xếp theo giá nếu cần.</td>
+      </tr>
+      <tr>
+        <td><code>cartLines</code></td>
+        <td><code>cart.items</code>, <code>catalog.products</code></td>
+        <td>Ghép productId trong cart với thông tin sản phẩm đầy đủ.</td>
+      </tr>
+      <tr>
+        <td><code>subtotal</code></td>
+        <td><code>cartLines</code></td>
+        <td>Tổng <code>price * quantity</code>.</td>
+      </tr>
+      <tr>
+        <td><code>shipping</code></td>
+        <td><code>subtotal</code></td>
+        <td>Miễn phí nếu đơn từ 1.200.000đ hoặc giỏ rỗng, ngược lại 35.000đ.</td>
+      </tr>
+      <tr>
+        <td><code>total</code></td>
+        <td><code>subtotal</code>, <code>shipping</code></td>
+        <td>Tổng thanh toán.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 useShopEffects</h3>
+
+  <p>Hook này xử lý những side effect tự chạy theo vòng đời app hoặc theo user hiện tại.</p>
+
+  <p style="text-align:center;">
+    <img src="client-redux-initial-load.svg" alt="Sơ đồ tải dữ liệu ban đầu bằng Redux effects" style="width:100%; max-width:720pt;">
+  </p>
+  <p class="muted" style="text-align:center;">Hình 2. Luồng tải dữ liệu ban đầu và dispatch vào Redux store.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Effect</th>
+        <th>Điều kiện chạy</th>
+        <th>Kết quả Redux</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Refresh profile</td>
+        <td>Khi app mount và có token.</td>
+        <td><code>userActions.setUser()</code> hoặc <code>userActions.clearUser()</code>.</td>
+      </tr>
+      <tr>
+        <td>Load products</td>
+        <td>Khi app mount và khi event <code>marseille04:catalog-changed</code> được dispatch.</td>
+        <td><code>catalogActions.setCatalog()</code>.</td>
+      </tr>
+      <tr>
+        <td>Load reviews</td>
+        <td>Khi app mount.</td>
+        <td><code>reviewsActions.setReviews()</code>.</td>
+      </tr>
+      <tr>
+        <td>Load orders</td>
+        <td>Khi user đăng nhập hoặc đổi email.</td>
+        <td><code>ordersActions.setOrders()</code>.</td>
+      </tr>
+      <tr>
+        <td>Sync cart</td>
+        <td>Khi user đăng nhập lần đầu trong session.</td>
+        <td><code>cartActions.setCart()</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>5.4 useShopActions</h3>
+
+  <p>Hook này chỉ ghép các nhóm action theo domain. Mỗi domain có file riêng trong <code>hooks/shop/actions/</code>.</p>
+
+  <pre>
+useShopActions
+  ├── useAuthActions
+  ├── useCartActions
+  ├── useCatalogActions
+  ├── useCheckoutActions
+  ├── useContactActions
+  └── useReviewActions
+  </pre>
+
+  <p style="text-align:center;">
+    <img src="client-redux-action-flow.svg" alt="Sơ đồ ví dụ luồng action thêm sản phẩm vào giỏ" style="width:100%; max-width:720pt;">
+  </p>
+  <p class="muted" style="text-align:center;">Hình 3. Ví dụ action flow khi người dùng thêm sản phẩm vào giỏ.</p>
+
+  <h3>5.5 Lý do không gọi Redux trực tiếp ở mọi page</h3>
+
+  <p>Các page hiện tại nhận props từ route thay vì tự dùng <code>useSelector</code> và <code>useDispatch</code>. Cách này giúp:</p>
+
+  <ul>
+    <li>Page dễ đọc vì chỉ biết dữ liệu và callback cần dùng.</li>
+    <li>Redux logic tập trung ở hook, dễ thay đổi mà ít ảnh hưởng UI.</li>
+    <li>Dễ test/đổi page vì page không phụ thuộc trực tiếp vào store structure.</li>
+    <li>Giảm nguy cơ dispatch sai action hoặc gọi API rải rác trong component.</li>
+  </ul>
+
+  <h2>6. Nhóm action handlers</h2>
+
+  <p>Các handlers nghiệp vụ được tách trong <code>src/hooks/shop/actions/</code>:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Luồng xử lý</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>useCatalogActions.js</code></td>
+        <td>Điều hướng sản phẩm, chọn danh mục, set query, set sort, route legacy.</td>
+      </tr>
+      <tr>
+        <td><code>useCartActions.js</code></td>
+        <td>Thêm, sửa số lượng, xóa, clear giỏ hàng. Nếu user đăng nhập thì gọi API cart.</td>
+      </tr>
+      <tr>
+        <td><code>useAuthActions.js</code></td>
+        <td>Đăng nhập, đăng ký, đăng nhập từ popup review, logout, cập nhật profile.</td>
+      </tr>
+      <tr>
+        <td><code>useReviewActions.js</code></td>
+        <td>Gửi đánh giá. Nếu chưa đăng nhập thì mở popup login.</td>
+      </tr>
+      <tr>
+        <td><code>useCheckoutActions.js</code></td>
+        <td>Tạo đơn hàng, lưu order hiện tại, thêm vào lịch sử, clear cart, chuyển sang trang payment.</td>
+      </tr>
+      <tr>
+        <td><code>useContactActions.js</code></td>
+        <td>Gửi form liên hệ tới backend và hiển thị thông báo.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>7. Luồng route và page</h2>
+
+  <p><code>AppRoutes.jsx</code> nhận object <code>shop</code> từ <code>App.jsx</code>. Mỗi route truyền đúng dữ liệu và callback cần dùng vào page.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Route</th>
+        <th>Page</th>
+        <th>Dữ liệu/actions chính</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/</code></td>
+        <td><code>HomePage</code></td>
+        <td>Sản phẩm, danh mục, thêm giỏ, mở sản phẩm, chuyển shop.</td>
+      </tr>
+      <tr>
+        <td><code>/shop</code></td>
+        <td><code>ShopPage</code></td>
+        <td>Danh sách đã lọc, query, category, sortOrder, thêm giỏ, xem sản phẩm.</td>
+      </tr>
+      <tr>
+        <td><code>/cart</code></td>
+        <td><code>CartPage</code></td>
+        <td>cartLines, subtotal, shipping, total, update quantity, remove.</td>
+      </tr>
+      <tr>
+        <td><code>/checkout</code></td>
+        <td><code>CheckoutPage</code></td>
+        <td>Thông tin giỏ hàng, user, submit checkout.</td>
+      </tr>
+      <tr>
+        <td><code>/payment</code></td>
+        <td><code>PaymentPage</code></td>
+        <td>Order vừa tạo, tiếp tục mua sắm.</td>
+      </tr>
+      <tr>
+        <td><code>/contact</code></td>
+        <td><code>ContactPage</code></td>
+        <td>Submit contact.</td>
+      </tr>
+      <tr>
+        <td><code>/account</code></td>
+        <td><code>AccountPage</code></td>
+        <td>User, cart count, order history, submit profile.</td>
+      </tr>
+      <tr>
+        <td><code>/login</code>, <code>/register</code></td>
+        <td><code>AuthPage</code></td>
+        <td>Submit auth theo mode.</td>
+      </tr>
+      <tr>
+        <td><code>/admin/*</code></td>
+        <td><code>StoreAdminPage</code></td>
+        <td>Chỉ render khi <code>shop.user.role === 'admin'</code>, nếu không redirect.</td>
+      </tr>
+      <tr>
+        <td><code>*</code></td>
+        <td><code>ProductSlugRoute</code></td>
+        <td>Xử lý slug sản phẩm, hiển thị ProductPage hoặc redirect legacy.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>8. Luồng API service</h2>
+
+  <p><code>src/services/shopApi.js</code> là lớp duy nhất chịu trách nhiệm gọi backend. Các action handlers không gọi <code>fetch</code> trực tiếp mà gọi qua <code>shopApi</code>.</p>
+
+  <pre>
+Page event
+  → action handler trong hooks/shop/actions
+    → shopApi.method()
+      → request()
+        → fetch(API_URL + path)
+        → gắn Authorization Bearer token nếu có
+        → parse JSON response
+        → throw Error nếu response không ok
+  </pre>
+
+  <p>Các key localStorage liên quan auth:</p>
+  <ul>
+    <li><code>marseille04_token</code>: JWT token.</li>
+    <li><code>marseille04_user</code>: thông tin user hiện tại.</li>
+  </ul>
+
+  <h2>9. Luồng tải dữ liệu ban đầu</h2>
+
+  <h3>9.1 Refresh user</h3>
+  <pre>
+useShopEffects
+  → kiểm tra getToken()
+  → shopApi.getProfile()
+  → dispatch(userActions.setUser(user))
+  → nếu lỗi: clearAuth(), dispatch(userActions.clearUser())
+  </pre>
+
+  <h3>9.2 Tải catalog</h3>
+  <pre>
+useShopEffects
+  → shopApi.listProducts()
+  → dispatch(catalogActions.setCatalog(data))
+  → lắng nghe event "marseille04:catalog-changed"
+  → khi admin thêm/sửa/xóa sản phẩm, catalog tự reload
+  </pre>
+
+  <h3>9.3 Tải review</h3>
+  <pre>
+useShopEffects
+  → shopApi.listReviews()
+  → dispatch(reviewsActions.setReviews(data.reviews))
+  </pre>
+
+  <h3>9.4 Tải lịch sử đơn hàng</h3>
+  <pre>
+user đăng nhập
+  → shopApi.listMyOrders()
+  → dispatch(ordersActions.setOrders(data.orders))
+
+user logout
+  → dispatch(ordersActions.setOrders([]))
+  </pre>
+
+  <h3>9.5 Đồng bộ giỏ hàng</h3>
+  <pre>
+user đăng nhập
+  → đẩy cart local hiện tại lên backend bằng shopApi.addCartItem()
+  → shopApi.getCart()
+  → dispatch(cartActions.setCart(data.cart))
+  </pre>
+
+  <h2>10. Luồng nghiệp vụ chính</h2>
+
+  <p>Mỗi luồng bên dưới có một sơ đồ riêng để mô tả đường đi của thao tác từ UI, qua action/hook, tới Redux store, API backend và kết quả render lại trên giao diện.</p>
+
+  <h3>10.1 Tìm kiếm, lọc và sắp xếp sản phẩm</h3>
+  <figure class="flow-diagram">
+    <img src="flow-search-filter.svg" alt="Sơ đồ luồng tìm kiếm, lọc và sắp xếp sản phẩm">
+    <figcaption>Hình 4. Luồng tìm kiếm, lọc và sắp xếp sản phẩm trong ShopPage.</figcaption>
+  </figure>
+  <pre>
+ShopPage input/select
+  → actions.setQuery / setCategory / setSortOrder
+  → dispatch catalogActions
+  → Redux catalog state thay đổi
+  → useShopDerivedState tính lại filteredProducts
+  → ShopPage render lại danh sách
+  </pre>
+
+  <h3>10.2 Mở chi tiết sản phẩm</h3>
+  <figure class="flow-diagram">
+    <img src="flow-product-detail.svg" alt="Sơ đồ luồng mở chi tiết sản phẩm">
+    <figcaption>Hình 5. Luồng điều hướng từ danh sách sản phẩm sang ProductPage bằng slug có id mã hóa.</figcaption>
+  </figure>
+  <pre>
+User click sản phẩm
+  → actions.goToProduct(productId)
+  → tìm product trong catalog.products
+  → createProductPath(product)
+  → navigate(slug)
+  → ProductSlugRoute parse slug
+  → ProductPage render thông tin sản phẩm
+  </pre>
+
+  <h3>10.3 Thêm sản phẩm vào giỏ</h3>
+  <figure class="flow-diagram">
+    <img src="flow-cart.svg" alt="Sơ đồ luồng quản lý giỏ hàng">
+    <figcaption>Hình 6. Luồng thêm, cập nhật và xóa sản phẩm trong giỏ hàng, bao gồm đồng bộ backend khi đã đăng nhập.</figcaption>
+  </figure>
+  <pre>
+User click "Thêm vào giỏ"
+  → actions.addToCart(productId)
+  → dispatch(cartActions.addCartItem)
+  → nếu đã đăng nhập: shopApi.addCartItem()
+  → dispatch(cartActions.setCart(data.cart))
+  → navigate('/cart')
+  </pre>
+
+  <h3>10.4 Cập nhật/xóa giỏ hàng</h3>
+  <figure class="flow-diagram">
+    <img src="flow-cart-update.svg" alt="Sơ đồ luồng cập nhật hoặc xóa giỏ hàng">
+    <figcaption>Hình 7. Luồng cập nhật số lượng hoặc xóa sản phẩm trong giỏ hàng.</figcaption>
+  </figure>
+  <pre>
+CartPage
+  → onUpdateQuantity / onRemove
+  → dispatch update/remove local trước
+  → nếu user đăng nhập thì gọi API tương ứng
+  → backend trả cart mới
+  → dispatch(cartActions.setCart(data.cart))
+  </pre>
+
+  <h3>10.5 Đăng nhập/đăng ký</h3>
+  <figure class="flow-diagram">
+    <img src="flow-auth.svg" alt="Sơ đồ luồng đăng nhập và đăng ký">
+    <figcaption>Hình 8. Luồng xác thực người dùng, lưu token và cập nhật user trong Redux.</figcaption>
+  </figure>
+  <pre>
+AuthPage submit
+  → actions.handleAuth(event, mode)
+  → shopApi.login hoặc shopApi.register
+  → saveAuth(data) lưu token + user vào localStorage
+  → dispatch(userActions.setUser(data.user))
+  → setNotice(data.message)
+  → navigate('/')
+  </pre>
+
+  <h3>10.6 Đánh giá sản phẩm</h3>
+  <figure class="flow-diagram">
+    <img src="flow-review.svg" alt="Sơ đồ luồng đánh giá sản phẩm">
+    <figcaption>Hình 9. Luồng gửi đánh giá sản phẩm, bao gồm popup đăng nhập khi người dùng chưa xác thực.</figcaption>
+  </figure>
+  <pre>
+ProductPage submit review
+  → actions.submitReview(event, product)
+  → nếu chưa đăng nhập: dispatch(uiActions.setShowReviewLogin(true))
+  → LoginModal hiển thị
+  → nếu đã đăng nhập: shopApi.createReview()
+  → dispatch(reviewsActions.prependReview(data.review))
+  → setNotice(data.message)
+  </pre>
+
+  <h3>10.7 Đặt hàng và thanh toán</h3>
+  <figure class="flow-diagram">
+    <img src="flow-checkout.svg" alt="Sơ đồ luồng đặt hàng và thanh toán">
+    <figcaption>Hình 10. Luồng checkout, tạo đơn hàng, xóa giỏ và chuyển sang trang thanh toán.</figcaption>
+  </figure>
+  <pre>
+CheckoutPage submit
+  → actions.submitCheckout()
+  → shopApi.createOrder({ customer, payment, items: cart })
+  → dispatch(ordersActions.setCurrentOrder(data.order))
+  → dispatch(ordersActions.prependOrder(data.order))
+  → clearCart()
+  → navigate('/payment')
+  </pre>
+
+  <h3>10.8 Gửi liên hệ</h3>
+  <figure class="flow-diagram">
+    <img src="flow-contact.svg" alt="Sơ đồ luồng gửi liên hệ">
+    <figcaption>Hình 11. Luồng gửi thông tin liên hệ từ ContactPage tới backend và hiển thị thông báo.</figcaption>
+  </figure>
+  <pre>
+ContactPage submit
+  → actions.submitContact()
+  → shopApi.sendContact()
+  → setNotice(data.message)
+  → reset form
+  </pre>
+
+  <h3>10.9 Trang quản lý admin</h3>
+  <figure class="flow-diagram">
+    <img src="flow-admin.svg" alt="Sơ đồ luồng trang quản lý admin">
+    <figcaption>Hình 12. Luồng kiểm tra quyền admin, tải dữ liệu quản lý và đồng bộ catalog sau thao tác sản phẩm.</figcaption>
+  </figure>
+  <pre>
+User truy cập /admin/*
+  → AppRoutes kiểm tra shop.user?.role === 'admin'
+  → nếu đúng: render StoreAdminPage(section)
+  → nếu sai: redirect /account hoặc /login
+
+StoreAdminPage
+  → tự gọi admin APIs theo section
+  → thao tác thêm/sửa/xóa sản phẩm
+  → dispatch event "marseille04:catalog-changed"
+  → catalog client tự tải lại
+  </pre>
+
+  <h2>11. Luồng đa ngôn ngữ</h2>
+
+  <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.jsx</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
+
+  <pre>
+Header click EN/VI
+  → useLanguage().toggleLanguage()
+  → set localStorage "marseille04_language"
+  → update document.documentElement.lang
+  → các component dùng t(key) render lại
+  </pre>
+
+  <h2>12. Quy ước khi phát triển tiếp</h2>
+
+  <ul>
+    <li>Nếu thêm state dùng chung toàn app, tạo slice mới trong <code>store/slices/</code> hoặc mở rộng slice phù hợp.</li>
+    <li>Nếu thêm action nghiệp vụ, đặt vào <code>hooks/shop/actions/</code> theo domain.</li>
+    <li>Page/component nên nhận props từ <code>AppRoutes</code>, hạn chế gọi API trực tiếp trong page nếu nghiệp vụ dùng chung.</li>
+    <li>API call nên đi qua <code>shopApi</code>, không gọi <code>fetch</code> rải rác.</li>
+    <li>Text UI mới cần thêm key ở cả tiếng Việt và tiếng Anh trong <code>LanguageContext.jsx</code>.</li>
+    <li>Admin route mới phải kiểm tra quyền ở frontend và backend.</li>
+  </ul>
+
+  <h2>13. Sơ đồ phụ thuộc ngắn gọn</h2>
+
+  <pre>
+UI Page/Component
+  ↓ props
+AppRoutes
+  ↓ shop object
+App
+  ↓ useShopState
+useShopDerivedState + useShopEffects + useShopActions
+  ↓
+Redux Store + shopApi + React Router
+  ↓
+Backend API
+  </pre>
+
+  <p class="muted">Tài liệu này mô tả trạng thái client hiện tại sau khi đã tích hợp Redux và tách logic thành các file nhỏ.</p>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="430" viewBox="0 0 1100 430">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9333ea"/></marker></defs>
+  <style>.box{fill:#faf5ff;stroke:#9333ea;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#9333ea;stroke-width:3;marker-end:url(#a);fill:none}</style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng đăng nhập / đăng ký và lưu user vào Redux</text>
+  <rect x="45" y="105" width="180" height="95" class="box"/><text x="135" y="140" text-anchor="middle" class="t">AuthPage</text><text x="135" y="166" text-anchor="middle" class="s">submit form</text>
+  <rect x="285" y="105" width="205" height="95" class="box"/><text x="387" y="138" text-anchor="middle" class="t">useAuthActions</text><text x="387" y="166" text-anchor="middle" class="s">handleAuth(mode)</text>
+  <rect x="550" y="105" width="190" height="95" class="api"/><text x="645" y="138" text-anchor="middle" class="t">Auth API</text><text x="645" y="166" text-anchor="middle" class="s">/login hoặc /register</text>
+  <rect x="800" y="90" width="230" height="125" class="store"/><text x="915" y="126" text-anchor="middle" class="t">Auth storage</text><text x="915" y="154" text-anchor="middle" class="s">saveAuth(token, user)</text><text x="915" y="178" text-anchor="middle" class="s">userActions.setUser</text>
+  <rect x="330" y="300" width="210" height="85" class="box"/><text x="435" y="333" text-anchor="middle" class="t">setNotice</text><text x="435" y="358" text-anchor="middle" class="s">hiển thị thông báo</text>
+  <rect x="650" y="300" width="210" height="85" class="box"/><text x="755" y="333" text-anchor="middle" class="t">navigate('/')</text><text x="755" y="358" text-anchor="middle" class="s">về trang chủ</text>
+  <path d="M225 152 H285" class="ar"/><path d="M490 152 H550" class="ar"/><path d="M740 152 H800" class="ar"/><path d="M855 215 C780 280 610 330 540 340" class="ar"/><path d="M860 340 H650" class="ar"/>
+</svg>

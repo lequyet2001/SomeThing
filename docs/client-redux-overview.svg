@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .box{fill:#f8fafc;stroke:#94a3b8;stroke-width:2;rx:14}
+      .store{fill:#ecfdf5;stroke:#0f766e;stroke-width:2;rx:14}
+      .text{font-family:Arial, sans-serif;font-size:20px;fill:#111827}
+      .small{font-family:Arial, sans-serif;font-size:15px;fill:#334155}
+      .title{font-family:Arial, sans-serif;font-size:24px;font-weight:700;fill:#0f172a}
+      .arrow{stroke:#0f766e;stroke-width:3;marker-end:url(#arrow);fill:none}
+    </style>
+  </defs>
+
+  <text x="550" y="42" text-anchor="middle" class="title">Sơ đồ tổng quan luồng Redux trong client</text>
+
+  <rect x="40" y="90" width="220" height="110" class="box"/>
+  <text x="150" y="130" text-anchor="middle" class="text">Page / Component</text>
+  <text x="150" y="160" text-anchor="middle" class="small">Home, Shop, Cart, Product...</text>
+
+  <rect x="330" y="90" width="220" height="110" class="box"/>
+  <text x="440" y="130" text-anchor="middle" class="text">useShopState</text>
+  <text x="440" y="160" text-anchor="middle" class="small">gom state + actions</text>
+
+  <rect x="640" y="70" width="400" height="150" class="store"/>
+  <text x="840" y="110" text-anchor="middle" class="text">Redux Store</text>
+  <text x="840" y="140" text-anchor="middle" class="small">cart, catalog, user, orders</text>
+  <text x="840" y="165" text-anchor="middle" class="small">reviews, notice, ui</text>
+
+  <rect x="330" y="290" width="220" height="110" class="box"/>
+  <text x="440" y="330" text-anchor="middle" class="text">Action handlers</text>
+  <text x="440" y="360" text-anchor="middle" class="small">auth, cart, checkout...</text>
+
+  <rect x="640" y="290" width="190" height="110" class="box"/>
+  <text x="735" y="330" text-anchor="middle" class="text">shopApi</text>
+  <text x="735" y="360" text-anchor="middle" class="small">REST API calls</text>
+
+  <rect x="890" y="290" width="150" height="110" class="box"/>
+  <text x="965" y="330" text-anchor="middle" class="text">Backend</text>
+  <text x="965" y="360" text-anchor="middle" class="small">Express API</text>
+
+  <path d="M260 145 H330" class="arrow"/>
+  <path d="M550 145 H640" class="arrow"/>
+  <path d="M440 200 V290" class="arrow"/>
+  <path d="M550 345 H640" class="arrow"/>
+  <path d="M830 345 H890" class="arrow"/>
+  <path d="M735 290 V220" class="arrow"/>
+  <path d="M640 175 H555" class="arrow"/>
+  <path d="M330 170 H260" class="arrow"/>
+
+  <text x="295" y="132" text-anchor="middle" class="small">props</text>
+  <text x="595" y="132" text-anchor="middle" class="small">selector</text>
+  <text x="570" y="334" text-anchor="middle" class="small">call API</text>
+  <text x="865" y="334" text-anchor="middle" class="small">HTTP</text>
+  <text x="690" y="255" text-anchor="middle" class="small">dispatch result</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker></defs>
+  <style>.box{fill:#fef2f2;stroke:#dc2626;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#dc2626;stroke-width:3;marker-end:url(#a);fill:none}</style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng checkout và tạo đơn hàng</text>
+  <rect x="40" y="100" width="185" height="95" class="box"/><text x="132" y="135" text-anchor="middle" class="t">CheckoutPage</text><text x="132" y="162" text-anchor="middle" class="s">submit form</text>
+  <rect x="285" y="100" width="220" height="95" class="box"/><text x="395" y="133" text-anchor="middle" class="t">useCheckoutActions</text><text x="395" y="162" text-anchor="middle" class="s">submitCheckout</text>
+  <rect x="565" y="100" width="190" height="95" class="api"/><text x="660" y="133" text-anchor="middle" class="t">Order API</text><text x="660" y="162" text-anchor="middle" class="s">POST /orders</text>
+  <rect x="815" y="80" width="230" height="135" class="store"/><text x="930" y="118" text-anchor="middle" class="t">ordersSlice</text><text x="930" y="146" text-anchor="middle" class="s">setCurrentOrder</text><text x="930" y="170" text-anchor="middle" class="s">prependOrder</text>
+  <rect x="315" y="305" width="205" height="90" class="store"/><text x="417" y="340" text-anchor="middle" class="t">cartSlice</text><text x="417" y="366" text-anchor="middle" class="s">clearCart()</text>
+  <rect x="630" y="305" width="215" height="90" class="box"/><text x="737" y="340" text-anchor="middle" class="t">PaymentPage</text><text x="737" y="366" text-anchor="middle" class="s">navigate('/payment')</text>
+  <path d="M225 147 H285" class="ar"/><path d="M505 147 H565" class="ar"/><path d="M755 147 H815" class="ar"/><path d="M900 215 C820 290 560 320 520 345" class="ar"/><path d="M520 350 H630" class="ar"/>
+</svg>

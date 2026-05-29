@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="480" viewBox="0 0 1100 480">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker></defs>
+  <style>.box{fill:#f8fafc;stroke:#475569;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.ok{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#475569;stroke-width:3;marker-end:url(#a);fill:none}</style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng truy cập và thao tác trang quản lý admin</text>
+  <rect x="40" y="90" width="185" height="100" class="box"/><text x="132" y="128" text-anchor="middle" class="t">/admin/*</text><text x="132" y="156" text-anchor="middle" class="s">React Router</text>
+  <rect x="285" y="90" width="220" height="100" class="box"/><text x="395" y="126" text-anchor="middle" class="t">Kiểm tra role</text><text x="395" y="154" text-anchor="middle" class="s">shop.user?.role === admin</text>
+  <rect x="565" y="90" width="220" height="100" class="ok"/><text x="675" y="126" text-anchor="middle" class="t">StoreAdminPage</text><text x="675" y="154" text-anchor="middle" class="s">section overview/orders...</text>
+  <rect x="845" y="90" width="205" height="100" class="api"/><text x="947" y="126" text-anchor="middle" class="t">Admin API</text><text x="947" y="154" text-anchor="middle" class="s">/admin/* + token</text>
+  <rect x="270" y="300" width="230" height="100" class="box"/><text x="385" y="338" text-anchor="middle" class="t">Không đủ quyền</text><text x="385" y="366" text-anchor="middle" class="s">redirect /login hoặc /account</text>
+  <rect x="610" y="300" width="270" height="100" class="ok"/><text x="745" y="338" text-anchor="middle" class="t">Sản phẩm thay đổi</text><text x="745" y="366" text-anchor="middle" class="s">dispatch catalog-changed event</text>
+  <path d="M225 140 H285" class="ar"/><path d="M505 140 H565" class="ar"/><path d="M785 140 H845" class="ar"/><path d="M395 190 V300" class="ar"/><path d="M675 190 C660 260 700 285 745 300" class="ar"/>
+</svg>

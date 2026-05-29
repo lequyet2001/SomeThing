@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420">
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/></marker></defs>
+  <style>
+    .box{fill:#f0fdfa;stroke:#0f766e;stroke-width:2;rx:12}.store{fill:#ecfeff;stroke:#0891b2;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#0f766e;stroke-width:3;marker-end:url(#a);fill:none}
+  </style>
+  <text x="550" y="40" text-anchor="middle" class="h">Luồng tìm kiếm, lọc danh mục và sắp xếp sản phẩm</text>
+  <rect x="35" y="100" width="180" height="95" class="box"/><text x="125" y="135" text-anchor="middle" class="t">ShopPage</text><text x="125" y="162" text-anchor="middle" class="s">input / select</text>
+  <rect x="275" y="100" width="205" height="95" class="box"/><text x="377" y="132" text-anchor="middle" class="t">shop.actions</text><text x="377" y="160" text-anchor="middle" class="s">setQuery / setCategory / setSortOrder</text>
+  <rect x="540" y="85" width="215" height="125" class="store"/><text x="647" y="120" text-anchor="middle" class="t">catalogSlice</text><text x="647" y="148" text-anchor="middle" class="s">query</text><text x="647" y="172" text-anchor="middle" class="s">category</text><text x="647" y="196" text-anchor="middle" class="s">sortOrder</text>
+  <rect x="815" y="100" width="235" height="95" class="box"/><text x="932" y="132" text-anchor="middle" class="t">useShopDerivedState</text><text x="932" y="160" text-anchor="middle" class="s">tính filteredProducts</text>
+  <rect x="395" y="285" width="310" height="85" class="box"/><text x="550" y="320" text-anchor="middle" class="t">ShopPage render lại catalog</text><text x="550" y="346" text-anchor="middle" class="s">không gọi API khi filter nội bộ</text>
+  <path d="M215 147 H275" class="ar"/><path d="M480 147 H540" class="ar"/><path d="M755 147 H815" class="ar"/><path d="M932 195 C910 270 720 315 705 325" class="ar"/><path d="M395 325 C250 315 140 250 125 195" class="ar"/>
+</svg>

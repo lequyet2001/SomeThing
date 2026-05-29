@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="500" viewBox="0 0 1100 500">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      .box{fill:#f5f3ff;stroke:#7c3aed;stroke-width:2;rx:12}
+      .store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}
+      .text{font-family:Arial, sans-serif;font-size:19px;fill:#111827}
+      .small{font-family:Arial, sans-serif;font-size:14px;fill:#334155}
+      .title{font-family:Arial, sans-serif;font-size:24px;font-weight:700;fill:#0f172a}
+      .arrow{stroke:#7c3aed;stroke-width:3;marker-end:url(#arrow);fill:none}
+    </style>
+  </defs>
+
+  <text x="550" y="42" text-anchor="middle" class="title">Luồng tải dữ liệu ban đầu trong useShopEffects</text>
+
+  <rect x="60" y="90" width="190" height="90" class="box"/>
+  <text x="155" y="126" text-anchor="middle" class="text">App mount</text>
+  <text x="155" y="152" text-anchor="middle" class="small">useShopState chạy</text>
+
+  <rect x="320" y="70" width="220" height="130" class="box"/>
+  <text x="430" y="104" text-anchor="middle" class="text">useShopEffects</text>
+  <text x="430" y="132" text-anchor="middle" class="small">refresh profile</text>
+  <text x="430" y="156" text-anchor="middle" class="small">load products</text>
+  <text x="430" y="180" text-anchor="middle" class="small">load reviews/orders/cart</text>
+
+  <rect x="620" y="70" width="210" height="130" class="box"/>
+  <text x="725" y="104" text-anchor="middle" class="text">shopApi</text>
+  <text x="725" y="132" text-anchor="middle" class="small">GET /me</text>
+  <text x="725" y="156" text-anchor="middle" class="small">GET /products</text>
+  <text x="725" y="180" text-anchor="middle" class="small">GET /reviews</text>
+
+  <rect x="890" y="70" width="170" height="130" class="store"/>
+  <text x="975" y="112" text-anchor="middle" class="text">Redux Store</text>
+  <text x="975" y="140" text-anchor="middle" class="small">setUser</text>
+  <text x="975" y="164" text-anchor="middle" class="small">setCatalog</text>
+  <text x="975" y="188" text-anchor="middle" class="small">setReviews</text>
+
+  <rect x="320" y="290" width="220" height="100" class="box"/>
+  <text x="430" y="328" text-anchor="middle" class="text">Derived state</text>
+  <text x="430" y="356" text-anchor="middle" class="small">filteredProducts, cartLines</text>
+
+  <rect x="620" y="290" width="210" height="100" class="box"/>
+  <text x="725" y="328" text-anchor="middle" class="text">UI render</text>
+  <text x="725" y="356" text-anchor="middle" class="small">Header, Routes, Pages</text>
+
+  <path d="M250 135 H320" class="arrow"/>
+  <path d="M540 135 H620" class="arrow"/>
+  <path d="M830 135 H890" class="arrow"/>
+  <path d="M975 200 C975 260 720 270 540 320" class="arrow"/>
+  <path d="M540 340 H620" class="arrow"/>
+
+  <text x="285" y="122" text-anchor="middle" class="small">hook</text>
+  <text x="580" y="122" text-anchor="middle" class="small">request</text>
+  <text x="860" y="122" text-anchor="middle" class="small">dispatch</text>
+</svg>

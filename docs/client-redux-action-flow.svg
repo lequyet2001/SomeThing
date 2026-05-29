@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .box{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:12}
+      .api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}
+      .store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}
+      .text{font-family:Arial, sans-serif;font-size:19px;fill:#111827}
+      .small{font-family:Arial, sans-serif;font-size:14px;fill:#334155}
+      .title{font-family:Arial, sans-serif;font-size:24px;font-weight:700;fill:#0f172a}
+      .arrow{stroke:#2563eb;stroke-width:3;marker-end:url(#arrow);fill:none}
+    </style>
+  </defs>
+
+  <text x="550" y="42" text-anchor="middle" class="title">Ví dụ luồng thêm sản phẩm vào giỏ hàng</text>
+
+  <rect x="40" y="90" width="190" height="100" class="box"/>
+  <text x="135" y="128" text-anchor="middle" class="text">ShopPage</text>
+  <text x="135" y="156" text-anchor="middle" class="small">click Thêm giỏ</text>
+
+  <rect x="285" y="90" width="230" height="100" class="box"/>
+  <text x="400" y="126" text-anchor="middle" class="text">actions.addToCart</text>
+  <text x="400" y="154" text-anchor="middle" class="small">useCartActions.js</text>
+
+  <rect x="570" y="80" width="230" height="120" class="store"/>
+  <text x="685" y="116" text-anchor="middle" class="text">cartSlice</text>
+  <text x="685" y="144" text-anchor="middle" class="small">dispatch addCartItem</text>
+  <text x="685" y="168" text-anchor="middle" class="small">UI cập nhật ngay</text>
+
+  <rect x="860" y="80" width="190" height="120" class="api"/>
+  <text x="955" y="116" text-anchor="middle" class="text">Backend API</text>
+  <text x="955" y="144" text-anchor="middle" class="small">POST /cart/items</text>
+  <text x="955" y="168" text-anchor="middle" class="small">nếu đã đăng nhập</text>
+
+  <rect x="285" y="310" width="230" height="100" class="box"/>
+  <text x="400" y="348" text-anchor="middle" class="text">navigate('/cart')</text>
+  <text x="400" y="376" text-anchor="middle" class="small">React Router</text>
+
+  <rect x="570" y="300" width="230" height="120" class="store"/>
+  <text x="685" y="336" text-anchor="middle" class="text">setCart(data.cart)</text>
+  <text x="685" y="364" text-anchor="middle" class="small">đồng bộ lại từ server</text>
+  <text x="685" y="388" text-anchor="middle" class="small">nếu API thành công</text>
+
+  <rect x="40" y="310" width="190" height="100" class="box"/>
+  <text x="135" y="348" text-anchor="middle" class="text">CartPage</text>
+  <text x="135" y="376" text-anchor="middle" class="small">render cartLines</text>
+
+  <path d="M230 140 H285" class="arrow"/>
+  <path d="M515 140 H570" class="arrow"/>
+  <path d="M800 140 H860" class="arrow"/>
+  <path d="M955 200 C955 260 810 270 730 300" class="arrow"/>
+  <path d="M570 360 H515" class="arrow"/>
+  <path d="M285 360 H230" class="arrow"/>
+  <path d="M400 190 V310" class="arrow"/>
+
+  <text x="255" y="126" text-anchor="middle" class="small">callback</text>
+  <text x="542" y="126" text-anchor="middle" class="small">dispatch</text>
+  <text x="835" y="126" text-anchor="middle" class="small">API</text>
+  <text x="535" y="348" text-anchor="middle" class="small">state</text>
+</svg>
