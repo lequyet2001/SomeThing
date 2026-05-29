@@ -43,7 +43,7 @@ Dự án hỗ trợ đầy đủ các tính năng thương mại điện tử: x
 ### 👤 Xác thực & Phân quyền
 - ✅ Đăng ký tài khoản mới (email validation)
 - ✅ Đăng nhập với email/password
-- ✅ JWT token-based authentication (tuổi thọ: 7 ngày)
+- ✅ JWT token-based authentication (tuổi thọ: 7 ngày)  
 - ✅ Phân quyền: User thường + Admin store
 - ✅ Middleware auth check cho route bảo vệ
 - ✅ Auto-assign admin qua email cấu hình

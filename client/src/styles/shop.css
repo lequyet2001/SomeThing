@@ -17,6 +17,11 @@
   padding: 24px;
 }
 
+.filter-content {
+  display: grid;
+  gap: 22px;
+}
+
 .filter-heading {
   display: grid;
   gap: 8px;
@@ -120,6 +125,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.mobile-filter-select {
+  display: none;
 }
 
 .filter-chip-list button,

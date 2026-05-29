@@ -26,65 +26,87 @@ function ShopPage({
   return (
     <section className="shop-layout">
       <aside className="filter-panel">
-        <div className="filter-heading">
-          <p><SlidersHorizontal size={15} /> {t('shop.filterTitle')}</p>
-          <h1>{t('shop.title')}</h1>
-          <span>{t('shop.filterText')}</span>
-        </div>
-
-        <div className="search-box">
-          <label htmlFor="product-search">{t('shop.search')}</label>
-          <div className="search-input-row">
-            <Search className="search-icon" size={18} />
-            <input
-              id="product-search"
-              value={query}
-              onChange={(event) => onQueryChange(event.target.value)}
-              placeholder={t('shop.placeholder')}
-            />
-            {query && (
-              <button type="button" onClick={() => onQueryChange('')} aria-label={t('shop.clearFilters')}>
-                <X size={17} />
-              </button>
-            )}
+        <div className="filter-content">
+          <div className="filter-heading">
+            <p><SlidersHorizontal size={15} /> {t('shop.filterTitle')}</p>
+            <h1>{t('shop.title')}</h1>
+            <span>{t('shop.filterText')}</span>
           </div>
-        </div>
 
-        <div className="filter-group">
-          <div className="filter-group-title"><Tag size={15} /> {t('home.categories')}</div>
-          <div className="filter-chip-list">
-            {categories.map((item) => (
-              <button
-                type="button"
-                className={category === item ? 'active' : ''}
-                key={item}
-                onClick={() => onCategoryChange(item)}
-              >
-                {getCategoryLabel(item)}
-              </button>
-            ))}
+          <div className="search-box">
+            <label htmlFor="product-search">{t('shop.search')}</label>
+            <div className="search-input-row">
+              <Search className="search-icon" size={18} />
+              <input
+                id="product-search"
+                value={query}
+                onChange={(event) => onQueryChange(event.target.value)}
+                placeholder={t('shop.placeholder')}
+              />
+              {query && (
+                <button type="button" onClick={() => onQueryChange('')} aria-label={t('shop.clearFilters')}>
+                  <X size={17} />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="filter-group">
-          <div className="filter-group-title"><ArrowDownUp size={15} /> {t('shop.sort')}</div>
-          <div className="sort-option-list">
-            {sortOptions.map((option) => (
-              <button
-                type="button"
-                className={sortOrder === option.value ? 'active' : ''}
-                key={option.value}
-                onClick={() => onSortChange(option.value)}
-              >
-                {option.label}
-              </button>
-            ))}
+          <div className="filter-group">
+            <div className="filter-group-title"><Tag size={15} /> {t('home.categories')}</div>
+            <select
+              className="mobile-filter-select"
+              aria-label={t('home.categories')}
+              value={category}
+              onChange={(event) => onCategoryChange(event.target.value)}
+            >
+              {categories.map((item) => (
+                <option key={item} value={item}>{getCategoryLabel(item)}</option>
+              ))}
+            </select>
+            <div className="filter-chip-list">
+              {categories.map((item) => (
+                <button
+                  type="button"
+                  className={category === item ? 'active' : ''}
+                  key={item}
+                  onClick={() => onCategoryChange(item)}
+                >
+                  {getCategoryLabel(item)}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="summary-box">
-          <strong>{filteredProducts.length}</strong>
-          <span>{t('shop.matchLabel')}</span>
+          <div className="filter-group">
+            <div className="filter-group-title"><ArrowDownUp size={15} /> {t('shop.sort')}</div>
+            <select
+              className="mobile-filter-select"
+              aria-label={t('shop.sort')}
+              value={sortOrder}
+              onChange={(event) => onSortChange(event.target.value)}
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+            <div className="sort-option-list">
+              {sortOptions.map((option) => (
+                <button
+                  type="button"
+                  className={sortOrder === option.value ? 'active' : ''}
+                  key={option.value}
+                  onClick={() => onSortChange(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="summary-box">
+            <strong>{filteredProducts.length}</strong>
+            <span>{t('shop.matchLabel')}</span>
+          </div>
         </div>
       </aside>
 
