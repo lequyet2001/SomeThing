@@ -134,16 +134,19 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    width: 100%;
   }
 
   .filter-heading p {
+    width: 100%;
     min-width: 36px;
-    width: 36px;
     height: 36px;
-    justify-content: center;
+    justify-content: flex-start;
     border-radius: var(--radius-sm);
     background: var(--color-surface-muted);
-    font-size: 0;
+    padding: 0 10px;
+    font-size: 11px;
+    white-space: nowrap;
   }
 
   .filter-heading h1,
