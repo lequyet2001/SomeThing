@@ -1,7 +1,9 @@
 import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { LanguageProvider } from './i18n/LanguageContext.jsx'
+import { shopStore } from './store/shopStore.js'
 import './styles/base.css'
 import './styles/header.css'
 import './styles/forms.css'
@@ -17,9 +19,11 @@ import './styles/footer.css'
 import './styles/responsive.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <LanguageProvider>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </LanguageProvider>
+  <Provider store={shopStore}>
+    <LanguageProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </LanguageProvider>
+  </Provider>
 )

@@ -1,36 +1,7 @@
-import { useEffect, useState } from 'react'
+import { clearAuth, saveAuth, shopApi } from '../../../services/shopApi'
+import { uiActions, userActions } from '../../../store/shopStore'
 
-import { clearAuth, getStoredUser, getToken, saveAuth, shopApi } from '../services/shopApi'
-
-export function useCustomer(navigate, setNotice) {
-  const [user, setUser] = useState(() => getStoredUser())
-
-  useEffect(() => {
-    if (!getToken()) return undefined
-
-    let isMounted = true
-
-    async function refreshProfile() {
-      try {
-        const data = await shopApi.getProfile()
-        if (!isMounted) return
-        localStorage.setItem('marseille04_user', JSON.stringify(data.user))
-        setUser(data.user)
-      } catch {
-        clearAuth()
-        if (isMounted) {
-          setUser(null)
-        }
-      }
-    }
-
-    refreshProfile()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
+export function useAuthActions({ dispatch, navigate, setNotice }) {
   async function handleAuth(event, mode) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
@@ -46,7 +17,7 @@ export function useCustomer(navigate, setNotice) {
     try {
       const data = mode === 'register' ? await shopApi.register(payload) : await shopApi.login(payload)
       saveAuth(data)
-      setUser(data.user)
+      dispatch(userActions.setUser(data.user))
       setNotice(data.message)
       navigate('/')
     } catch (error) {
@@ -54,7 +25,7 @@ export function useCustomer(navigate, setNotice) {
     }
   }
 
-  async function handleReviewLogin(event, onSuccess) {
+  async function handleReviewLogin(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     try {
@@ -63,12 +34,19 @@ export function useCustomer(navigate, setNotice) {
         password: formData.get('password'),
       })
       saveAuth(data)
-      setUser(data.user)
+      dispatch(userActions.setUser(data.user))
       setNotice('Đăng nhập thành công. Bạn có thể gửi đánh giá.')
-      onSuccess()
+      dispatch(uiActions.setShowReviewLogin(false))
     } catch (error) {
       setNotice(error.message)
     }
+  }
+
+  function logout() {
+    clearAuth()
+    dispatch(userActions.clearUser())
+    setNotice('Đã đăng xuất.')
+    navigate('/login')
   }
 
   async function submitProfile(event) {
@@ -84,26 +62,17 @@ export function useCustomer(navigate, setNotice) {
     try {
       const data = await shopApi.updateProfile(payload)
       localStorage.setItem('marseille04_user', JSON.stringify(data.user))
-      setUser(data.user)
+      dispatch(userActions.setUser(data.user))
       setNotice(data.message)
     } catch (error) {
       setNotice(error.message)
     }
   }
 
-  function logout() {
-    clearAuth()
-    setUser(null)
-    setNotice('Đã đăng xuất.')
-    navigate('/login')
-  }
-
   return {
     handleAuth,
     handleReviewLogin,
     logout,
-    setUser,
     submitProfile,
-    user,
   }
 }

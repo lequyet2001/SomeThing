@@ -1,7 +1,7 @@
 # 🛍️ Marseille04 Shop
 
 **Marseille04 Shop** là nền tảng bán hàng thời trang hiện đại với kiến trúc microservices, bao gồm:
-- **Frontend**: React 18 + Vite (SPA responsive)
+- **Frontend**: React 18 + Vite + Redux Toolkit (SPA responsive)
 - **Backend**: Node.js + Express + MongoDB (REST API)
 - **Deployment**: Docker Compose cho development & production
 
@@ -12,6 +12,7 @@ Dự án hỗ trợ đầy đủ các tính năng thương mại điện tử: x
 ### Frontend (Client)
 - **React 18.3.1** - Thư viện UI component-based
 - **Vite 5.4** - Build tool cực nhanh, development server
+- **Redux Toolkit + React Redux** - Quản lý state dùng chung cho catalog, cart, user, orders, reviews, notice
 - **React Router v7** - Routing cho SPA
 - **Lucide React** - Icon library
 - **CSS3** - Responsive design, flexbox/grid
@@ -138,6 +139,7 @@ Dự án hỗ trợ đầy đủ các tính năng thương mại điện tử: x
 │   │   ├── pages/          # Home, Shop, Product, Cart, Checkout, Admin...
 │   │   ├── routes/         # React Router và route sản phẩm
 │   │   ├── services/       # shopApi gọi backend
+│   │   ├── store/          # Redux store và slices
 │   │   ├── styles/         # CSS tách riêng theo từng phần giao diện
 │   │   └── utils/          # currency, slug, category label
 │   ├── Dockerfile
