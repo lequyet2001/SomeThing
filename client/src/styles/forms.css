@@ -1,0 +1,126 @@
+label {
+  display: grid;
+  gap: 8px;
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: 12px 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 0;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 95, 85, 0.12);
+}
+
+textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+.auth-page {
+  display: grid;
+  place-items: start center;
+  min-height: calc(100vh - 136px);
+  padding-top: 42px;
+}
+
+.auth-card {
+  display: grid;
+  width: min(460px, 100%);
+  gap: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 28px;
+}
+
+.auth-card h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 34px;
+  line-height: 1.08;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(17, 26, 24, 0.54);
+  padding: 18px;
+}
+
+.login-modal {
+  display: grid;
+  width: min(440px, 100%);
+  gap: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+}
+
+.modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.modal-heading p {
+  margin: 0 0 6px;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.modal-heading h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 28px;
+  line-height: 1.08;
+}
+
+.modal-heading button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+  font-weight: 900;
+}
+
+.modal-heading button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+
+.modal-login-form {
+  display: grid;
+  gap: 14px;
+}

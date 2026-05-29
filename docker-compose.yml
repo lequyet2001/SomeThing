@@ -1,0 +1,53 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: marseille04-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: marseille04-server
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      CLIENT_ORIGIN: http://localhost:5173
+      MONGODB_URI: mongodb://mongo:27017/marseille04_shop
+      MONGODB_SERVER_SELECTION_TIMEOUT_MS: 10000
+      JWT_SECRET: change-this-secret-in-production
+      TOKEN_EXPIRES_IN_SECONDS: 604800
+      ADMIN_EMAIL: test@gmail.com
+    ports:
+      - "3001:3001"
+    volumes:
+      - server-uploads:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api/shop
+    container_name: marseille04-client
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+volumes:
+  mongo-data:
+  server-uploads:

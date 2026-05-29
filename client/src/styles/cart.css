@@ -1,0 +1,123 @@
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.cart-layout h1 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 34px;
+  line-height: 1.08;
+}
+
+.cart-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 94px 1fr 130px 70px;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 12px;
+}
+
+.cart-item img {
+  width: 94px;
+  height: 94px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.cart-item h2 {
+  margin: 0;
+}
+
+.cart-item p {
+  color: var(--color-muted);
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.quantity-control button,
+.remove-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-weight: 900;
+}
+
+.quantity-control button {
+  width: 38px;
+}
+
+.remove-button {
+  color: #b42318;
+}
+
+.empty-state {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+
+.order-summary {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+}
+
+.order-summary h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.order-summary div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-muted);
+}
+
+.order-summary strong {
+  color: var(--color-ink);
+}
+
+.total-line {
+  border-top: 1px solid var(--color-line);
+  padding-top: 16px;
+  font-size: 18px;
+}
