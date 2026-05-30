@@ -7,6 +7,7 @@
 .account-empty,
 .account-hero,
 .account-form,
+.account-profile-card,
 .account-summary article {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
@@ -95,6 +96,168 @@
 .account-form h2 {
   margin: 0;
   font-size: 30px;
+}
+
+.account-form-heading,
+.account-profile-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-form-heading h2,
+.account-profile-heading h2 {
+  margin: 0;
+  font-size: 30px;
+}
+
+.account-form-heading button,
+.account-profile-heading button {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+  padding: 0 12px;
+  font-weight: 900;
+}
+
+.account-profile-card {
+  display: grid;
+  gap: 18px;
+  padding: 28px;
+}
+
+.account-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.account-profile-grid article,
+.account-address-preview article {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: 14px;
+}
+
+.account-profile-grid span,
+.account-address-preview span {
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.account-profile-grid strong,
+.account-address-preview strong {
+  overflow-wrap: anywhere;
+  color: var(--color-ink);
+}
+
+.account-profile-grid p,
+.account-address-preview p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+
+.account-address-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.account-address-preview > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.account-address-preview > div span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.account-address-preview article.is-selected {
+  border-color: var(--color-primary);
+  background: #f1f8f5;
+}
+
+.address-manager {
+  display: grid;
+  gap: 12px;
+}
+
+.address-manager-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.address-manager-heading span,
+.address-manager-heading button,
+.address-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 900;
+}
+
+.address-manager-heading span {
+  color: var(--color-accent);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.address-manager-heading button,
+.address-actions button {
+  min-height: 36px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+  padding: 0 10px;
+}
+
+.address-manager article {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: 12px;
+}
+
+.address-manager article.is-selected {
+  border-color: var(--color-primary);
+  background: #f1f8f5;
+}
+
+.address-manager article label:nth-of-type(4),
+.address-actions {
+  grid-column: 1 / -1;
+}
+
+.address-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.address-actions button.danger {
+  color: #b91c1c;
 }
 
 .account-summary {

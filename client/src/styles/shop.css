@@ -203,6 +203,48 @@
   gap: 22px;
 }
 
+.shop-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 14px;
+}
+
+.shop-pagination button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  color: var(--color-ink);
+  padding: 0 14px;
+  font-weight: 900;
+}
+
+.shop-pagination button:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.shop-pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.shop-pagination span {
+  color: var(--color-primary-dark);
+  font-weight: 900;
+}
+
 .shop-empty-state {
   display: grid;
   place-items: center;

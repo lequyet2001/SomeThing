@@ -3,11 +3,13 @@ import { ArrowRight, Headphones, RotateCcw, ShoppingBag, ShoppingCart, Truck } f
 import { useLanguage } from '../i18n/LanguageContext'
 import { formatCategoryLabel } from '../utils/categoryLabel'
 
-function HomePage({ products, categories, onAddToCart, onOpenProduct, onShop, onShopCategory }) {
+function HomePage({ products, categories, topCategories = [], onAddToCart, onOpenProduct, onShop, onShopCategory }) {
   const { t } = useLanguage()
   const heroProduct = products[0]
   const featuredProducts = products.slice(0, 4)
-  const categoryTiles = categories.filter((item) => item !== 'Tat ca').slice(0, 4)
+  const categoryTiles = topCategories.length > 0
+    ? topCategories.slice(0, 4)
+    : categories.filter((item) => item !== 'Tat ca').slice(0, 4).map((category) => ({ category, quantity: 0 }))
 
   if (!heroProduct) {
     return (
@@ -72,9 +74,9 @@ function HomePage({ products, categories, onAddToCart, onOpenProduct, onShop, on
         </div>
         <div className="category-grid">
           {categoryTiles.map((item) => (
-            <button key={item} onClick={() => onShopCategory(item)}>
-              <span>{formatCategoryLabel(item)}</span>
-              <strong>{t('home.viewAll')}</strong>
+            <button key={item.category} onClick={() => onShopCategory(item.category)}>
+              <span>{formatCategoryLabel(item.category)}</span>
+              <strong>{item.quantity > 0 ? t('home.soldThisMonth', { count: item.quantity }) : t('home.viewAll')}</strong>
             </button>
           ))}
         </div>
@@ -96,7 +98,7 @@ function HomePage({ products, categories, onAddToCart, onOpenProduct, onShop, on
                 <h3>{product.name}</h3>
                 <strong>{formatCurrency(product.price)}</strong>
               </div>
-              <button className="secondary-action" onClick={() => onAddToCart(product.id)}>
+              <button className="secondary-action" onClick={(event) => onAddToCart(product.id, 1, event.currentTarget)}>
                 <ShoppingCart size={17} /> {t('home.addCart')}
               </button>
             </article>

@@ -5,13 +5,36 @@ import { hashPassword, verifyPassword } from '../utils/password.js'
 import { httpError } from '../utils/httpError.js'
 import { createToken } from '../utils/token.js'
 
+function getUserShippingAddresses(user) {
+  const addresses = Array.isArray(user.shippingAddresses) ? user.shippingAddresses : []
+  if (addresses.length > 0) return addresses
+  if (!user.address) return []
+
+  return [{
+    id: 'legacy-address',
+    label: 'Mặc định',
+    recipient: user.name,
+    phone: user.phone || '',
+    address: user.address,
+  }]
+}
+
+function getSelectedAddress(user) {
+  const addresses = getUserShippingAddresses(user)
+  return addresses.find((item) => item.id === user.selectedAddressId) || addresses[0] || null
+}
+
 function serializeUser(user) {
+  const shippingAddresses = getUserShippingAddresses(user)
+  const selectedAddress = getSelectedAddress(user)
   return {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
     phone: user.phone || '',
-    address: user.address || '',
+    address: selectedAddress?.address || user.address || '',
+    shippingAddresses,
+    selectedAddressId: selectedAddress?.id || '',
     role: user.role || 'customer',
   }
 }
@@ -27,6 +50,32 @@ async function syncConfiguredAdminRole(user) {
   }
 
   return user
+}
+
+function normalizeShippingAddresses(rawValue, fallbackUser) {
+  let rawAddresses = rawValue
+  if (typeof rawAddresses === 'string') {
+    try {
+      rawAddresses = JSON.parse(rawAddresses || '[]')
+    } catch {
+      throw httpError(400, 'Danh sách địa chỉ giao hàng không hợp lệ.')
+    }
+  }
+
+  if (!Array.isArray(rawAddresses)) {
+    throw httpError(400, 'Danh sách địa chỉ giao hàng không hợp lệ.')
+  }
+
+  return rawAddresses
+    .map((item, index) => ({
+      id: String(item.id || `address-${Date.now()}-${index}`).trim(),
+      label: String(item.label || `Địa chỉ ${index + 1}`).trim(),
+      recipient: String(item.recipient || fallbackUser.name || '').trim(),
+      phone: String(item.phone || fallbackUser.phone || '').trim(),
+      address: String(item.address || '').trim(),
+    }))
+    .filter((item) => item.address)
+    .slice(0, 8)
 }
 
 export const register = asyncHandler(async (req, res) => {
@@ -86,7 +135,16 @@ export const updateProfile = asyncHandler(async (req, res) => {
   req.user.name = String(req.body.name || req.user.name).trim()
   req.user.email = nextEmail
   req.user.phone = String(req.body.phone || '').trim()
-  req.user.address = String(req.body.address || '').trim()
+
+  const shippingAddresses = req.body.shippingAddresses !== undefined
+    ? normalizeShippingAddresses(req.body.shippingAddresses, req.user)
+    : normalizeShippingAddresses([{ address: req.body.address || req.user.address }], req.user)
+  const selectedAddressId = String(req.body.selectedAddressId || '').trim()
+  const selectedAddress = shippingAddresses.find((item) => item.id === selectedAddressId) || shippingAddresses[0] || null
+
+  req.user.shippingAddresses = shippingAddresses
+  req.user.selectedAddressId = selectedAddress?.id || ''
+  req.user.address = selectedAddress?.address || String(req.body.address || '').trim()
   await req.user.save()
 
   res.json({

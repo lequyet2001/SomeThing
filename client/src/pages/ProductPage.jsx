@@ -38,7 +38,7 @@ function ProductPage({ product, reviews, user, onAddToCart, onBack, onRequestRev
         <div className="detail-price">{formatCurrency(product.price)}</div>
         <p>{product.description}</p>
         <p>{t('product.inStock', { count: product.stock })}</p>
-        <button className="primary-action" onClick={() => onAddToCart(product.id)}>{t('product.addCart')}</button>
+        <button className="primary-action" onClick={(event) => onAddToCart(product.id, 1, event.currentTarget)}>{t('product.addCart')}</button>
 
         <section className="reviews">
           <h2>

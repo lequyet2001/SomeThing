@@ -52,14 +52,16 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
   async function submitProfile(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
-    const payload = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      phone: formData.get('phone'),
-      address: formData.get('address'),
-    }
 
     try {
+      const payload = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        address: formData.get('address'),
+        selectedAddressId: formData.get('selectedAddressId'),
+        shippingAddresses: JSON.parse(formData.get('shippingAddresses') || '[]'),
+      }
       const data = await shopApi.updateProfile(payload)
       localStorage.setItem('marseille04_user', JSON.stringify(data.user))
       dispatch(userActions.setUser(data.user))

@@ -28,6 +28,7 @@ function AppRoutes({ shop }) {
           <HomePage
             products={shop.products}
             categories={shop.categories}
+            topCategories={shop.topCategories}
             onAddToCart={actions.addToCart}
             onOpenProduct={actions.goToProduct}
             onShop={() => actions.navigate('/shop')}
@@ -67,6 +68,7 @@ function AppRoutes({ shop }) {
       <Route path="/admin/products" element={renderAdminPage('products')} />
       <Route path="/admin/users" element={renderAdminPage('users')} />
       <Route path="/admin/contacts" element={renderAdminPage('contacts')} />
+      <Route path="/admin/reviews" element={renderAdminPage('reviews')} />
       <Route
         path="*"
         element={

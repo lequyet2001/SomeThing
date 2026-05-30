@@ -12,6 +12,7 @@ export function useCheckoutActions({ cart, cartLines, clearCart, dispatch, navig
         customer: {
           name: formData.get('name'),
           email: formData.get('email'),
+          phone: formData.get('phone'),
           address: formData.get('address'),
         },
         payment: formData.get('payment'),
@@ -21,6 +22,7 @@ export function useCheckoutActions({ cart, cartLines, clearCart, dispatch, navig
       dispatch(ordersActions.prependOrder(data.order))
       await clearCart()
       setNotice(data.message)
+      window.dispatchEvent(new Event('marseille04:catalog-changed'))
       navigate('/payment')
     } catch (error) {
       setNotice(error.message)

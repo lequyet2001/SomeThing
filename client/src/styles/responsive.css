@@ -37,6 +37,11 @@
     grid-template-columns: 1fr;
   }
 
+  .admin-overview-insights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+
   .home-actions {
     grid-template-columns: 1fr;
   }
@@ -60,6 +65,29 @@
 @media (max-width: 680px) {
   main {
     padding: 18px 14px 34px;
+  }
+
+  .notification {
+    position: fixed;
+    top: 78px;
+    right: 12px;
+    left: 12px;
+    z-index: 85;
+    max-height: min(34vh, 220px);
+    overflow-y: auto;
+    margin-bottom: 0;
+    padding: 10px 10px 10px 12px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .notification p {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .notification button {
+    width: 32px;
+    height: 32px;
   }
 
   .account-actions,
@@ -263,6 +291,38 @@
     width: 100%;
   }
 
+  .account-form-heading,
+  .account-profile-heading,
+  .account-address-preview > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .account-form-heading button,
+  .account-profile-heading button {
+    width: 100%;
+  }
+
+  .account-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .address-manager-heading,
+  .address-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .address-manager-heading button,
+  .address-actions button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .address-manager article {
+    grid-template-columns: 1fr;
+  }
+
   .user-menu-container,
   .user-name {
     width: 100%;
@@ -278,9 +338,38 @@
   .catalog,
   .home-services,
   .home-product-row,
-  .category-grid,
   .footer-main {
     grid-template-columns: 1fr;
+  }
+
+  .shop-pagination {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .shop-pagination button {
+    width: 100%;
+  }
+
+  .category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .category-grid button {
+    min-height: 68px;
+    align-content: center;
+    gap: 4px;
+    padding: 12px;
+  }
+
+  .category-grid span {
+    font-size: 17px;
+    line-height: 1.2;
+  }
+
+  .category-grid strong {
+    font-size: 12px;
   }
 
   .footer-main,
@@ -352,6 +441,322 @@
 
   .admin-dialog-actions {
     display: grid;
+  }
+
+  .admin-page {
+    gap: 12px;
+  }
+
+  .admin-page .admin-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .admin-page .admin-hero > div {
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .admin-page .admin-hero h1 {
+    overflow: hidden;
+    font-size: 26px;
+    line-height: 1.08;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-page .admin-hero > div > p:not(.admin-kicker) {
+    display: none;
+  }
+
+  .admin-page .admin-refresh {
+    width: 42px;
+    min-height: 42px;
+    gap: 0;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .admin-page .admin-refresh svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .admin-page .admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .admin-page .admin-metrics article {
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 3px 8px;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .admin-page .admin-metrics svg {
+    grid-row: span 2;
+    width: 18px;
+    height: 18px;
+  }
+
+  .admin-page .admin-metrics span {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-page .admin-metrics strong {
+    overflow-wrap: anywhere;
+    font-size: 17px;
+    line-height: 1.15;
+  }
+
+  .admin-tabs {
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px;
+    scrollbar-width: none;
+  }
+
+  .admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-tabs a {
+    flex: 0 0 auto;
+    min-height: 36px;
+    gap: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .admin-page .admin-grid,
+  .admin-page .admin-side,
+  .admin-page .admin-overview-grid,
+  .admin-page .admin-overview-insights {
+    gap: 10px;
+  }
+
+  .admin-page .admin-overview-insights {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-view-toggle {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .admin-page .admin-view-toggle button {
+    flex: 1;
+  }
+
+  .admin-page .admin-overview-insights .admin-panel {
+    min-height: 0;
+  }
+
+  .admin-page .admin-rank-item b {
+    width: 30px;
+    height: 30px;
+  }
+
+  .admin-page .admin-panel {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .admin-product-form-panel {
+    scroll-margin-top: 82px;
+  }
+
+  .admin-page .admin-panel-heading {
+    gap: 8px;
+  }
+
+  .admin-page .admin-panel h2 {
+    font-size: 21px;
+  }
+
+  .admin-page .admin-kicker {
+    font-size: 11px;
+  }
+
+  .admin-page .admin-mini-list {
+    gap: 8px;
+  }
+
+  .admin-page .admin-mini-list article {
+    gap: 3px;
+    padding: 10px;
+  }
+
+  .admin-page .admin-mini-list strong,
+  .admin-page .admin-mini-list p {
+    overflow-wrap: anywhere;
+  }
+
+  .admin-page .admin-report-form {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-page .admin-filter-panel {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .admin-page .admin-filter-title {
+    min-height: auto;
+  }
+
+  .admin-page .admin-filter-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-filter-search {
+    grid-column: auto;
+  }
+
+  .admin-page .admin-filter-clear {
+    width: 100%;
+  }
+
+  .admin-page .admin-product-filter {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-product-filter .admin-filter-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-product-filter .admin-filter-clear {
+    min-height: 42px;
+  }
+
+  .admin-page .admin-report-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .admin-report-actions button {
+    min-height: 40px;
+    padding: 0 10px;
+  }
+
+  .admin-page .admin-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .admin-page .admin-table,
+  .admin-page .admin-table thead,
+  .admin-page .admin-table tbody,
+  .admin-page .admin-table tr,
+  .admin-page .admin-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-page .admin-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .admin-page .admin-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .admin-page .admin-table tr {
+    display: grid;
+    gap: 8px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    padding: 10px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .admin-page .admin-table td {
+    display: grid;
+    grid-template-columns: minmax(88px, 36%) minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    border-bottom: 0;
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .admin-page .admin-table td > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .admin-page .admin-table td::before {
+    content: attr(data-label);
+    color: var(--color-accent);
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+
+  .admin-page .admin-table td[data-label=""]::before,
+  .admin-page .admin-empty-row td::before {
+    content: none;
+  }
+
+  .admin-page .admin-empty-row td {
+    display: block;
+    color: var(--color-muted);
+    font-weight: 800;
+    text-align: center;
+  }
+
+  .admin-page .admin-table td strong,
+  .admin-page .admin-table td small {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-page .admin-table td select {
+    min-width: 0;
+    min-height: 40px;
+  }
+
+  .admin-page .admin-product-cell {
+    grid-template-columns: 40px minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .admin-page .admin-product-cell img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-page .admin-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-page .admin-actions button {
+    min-height: 38px;
+    padding: 0 8px;
   }
 
   .home-hero-media {

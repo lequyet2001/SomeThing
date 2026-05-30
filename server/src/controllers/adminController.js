@@ -7,6 +7,7 @@ import { ADMIN_EMAIL } from '../config/env.js'
 import { ContactMessage } from '../models/ContactMessage.js'
 import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
+import { Review } from '../models/Review.js'
 import { User } from '../models/User.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
@@ -70,46 +71,142 @@ function serializeProduct(product) {
   }
 }
 
+function serializeAdminReview(review, product) {
+  return {
+    id: review._id.toString(),
+    productId: review.productId,
+    productName: product?.name || `#${review.productId}`,
+    productImage: product?.image || '',
+    name: review.name,
+    userEmail: review.user?.email || '',
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.createdAt,
+  }
+}
+
 function serializeUser(user) {
+  const shippingAddresses = Array.isArray(user.shippingAddresses) && user.shippingAddresses.length > 0
+    ? user.shippingAddresses
+    : user.address
+      ? [{ id: 'legacy-address', label: 'Mặc định', recipient: user.name, phone: user.phone || '', address: user.address }]
+      : []
+  const selectedAddress = shippingAddresses.find((item) => item.id === user.selectedAddressId) || shippingAddresses[0] || null
+
   return {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
     phone: user.phone || '',
-    address: user.address || '',
+    address: selectedAddress?.address || user.address || '',
+    shippingAddresses,
+    selectedAddressId: selectedAddress?.id || '',
     role: user.role || 'customer',
     createdAt: user.createdAt,
   }
 }
 
-export const getAdminSummary = asyncHandler(async (_req, res) => {
+function readSummaryPeriod(query) {
+  const month = String(query.month || '').trim()
+  const startDate = String(query.startDate || '').trim()
+  const endDate = String(query.endDate || '').trim()
+
+  if (month) {
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      throw httpError(400, 'Tháng thống kê không hợp lệ.')
+    }
+
+    const [year, monthIndex] = month.split('-').map(Number)
+    if (monthIndex < 1 || monthIndex > 12) {
+      throw httpError(400, 'Tháng thống kê không hợp lệ.')
+    }
+
+    return {
+      label: month,
+      dateFilter: {
+        createdAt: {
+          $gte: new Date(Date.UTC(year, monthIndex - 1, 1)),
+          $lt: new Date(Date.UTC(year, monthIndex, 1)),
+        },
+      },
+    }
+  }
+
+  const createdAt = {}
+  if (startDate) {
+    const start = new Date(`${startDate}T00:00:00.000Z`)
+    if (Number.isNaN(start.getTime())) {
+      throw httpError(400, 'Ngày bắt đầu thống kê không hợp lệ.')
+    }
+    createdAt.$gte = start
+  }
+
+  if (endDate) {
+    const end = new Date(`${endDate}T00:00:00.000Z`)
+    if (Number.isNaN(end.getTime())) {
+      throw httpError(400, 'Ngày kết thúc thống kê không hợp lệ.')
+    }
+    end.setUTCDate(end.getUTCDate() + 1)
+    createdAt.$lt = end
+  }
+
+  if (createdAt.$gte && createdAt.$lt && createdAt.$gte >= createdAt.$lt) {
+    throw httpError(400, 'Khoảng thời gian thống kê không hợp lệ.')
+  }
+
+  return {
+    label: startDate || endDate ? `${startDate || '...'} - ${endDate || '...'}` : 'all',
+    dateFilter: Object.keys(createdAt).length ? { createdAt } : {},
+  }
+}
+
+function mapProductSales(products, salesByProduct) {
+  const saleMap = new Map(salesByProduct.map((item) => [Number(item._id), item]))
+
+  return products.map((product) => {
+    const sale = saleMap.get(product.legacyId)
+    return {
+      productId: product.legacyId,
+      name: product.name,
+      quantity: sale?.quantity || 0,
+      revenue: sale?.revenue || 0,
+    }
+  })
+}
+
+export const getAdminSummary = asyncHandler(async (req, res) => {
+  const period = readSummaryPeriod(req.query)
+  const completedOrderMatch = { status: { $ne: 'cancelled' }, ...period.dateFilter }
+
   const [
     orderStats,
     statusStats,
     monthlyRevenue,
-    topProducts,
+    salesByProduct,
+    topCustomers,
     contactStats,
     productCount,
     userCount,
     adminCount,
+    productsForSales,
     lowStockProducts,
     newContactCount,
     recentOrders,
     recentContacts,
   ] = await Promise.all([
     Order.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
+      { $match: completedOrderMatch },
       { $group: { _id: null, revenue: { $sum: '$total' }, orderCount: { $sum: 1 }, averageOrder: { $avg: '$total' } } },
     ]),
-    Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 }, total: { $sum: '$total' } } }]),
+    Order.aggregate([{ $match: period.dateFilter }, { $group: { _id: '$status', count: { $sum: 1 }, total: { $sum: '$total' } } }]),
     Order.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
+      { $match: completedOrderMatch },
       { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } }, revenue: { $sum: '$total' }, count: { $sum: 1 } } },
       { $sort: { _id: -1 } },
-      { $limit: 6 },
+      ...(Object.keys(period.dateFilter).length ? [] : [{ $limit: 6 }]),
     ]),
     Order.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
+      { $match: completedOrderMatch },
       { $unwind: '$items' },
       {
         $group: {
@@ -119,13 +216,36 @@ export const getAdminSummary = asyncHandler(async (_req, res) => {
           revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
         },
       },
-      { $sort: { revenue: -1 } },
+      { $sort: { quantity: -1, revenue: -1 } },
+    ]),
+    Order.aggregate([
+      { $match: completedOrderMatch },
+      {
+        $project: {
+          customer: 1,
+          total: 1,
+          itemCount: { $sum: '$items.quantity' },
+        },
+      },
+      {
+        $group: {
+          _id: '$customer.email',
+          name: { $first: '$customer.name' },
+          email: { $first: '$customer.email' },
+          phone: { $first: '$customer.phone' },
+          orderCount: { $sum: 1 },
+          itemCount: { $sum: '$itemCount' },
+          totalSpent: { $sum: '$total' },
+        },
+      },
+      { $sort: { totalSpent: -1, orderCount: -1 } },
       { $limit: 5 },
     ]),
     ContactMessage.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
     Product.countDocuments(),
     User.countDocuments(),
     User.countDocuments({ role: 'admin' }),
+    Product.find().sort({ name: 1 }),
     Product.find({ stock: { $lte: 10 } }).sort({ stock: 1 }).limit(8),
     ContactMessage.countDocuments({ status: 'new' }),
     Order.find().sort({ createdAt: -1 }).limit(5),
@@ -155,12 +275,27 @@ export const getAdminSummary = asyncHandler(async (_req, res) => {
       })),
       contactStats: contactStats.map((item) => ({ status: item._id, count: item.count })),
     },
+    period: {
+      label: period.label,
+      hasFilter: Object.keys(period.dateFilter).length > 0,
+    },
     monthlyRevenue: monthlyRevenue.reverse().map((item) => ({ month: item._id, revenue: item.revenue, count: item.count })),
-    topProducts: topProducts.map((item) => ({
+    topProducts: salesByProduct.slice(0, 5).map((item) => ({
       productId: item._id,
       name: item.name,
       quantity: item.quantity,
       revenue: item.revenue,
+    })),
+    leastProducts: mapProductSales(productsForSales, salesByProduct)
+      .sort((first, second) => first.quantity - second.quantity || first.revenue - second.revenue || first.name.localeCompare(second.name))
+      .slice(0, 5),
+    topCustomers: topCustomers.map((item) => ({
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+      orderCount: item.orderCount,
+      itemCount: item.itemCount,
+      totalSpent: item.totalSpent,
     })),
     lowStockProducts: lowStockProducts.map(serializeProduct),
     recentOrders: recentOrders.map(serializeOrder),
@@ -182,7 +317,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findOneAndUpdate(
     { orderCode: req.params.orderCode },
     { $set: { status } },
-    { new: true },
+    { returnDocument: 'after' },
   )
 
   if (!order) {
@@ -206,7 +341,11 @@ export const updateContactStatus = asyncHandler(async (req, res) => {
     throw httpError(400, 'Trạng thái liên hệ không hợp lệ.')
   }
 
-  const contact = await ContactMessage.findByIdAndUpdate(req.params.contactId, { $set: { status } }, { new: true })
+  const contact = await ContactMessage.findByIdAndUpdate(
+    req.params.contactId,
+    { $set: { status } },
+    { returnDocument: 'after' },
+  )
 
   if (!contact) {
     throw httpError(404, 'Không tìm thấy liên hệ.')
@@ -215,6 +354,39 @@ export const updateContactStatus = asyncHandler(async (req, res) => {
   res.json({
     message: 'Đã cập nhật trạng thái liên hệ.',
     contact: serializeContact(contact),
+  })
+})
+
+export const listAdminReviews = asyncHandler(async (_req, res) => {
+  const reviews = await Review.find().populate('user', 'email').sort({ createdAt: -1 })
+  const productIds = [...new Set(reviews.map((review) => review.productId))]
+  const products = await Product.find({ legacyId: { $in: productIds } })
+  const productsByLegacyId = new Map(products.map((product) => [product.legacyId, product]))
+
+  res.json({
+    reviews: reviews.map((review) => serializeAdminReview(review, productsByLegacyId.get(review.productId))),
+  })
+})
+
+export const deleteAdminReview = asyncHandler(async (req, res) => {
+  const review = await Review.findByIdAndDelete(req.params.reviewId)
+  if (!review) {
+    throw httpError(404, 'Không tìm thấy đánh giá.')
+  }
+
+  const product = await Product.findOne({ legacyId: review.productId })
+  if (product) {
+    const stats = await Review.aggregate([
+      { $match: { productId: review.productId } },
+      { $group: { _id: '$productId', averageRating: { $avg: '$rating' } } },
+    ])
+    product.rating = stats[0] ? Number(stats[0].averageRating.toFixed(1)) : 0
+    await product.save()
+  }
+
+  res.json({
+    message: 'Đã xóa đánh giá sản phẩm.',
+    reviewId: review._id.toString(),
   })
 })
 
@@ -309,7 +481,7 @@ export const updateAdminProduct = asyncHandler(async (req, res) => {
   const product = await Product.findOneAndUpdate(
     { legacyId: Number(req.params.productId) },
     { $set: payload },
-    { new: true, runValidators: true },
+    { returnDocument: 'after', runValidators: true },
   )
 
   if (!product) {

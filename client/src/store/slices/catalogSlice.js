@@ -12,11 +12,13 @@ const catalogSlice = createSlice({
     products: fallbackProducts,
     query: '',
     sortOrder: 'default',
+    topCategories: [],
   },
   reducers: {
     setCatalog(state, action) {
       state.products = action.payload.products
       state.categories = action.payload.categories
+      state.topCategories = action.payload.topCategories || []
     },
     setCategory(state, action) {
       state.category = action.payload

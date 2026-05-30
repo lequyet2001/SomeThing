@@ -75,9 +75,11 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
     }
 
     loadReviews()
+    window.addEventListener('marseille04:reviews-changed', loadReviews)
 
     return () => {
       isMounted = false
+      window.removeEventListener('marseille04:reviews-changed', loadReviews)
     }
   }, [dispatch, setNotice])
 

@@ -52,6 +52,7 @@ export function useShopState() {
     showReviewLogin: state.showReviewLogin,
     sortOrder: state.catalog.sortOrder,
     subtotal: state.subtotal,
+    topCategories: state.catalog.topCategories,
     total: state.total,
     user: state.user,
     actions,

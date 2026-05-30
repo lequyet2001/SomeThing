@@ -61,7 +61,7 @@ function ContactPage({ onSubmitContact }) {
           <article>
             <MapPin size={22} />
             <span>Showroom</span>
-            <strong>24 Nguyễn Huệ, Quận 1, TP.HCM</strong>
+            <strong>{t('contact.address').replace(/^Địa chỉ: |^Address: /, '')}</strong>
             <p>{t('contact.showroomText')}</p>
           </article>
           <article className="contact-hours">

@@ -1,7 +1,10 @@
+import { useEffect, useMemo, useState } from 'react'
 import { formatCurrency } from '../utils/currency'
-import { ArrowDownUp, Eye, PackageSearch, Search, ShoppingCart, SlidersHorizontal, Tag, X } from 'lucide-react'
+import { ArrowDownUp, ChevronLeft, ChevronRight, Eye, PackageSearch, Search, ShoppingCart, SlidersHorizontal, Tag, X } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { formatCategoryLabel } from '../utils/categoryLabel'
+
+const SHOP_PAGE_SIZE = 9
 
 function ShopPage({
   categories,
@@ -16,12 +19,28 @@ function ShopPage({
   onSortChange,
 }) {
   const { t } = useLanguage()
+  const [currentPage, setCurrentPage] = useState(1)
   const getCategoryLabel = (item) => (item === 'Tat ca' ? t('shop.allCategories') : formatCategoryLabel(item))
   const sortOptions = [
     { label: t('shop.sortDefault'), value: 'default' },
     { label: t('shop.sortLow'), value: 'price-asc' },
     { label: t('shop.sortHigh'), value: 'price-desc' },
   ]
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / SHOP_PAGE_SIZE))
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * SHOP_PAGE_SIZE
+    return filteredProducts.slice(startIndex, startIndex + SHOP_PAGE_SIZE)
+  }, [currentPage, filteredProducts])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [category, query, sortOrder])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <section className="shop-layout">
@@ -114,7 +133,7 @@ function ShopPage({
         <div className="results-toolbar">
           <div>
             <p><PackageSearch size={15} /> {t('shop.results')}</p>
-            <h2>{t('account.cartCount', { count: filteredProducts.length })}</h2>
+            <h2>{t('shop.pageCount', { shown: paginatedProducts.length, total: filteredProducts.length })}</h2>
           </div>
           <span>{getCategoryLabel(category)}</span>
         </div>
@@ -132,29 +151,53 @@ function ShopPage({
             </button>
           </div>
         ) : (
-          <section className="catalog">
-            {filteredProducts.map((product) => (
-              <article className="product-card" key={product.id}>
-                <button className="product-media" onClick={() => onOpenProduct(product.id)}>
-                  <img src={product.image} alt={product.name} />
+          <>
+            <section className="catalog">
+              {paginatedProducts.map((product) => (
+                <article className="product-card" key={product.id}>
+                  <button className="product-media" onClick={() => onOpenProduct(product.id)}>
+                    <img src={product.image} alt={product.name} />
+                  </button>
+                  <div className="product-info">
+                    <p>{formatCategoryLabel(product.category)}</p>
+                    <h2>{product.name}</h2>
+                    <div className="meta-line">
+                      <strong>{formatCurrency(product.price)}</strong>
+                      <span>{t('product.star', { count: product.rating })}</span>
+                    </div>
+                    <div className="card-actions">
+                      <button onClick={() => onOpenProduct(product.id)}><Eye size={17} /> {t('common.view')}</button>
+                      <button className="dark" onClick={(event) => onAddToCart(product.id, 1, event.currentTarget)}>
+                        <ShoppingCart size={17} /> {t('shop.addCart')}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </section>
+
+            {totalPages > 1 && (
+              <nav className="shop-pagination" aria-label={t('shop.pagination')}>
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                >
+                  <ChevronLeft size={17} />
+                  {t('shop.prevPage')}
                 </button>
-                <div className="product-info">
-                  <p>{formatCategoryLabel(product.category)}</p>
-                  <h2>{product.name}</h2>
-                  <div className="meta-line">
-                    <strong>{formatCurrency(product.price)}</strong>
-                    <span>{t('product.star', { count: product.rating })}</span>
-                  </div>
-                  <div className="card-actions">
-                    <button onClick={() => onOpenProduct(product.id)}><Eye size={17} /> {t('common.view')}</button>
-                    <button className="dark" onClick={() => onAddToCart(product.id)}>
-                      <ShoppingCart size={17} /> {t('shop.addCart')}
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </section>
+                <span>{t('shop.pageStatus', { page: currentPage, total: totalPages })}</span>
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                >
+                  {t('shop.nextPage')}
+                  <ChevronRight size={17} />
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </section>
     </section>

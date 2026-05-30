@@ -3,10 +3,12 @@ import { Router } from 'express'
 import {
   createAdminProduct,
   deleteAdminProduct,
+  deleteAdminReview,
   getAdminSummary,
   listAdminProducts,
   listAdminContacts,
   listAdminOrders,
+  listAdminReviews,
   listAdminUsers,
   updateAdminProduct,
   updateContactStatus,
@@ -24,6 +26,8 @@ router.get('/admin/orders', listAdminOrders)
 router.patch('/admin/orders/:orderCode/status', updateOrderStatus)
 router.get('/admin/contacts', listAdminContacts)
 router.patch('/admin/contacts/:contactId/status', updateContactStatus)
+router.get('/admin/reviews', listAdminReviews)
+router.delete('/admin/reviews/:reviewId', deleteAdminReview)
 router.get('/admin/users', listAdminUsers)
 router.patch('/admin/users/:userId/role', updateUserRole)
 router.get('/admin/products', listAdminProducts)

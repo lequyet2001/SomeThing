@@ -66,7 +66,7 @@ function Header({ cartCount, user, onLogout }) {
         {
           !user && (
             <>
-              <NavLink to="/cart" onClick={closeMenus}><ShoppingCart size={17} /> <span>{t('header.cartCount', { count: cartCount })}</span></NavLink>
+              <NavLink to="/cart" onClick={closeMenus} data-cart-target><ShoppingCart size={17} /> <span>{t('header.cartCount', { count: cartCount })}</span></NavLink>
             </>
           )
         }
@@ -91,8 +91,8 @@ function Header({ cartCount, user, onLogout }) {
               {showUserMenu && (
                 <div className="user-menu-dropdown" onMouseLeave={() => setShowUserMenu(false)}>
                 <button className="menu-item" onClick={handleUserInfo}><User size={16} /> {t('header.accountInfo')}</button>
+                <button onClick={() => goTo('/cart')} data-cart-target><ShoppingCart size={16} /> {t('header.cartCount', { count: cartCount })}</button>
                 <button className="menu-item logout" onClick={handleLogout}><LogOut size={16} /> {t('common.logout')}</button>
-                <button onClick={() => goTo('/cart')}><ShoppingCart size={16} /> {t('header.cartCount', { count: cartCount })}</button>
 
                 </div>
               )}

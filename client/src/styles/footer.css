@@ -46,7 +46,7 @@
 .footer-main p,
 .footer-main button,
 .footer-bottom {
-  color: #b8c7c1;
+  color: #d7e2de;
 }
 
 .footer-main p {
@@ -57,7 +57,7 @@
 
 .footer-main button {
   min-height: 28px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .footer-main button:hover {

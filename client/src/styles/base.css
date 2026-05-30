@@ -1,13 +1,13 @@
 :root {
   --color-bg: #f4f6f5;
   --color-surface: #ffffff;
-  --color-surface-muted: #eef4f2;
-  --color-ink: #17201d;
-  --color-muted: #66736e;
-  --color-line: #d7e0dc;
-  --color-primary: #0f5f55;
-  --color-primary-dark: #0a403a;
-  --color-accent: #b86f35;
+  --color-surface-muted: #e8efec;
+  --color-ink: #101815;
+  --color-muted: #3f4d48;
+  --color-line: #c5d1cc;
+  --color-primary: #0b5a51;
+  --color-primary-dark: #063b36;
+  --color-accent: #9a5728;
   --shadow-sm: 0 8px 24px rgba(23, 32, 29, 0.08);
   --shadow-md: 0 18px 48px rgba(23, 32, 29, 0.12);
   --radius-sm: 6px;
@@ -17,6 +17,8 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -28,13 +30,44 @@ body {
   min-height: 100vh;
   margin: 0;
   background: var(--color-bg);
+  color: var(--color-ink);
 }
 
 button,
 input,
 select,
 textarea {
+  color: var(--color-ink);
   font: inherit;
+}
+
+input,
+select,
+textarea {
+  font-weight: 700;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #5b6964;
+  opacity: 1;
+}
+
+::selection {
+  background: rgba(11, 90, 81, 0.18);
+  color: var(--color-ink);
+}
+
+p,
+li,
+td,
+small {
+  text-wrap: pretty;
+}
+
+strong,
+b {
+  color: var(--color-ink);
 }
 
 button {
@@ -72,6 +105,30 @@ main {
   width: min(1380px, 100%);
   margin: 0 auto;
   padding: 36px 32px 48px;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-ink);
+  letter-spacing: 0;
+}
+
+p {
+  color: inherit;
+}
+
+label,
+th {
+  color: var(--color-ink);
+}
+
+td {
+  color: var(--color-muted);
+}
+
+a {
+  color: inherit;
 }
 
 .notification {
@@ -166,4 +223,40 @@ main {
 
 .link-button:hover {
   color: var(--color-primary-dark);
+}
+
+.cart-flyer {
+  position: fixed;
+  z-index: 120;
+  overflow: hidden;
+  border: 2px solid var(--color-surface);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  box-shadow: 0 18px 44px rgba(16, 24, 21, 0.22);
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.cart-flyer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-target-pop {
+  animation: cart-target-pop 2s ease;
+}
+
+@keyframes cart-target-pop {
+  0% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.12);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
