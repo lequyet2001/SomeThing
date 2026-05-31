@@ -7,6 +7,7 @@ import { ordersActions, ordersReducer } from './slices/ordersSlice'
 import { reviewsActions, reviewsReducer } from './slices/reviewsSlice'
 import { uiActions, uiReducer } from './slices/uiSlice'
 import { userActions, userReducer } from './slices/userSlice'
+import { userNotificationActions, userNotificationReducer } from './slices/userNotificationSlice'
 
 export {
   cartActions,
@@ -16,6 +17,7 @@ export {
   reviewsActions,
   uiActions,
   userActions,
+  userNotificationActions,
 }
 
 export const shopStore = configureStore({
@@ -27,5 +29,6 @@ export const shopStore = configureStore({
     reviews: reviewsReducer,
     ui: uiReducer,
     user: userReducer,
+    userNotifications: userNotificationReducer,
   },
 })

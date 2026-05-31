@@ -125,7 +125,7 @@ main.jsx
       <tr>
         <td>2</td>
         <td><code>src/store/shopStore.js</code></td>
-        <td>Tạo Redux store, ghép các reducer: cart, catalog, notice, orders, reviews, ui, user.</td>
+        <td>Tạo Redux store, ghép các reducer: cart, catalog, notice, orders, reviews, ui, user và userNotifications.</td>
       </tr>
       <tr>
         <td>3</td>
@@ -172,7 +172,7 @@ main.jsx
       </tr>
       <tr>
         <td><code>services/</code></td>
-        <td>Lớp gọi API backend, xử lý token, auth localStorage.</td>
+        <td>Lớp gọi API backend, xử lý token, auth localStorage và mở SSE stream cho realtime notification.</td>
       </tr>
       <tr>
         <td><code>i18n/</code></td>
@@ -234,8 +234,13 @@ main.jsx
       </tr>
       <tr>
         <td><code>noticeSlice</code></td>
-        <td><code>message</code></td>
-        <td>Lưu thông báo đang hiển thị.</td>
+        <td><code>items</code>, <code>message</code></td>
+        <td>Lưu các toast tạm thời hiển thị trên màn hình.</td>
+      </tr>
+      <tr>
+        <td><code>userNotificationSlice</code></td>
+        <td><code>items</code>, <code>unreadCount</code></td>
+        <td>Lưu thông báo người dùng có trạng thái đã đọc/chưa đọc, nhận từ API và SSE.</td>
       </tr>
       <tr>
         <td><code>uiSlice</code></td>
@@ -276,7 +281,7 @@ main.jsx
       <tr>
         <td>Thông báo</td>
         <td>Có</td>
-        <td>Action từ bất kỳ màn hình nào đều có thể hiển thị Notification ở App.</td>
+        <td>Toast tạm thời dùng <code>noticeSlice</code>; thông báo người dùng có lưu trạng thái đọc dùng <code>userNotificationSlice</code>.</td>
       </tr>
       <tr>
         <td>Ngôn ngữ Việt/Anh</td>
@@ -390,11 +395,30 @@ Actions:
   <h4>noticeSlice</h4>
   <pre>
 State:
-  message: text thông báo
+  items: danh sách toast tạm thời
+  message: text thông báo gần nhất
 
 Actions:
-  setNotice(message)
+  setNotice(message hoặc object)
+  dismissNotice(notificationId)
   </pre>
+  <p>Slice này dùng cho toast ngắn hạn như đăng nhập thành công, thêm giỏ hàng hoặc lỗi API.</p>
+
+  <h4>userNotificationSlice</h4>
+  <pre>
+State:
+  items: danh sách thông báo user
+  unreadCount: số thông báo chưa đọc
+
+Actions:
+  setUserNotifications(data)
+  receiveUserNotification(payload)
+  markNotificationRead(notificationId)
+  markAllNotificationsRead()
+  deleteNotification(notificationId)
+  clearUserNotifications()
+  </pre>
+  <p>Slice này dùng cho thông báo có lưu trạng thái đã đọc/chưa đọc. Dữ liệu đến từ <code>GET /notifications</code> và SSE stream <code>/notifications/stream</code>.</p>
 
   <h4>uiSlice</h4>
   <pre>
@@ -412,7 +436,8 @@ Actions:
     <li>Reducer chỉ cập nhật state đơn giản, không gọi API trong reducer.</li>
     <li>API call nằm trong action handlers hoặc effects.</li>
     <li>Dữ liệu dẫn xuất không lưu lại trong store nếu có thể tính từ state gốc.</li>
-    <li>Thông báo lỗi/thành công dùng <code>noticeActions.setNotice()</code>.</li>
+    <li>Thông báo lỗi/thành công ngắn hạn dùng <code>noticeActions.setNotice()</code>.</li>
+    <li>Thông báo người dùng có lịch sử đọc/xóa dùng <code>userNotificationActions</code>.</li>
   </ul>
 
   <h2>5. Hook trung tâm useShopState</h2>
@@ -429,11 +454,11 @@ Actions:
     <tbody>
       <tr>
         <td><code>useShopDerivedState</code></td>
-        <td>Đọc Redux bằng <code>useSelector</code>, tính <code>filteredProducts</code>, <code>cartLines</code>, <code>subtotal</code>, <code>shipping</code>, <code>total</code>.</td>
+        <td>Đọc Redux bằng <code>useSelector</code>, tính <code>filteredProducts</code>, <code>cartLines</code>, <code>subtotal</code>, <code>shipping</code>, <code>total</code> và trả về thông báo người dùng.</td>
       </tr>
       <tr>
         <td><code>useShopEffects</code></td>
-        <td>Chạy side effects: refresh profile, tải sản phẩm, tải reviews, tải orders, đồng bộ cart.</td>
+        <td>Chạy side effects: refresh profile, tải sản phẩm, tải reviews, tải orders, tải notifications, mở SSE stream và đồng bộ cart.</td>
       </tr>
       <tr>
         <td><code>useShopActions</code></td>
@@ -455,6 +480,7 @@ useShopState() returns:
   showReviewLogin
   sortOrder
   user
+  userNotifications, unreadNotificationCount
   actions
   </pre>
 
@@ -497,6 +523,11 @@ useShopState() returns:
         <td><code>total</code></td>
         <td><code>subtotal</code>, <code>shipping</code></td>
         <td>Tổng thanh toán.</td>
+      </tr>
+      <tr>
+        <td><code>userNotifications</code>, <code>unreadNotificationCount</code></td>
+        <td><code>userNotifications.items</code>, <code>userNotifications.unreadCount</code></td>
+        <td>Dữ liệu cho chuông thông báo ở Header.</td>
       </tr>
     </tbody>
   </table>
@@ -544,6 +575,11 @@ useShopState() returns:
         <td>Khi user đăng nhập lần đầu trong session.</td>
         <td><code>cartActions.setCart()</code>.</td>
       </tr>
+      <tr>
+        <td>Load và stream notifications</td>
+        <td>Khi user đăng nhập hoặc đổi email.</td>
+        <td><code>userNotificationActions.setUserNotifications()</code> và <code>receiveUserNotification()</code>.</td>
+      </tr>
     </tbody>
   </table>
 
@@ -558,6 +594,7 @@ useShopActions
   ├── useCatalogActions
   ├── useCheckoutActions
   ├── useContactActions
+  ├── useNotificationActions
   └── useReviewActions
   </pre>
 
@@ -612,6 +649,10 @@ useShopActions
       <tr>
         <td><code>useContactActions.js</code></td>
         <td>Gửi form liên hệ tới backend và hiển thị thông báo.</td>
+      </tr>
+      <tr>
+        <td><code>useNotificationActions.js</code></td>
+        <td>Mở thông báo, đánh dấu đã đọc, đánh dấu tất cả đã đọc và xóa thông báo người dùng.</td>
       </tr>
     </tbody>
   </table>
@@ -703,6 +744,8 @@ Page event
     <li><code>marseille04_user</code>: thông tin user hiện tại.</li>
   </ul>
 
+  <p>Realtime notification dùng thêm hàm <code>createNotificationStream()</code> trong <code>shopApi.js</code>. Hàm này mở <code>EventSource</code> tới <code>/notifications/stream?token=&lt;jwt-token&gt;</code>, lắng nghe event <code>notification</code> và truyền payload về <code>useShopEffects</code>.</p>
+
   <h2>9. Luồng tải dữ liệu ban đầu</h2>
 
   <h3>9.1 Refresh user</h3>
@@ -748,6 +791,17 @@ user đăng nhập
   → dispatch(cartActions.setCart(data.cart))
   </pre>
 
+  <h3>9.6 Tải và nhận thông báo realtime</h3>
+  <pre>
+user đăng nhập
+  → shopApi.listNotifications()
+  → dispatch(userNotificationActions.setUserNotifications(data))
+  → createNotificationStream()
+  → server gửi SSE event "notification"
+  → dispatch(userNotificationActions.receiveUserNotification(payload))
+  → Header cập nhật badge + Notification toast hiển thị
+  </pre>
+
   <h2>10. Luồng nghiệp vụ chính</h2>
 
   <p>Mỗi luồng bên dưới có một sơ đồ riêng để mô tả đường đi của thao tác từ UI, qua action/hook, tới Redux store, API backend và kết quả render lại trên giao diện.</p>
@@ -789,10 +843,11 @@ User click sản phẩm
   <pre>
 User click "Thêm vào giỏ"
   → actions.addToCart(productId)
+  → chạy animation sản phẩm bay vào Cart
   → dispatch(cartActions.addCartItem)
+  → setNotice thông báo "Đã thêm sản phẩm vào giỏ hàng"
   → nếu đã đăng nhập: shopApi.addCartItem()
   → dispatch(cartActions.setCart(data.cart))
-  → navigate('/cart')
   </pre>
 
   <h3>10.4 Cập nhật/xóa giỏ hàng</h3>
@@ -885,6 +940,26 @@ StoreAdminPage
   → catalog client tự tải lại
   </pre>
 
+  <h3>10.10 Realtime notification người dùng</h3>
+  <figure class="flow-diagram">
+    <img src="flow-realtime-notification.svg" alt="Sơ đồ luồng realtime notification">
+    <figcaption>Hình 13. Luồng admin cập nhật trạng thái, server lưu notification và đẩy realtime qua SSE tới người dùng.</figcaption>
+  </figure>
+  <pre>
+Admin cập nhật order/contact
+  → backend tạo UserNotification
+  → lưu MongoDB
+  → gửi SSE event "notification" tới user đang online
+  → EventSource trong client nhận payload
+  → dispatch(userNotificationActions.receiveUserNotification)
+  → Header cập nhật chuông + toast hiển thị
+
+User mở/xóa notification
+  → useNotificationActions
+  → PATCH read hoặc DELETE notification
+  → Redux cập nhật trạng thái đã đọc/chưa đọc hoặc xóa khỏi danh sách
+  </pre>
+
   <h2>11. Luồng đa ngôn ngữ</h2>
 
   <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.jsx</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
@@ -924,6 +999,6 @@ Redux Store + shopApi + React Router
 Backend API
   </pre>
 
-  <p class="muted">Tài liệu này mô tả trạng thái client hiện tại sau khi đã tích hợp Redux và tách logic thành các file nhỏ.</p>
+  <p class="muted">Tài liệu này mô tả trạng thái client hiện tại sau khi đã tích hợp Redux, realtime notification và tách logic thành các file nhỏ.</p>
 </body>
 </html>

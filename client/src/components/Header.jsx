@@ -1,12 +1,32 @@
 import { useEffect, useRef, useState } from 'react'
-import { CreditCard, LayoutDashboard, LogIn, LogOut, Mail, Menu, ShoppingBag, ShoppingCart, User, UserPlus, X } from 'lucide-react'
+import { Bell, CheckCheck, CreditCard, LayoutDashboard, LogIn, LogOut, Mail, Menu, ShoppingBag, ShoppingCart, Trash2, User, UserPlus, X } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
 
-function Header({ cartCount, user, onLogout }) {
+function formatNotificationDate(value) {
+  if (!value) return ''
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
+function Header({
+  cartCount,
+  notifications = [],
+  unreadNotificationCount = 0,
+  user,
+  onDeleteNotification,
+  onLogout,
+  onMarkAllNotificationsRead,
+  onOpenNotification,
+}) {
   const { language, t, toggleLanguage } = useLanguage()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
   const headerRef = useRef(null)
   const navigate = useNavigate()
 
@@ -29,6 +49,7 @@ function Header({ cartCount, user, onLogout }) {
   const closeMenus = () => {
     setShowMobileMenu(false)
     setShowUserMenu(false)
+    setShowNotifications(false)
   }
 
   const goTo = (path) => {
@@ -43,6 +64,20 @@ function Header({ cartCount, user, onLogout }) {
 
   const handleUserInfo = () => {
     goTo('/account')
+  }
+
+  const handleOpenNotification = (notification) => {
+    closeMenus()
+    onOpenNotification?.(notification)
+  }
+
+  const handleMarkAllNotificationsRead = () => {
+    onMarkAllNotificationsRead?.()
+  }
+
+  const handleDeleteNotification = (event, notificationId) => {
+    event.stopPropagation()
+    onDeleteNotification?.(notificationId)
   }
 
   return (
@@ -81,29 +116,90 @@ function Header({ cartCount, user, onLogout }) {
             {language === 'vi' ? 'EN' : 'VI'}
           </button>
           {user ? (
-            <div
-              className="user-menu-container"
-              onMouseEnter={() => setShowUserMenu(true)}
-            >
-              <button className="user-name" type="button" onClick={() => setShowUserMenu((current) => !current)}>
-                <User size={17} /> {user.name}
-              </button>
-              {showUserMenu && (
-                <div className="user-menu-dropdown" onMouseLeave={() => setShowUserMenu(false)}>
-                <button className="menu-item" onClick={handleUserInfo}><User size={16} /> {t('header.accountInfo')}</button>
-                <button onClick={() => goTo('/cart')} data-cart-target><ShoppingCart size={16} /> {t('header.cartCount', { count: cartCount })}</button>
-                <button className="menu-item logout" onClick={handleLogout}><LogOut size={16} /> {t('common.logout')}</button>
+            <>
+              <div className="notification-menu-container">
+                <button
+                  className="notification-button"
+                  type="button"
+                  aria-expanded={showNotifications}
+                  aria-label={t('header.notifications')}
+                  onClick={() => {
+                    setShowNotifications((current) => !current)
+                    setShowUserMenu(false)
+                  }}
+                >
+                  <Bell size={17} />
+                  {unreadNotificationCount > 0 && <span className="notification-badge">{unreadNotificationCount}</span>}
+                </button>
+                {showNotifications && (
+                  <div className="notification-dropdown">
+                    <div className="notification-dropdown-heading">
+                      <strong>{t('header.notifications')}</strong>
+                      <button type="button" onClick={handleMarkAllNotificationsRead} disabled={unreadNotificationCount === 0}>
+                        <CheckCheck size={15} />
+                        {t('header.markAllRead')}
+                      </button>
+                    </div>
+                    {notifications.length === 0 ? (
+                      <div className="notification-empty">{t('header.noNotifications')}</div>
+                    ) : (
+                      <div className="notification-list">
+                        {notifications.slice(0, 8).map((notification) => (
+                          <article
+                            key={notification.id}
+                            className={`notification-item ${notification.isRead ? '' : 'is-unread'}`.trim()}
+                          >
+                            <button type="button" className="notification-item-main" onClick={() => handleOpenNotification(notification)}>
+                              <span aria-hidden="true" />
+                              <div>
+                                <strong>{notification.title}</strong>
+                                <p>{notification.message}</p>
+                                <small>{formatNotificationDate(notification.createdAt)}</small>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              className="notification-delete"
+                              aria-label={t('header.deleteNotification')}
+                              onClick={(event) => handleDeleteNotification(event, notification.id)}
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div
+                className="user-menu-container"
+                onMouseEnter={() => {
+                  setShowUserMenu(true)
+                  setShowNotifications(false)
+                }}
+              >
+                <button className="user-name" type="button" onClick={() => setShowUserMenu((current) => !current)}>
+                  {user.avatar ? <img className="user-avatar" src={user.avatar} alt="" /> : <User size={17} />}
+                  <span>{user.name}</span>
+                </button>
+                {showUserMenu && (
+                  <div className="user-menu-dropdown" onMouseLeave={() => setShowUserMenu(false)}>
+                  <button className="menu-item" onClick={handleUserInfo}><User size={16} /> {t('header.accountInfo')}</button>
+                  <button onClick={() => goTo('/cart')} data-cart-target><ShoppingCart size={16} /> {t('header.cartCount', { count: cartCount })}</button>
+                  <button className="menu-item logout" onClick={handleLogout}><LogOut size={16} /> {t('common.logout')}</button>
 
-                </div>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
+            </>
           ) : (
             <>
               <button onClick={() => goTo('/login')}><LogIn size={17} /> {t('common.login')}</button>
               <button className="dark" onClick={() => goTo('/register')}><UserPlus size={17} /> {t('common.register')}</button>
             </>
           )}
-        </div>
+                </div>
       </div>
     </header>
   )

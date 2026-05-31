@@ -22,7 +22,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../i18n/LanguageContext'
 import { shopApi } from '../services/shopApi'
@@ -36,12 +36,14 @@ const orderStatusOptions = [
   { value: 'completed', labelKey: 'admin.orderStatus.completed' },
   { value: 'cancelled', labelKey: 'admin.orderStatus.cancelled' },
 ]
+const pendingOrderStatuses = ['confirmed', 'paid', 'shipping']
 
 const contactStatusOptions = [
   { value: 'new', labelKey: 'admin.contactStatus.new' },
   { value: 'processing', labelKey: 'admin.contactStatus.processing' },
   { value: 'done', labelKey: 'admin.contactStatus.done' },
 ]
+const pendingContactStatuses = ['new', 'processing']
 
 const adminTabs = [
   { id: 'overview', labelKey: 'admin.overview', icon: BarChart3 },
@@ -71,7 +73,7 @@ const emptyStatsFilters = {
 }
 
 const emptyAdminFilters = {
-  orders: { query: '', status: 'all', minTotal: '', maxTotal: '' },
+  orders: { query: '', status: 'all', payment: 'all', minTotal: '', maxTotal: '' },
   products: { query: '', category: 'all', stock: 'all', minPrice: '', maxPrice: '' },
   users: { query: '', role: 'all', address: 'all' },
   contacts: { query: '', status: 'all' },
@@ -109,6 +111,12 @@ function isWithinNumberRange(value, minValue, maxValue) {
   const max = maxValue === '' ? null : Number(maxValue)
 
   return (min === null || number >= min) && (max === null || number <= max)
+}
+
+function countStatuses(statusStats = [], statuses) {
+  return statusStats
+    .filter((item) => statuses.includes(item.status))
+    .reduce((sum, item) => sum + (Number(item.count) || 0), 0)
 }
 
 function notifyCatalogChanged() {
@@ -162,19 +170,32 @@ function BarChartList({ items, valueKey, labelKey, valueFormatter, emptyText }) 
   )
 }
 
-function AdminToast({ toast, onClose, closeLabel }) {
+function AdminToast({ toast, onClose, onOpen, closeLabel }) {
   if (!toast.message) return null
 
   const Icon = toast.type === 'error' ? AlertTriangle : toast.type === 'info' ? Info : CheckCircle2
-
-  return (
-    <div className={`admin-toast admin-toast-${toast.type}`} role="status" aria-live="polite">
+  const content = (
+    <>
       <Icon size={22} />
       <div>
         <strong>{toast.title}</strong>
         <p>{toast.message}</p>
       </div>
-      <button type="button" aria-label={closeLabel} onClick={onClose}>
+    </>
+  )
+
+  return (
+    <div className={`admin-toast admin-toast-${toast.type}`} role="status" aria-live="polite">
+      {onOpen ? (
+        <button type="button" className="admin-toast-main" onClick={onOpen}>
+          {content}
+        </button>
+      ) : (
+        <div className="admin-toast-main">
+          {content}
+        </div>
+      )}
+      <button type="button" className="admin-toast-close" aria-label={closeLabel} onClick={onClose}>
         <X size={18} />
       </button>
     </div>
@@ -219,6 +240,8 @@ function AdminSearchInput({ onChange, placeholder, value }) {
 function StoreAdminPage({ section = 'overview' }) {
   const { language, t } = useLanguage()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const routeFilterKey = searchParams.toString()
   const [summaryData, setSummaryData] = useState(null)
   const [orders, setOrders] = useState([])
   const [products, setProducts] = useState([])
@@ -232,14 +255,19 @@ function StoreAdminPage({ section = 'overview' }) {
   const [deleteProductTarget, setDeleteProductTarget] = useState(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState(null)
   const [toast, setToast] = useState({ message: '', title: '', type: 'success' })
+  const [adminAlerts, setAdminAlerts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [statsFilters, setStatsFilters] = useState(emptyStatsFilters)
   const [summaryParams, setSummaryParams] = useState({})
   const [overviewView, setOverviewView] = useState('list')
   const [adminFilters, setAdminFilters] = useState(emptyAdminFilters)
+  const adminAlertShownRef = useRef(false)
   const productFormPanelRef = useRef(null)
 
   const summary = summaryData?.summary || {}
+  const pendingOrderCount = Number(summary.pendingOrderCount) || 0
+  const newContactCount = Number(summary.newContactCount) || 0
+  const pendingContactCount = countStatuses(summary.contactStats, pendingContactStatuses) || newContactCount
   const lowStockProducts = summaryData?.lowStockProducts || []
   const monthlyRevenue = summaryData?.monthlyRevenue || []
   const topProducts = summaryData?.topProducts || []
@@ -253,16 +281,25 @@ function StoreAdminPage({ section = 'overview' }) {
     () => [...new Set(lowStockProducts.map((product) => product.category).filter(Boolean))].sort(),
     [lowStockProducts],
   )
-
-  const awaitingOrders = useMemo(
-    () => orders.filter((order) => ['confirmed', 'paid', 'shipping'].includes(order.status)).length,
+  const paymentOptions = useMemo(
+    () => [...new Set(orders.map((order) => order.payment).filter(Boolean))].sort(),
     [orders],
   )
+
+  const awaitingOrders = useMemo(
+    () => orders.filter((order) => pendingOrderStatuses.includes(order.status)).length,
+    [orders],
+  )
+  const displayedPendingOrders = orders.length > 0 ? awaitingOrders : pendingOrderCount
 
   const filteredOrders = useMemo(() => {
     const filters = adminFilters.orders
     return orders.filter((order) => {
       const orderItems = order.items?.map((item) => item.name || item.productName || item.product?.name).join(' ') || ''
+      const matchesStatus =
+        filters.status === 'all' ||
+        (filters.status === 'pending' ? pendingOrderStatuses.includes(order.status) : order.status === filters.status)
+
       return (
         matchesSearch([
           order.id,
@@ -270,10 +307,12 @@ function StoreAdminPage({ section = 'overview' }) {
           order.customer?.email,
           order.customer?.address,
           order.status,
+          order.payment,
           orderItems,
           formatDate(order.createdAt, language, ''),
         ], filters.query) &&
-        (filters.status === 'all' || order.status === filters.status) &&
+        matchesStatus &&
+        (filters.payment === 'all' || order.payment === filters.payment) &&
         isWithinNumberRange(order.total, filters.minTotal, filters.maxTotal)
       )
     })
@@ -313,10 +352,16 @@ function StoreAdminPage({ section = 'overview' }) {
 
   const filteredContacts = useMemo(() => {
     const filters = adminFilters.contacts
-    return contacts.filter((contact) => (
-      matchesSearch([contact.name, contact.email, contact.phone, contact.topic, contact.message, contact.status], filters.query) &&
-      (filters.status === 'all' || contact.status === filters.status)
-    ))
+    return contacts.filter((contact) => {
+      const matchesStatus =
+        filters.status === 'all' ||
+        (filters.status === 'pending' ? pendingContactStatuses.includes(contact.status) : contact.status === filters.status)
+
+      return (
+        matchesSearch([contact.name, contact.email, contact.phone, contact.topic, contact.message, contact.status], filters.query) &&
+        matchesStatus
+      )
+    })
   }, [adminFilters.contacts, contacts])
 
   const filteredReviews = useMemo(() => {
@@ -354,6 +399,35 @@ function StoreAdminPage({ section = 'overview' }) {
       ...current,
       [filterKey]: emptyAdminFilters[filterKey],
     }))
+  }
+
+  function dismissAdminAlert(alertId) {
+    setAdminAlerts((current) => current.filter((alert) => alert.id !== alertId))
+  }
+
+  function openAdminAlert(alert) {
+    dismissAdminAlert(alert.id)
+
+    if (alert.target === 'orders') {
+      setAdminFilters((current) => ({
+        ...current,
+        orders: {
+          ...emptyAdminFilters.orders,
+          status: 'pending',
+        },
+      }))
+      navigate('/admin/orders?status=pending')
+      return
+    }
+
+    setAdminFilters((current) => ({
+      ...current,
+      contacts: {
+        ...emptyAdminFilters.contacts,
+        status: 'pending',
+      },
+    }))
+    navigate('/admin/contacts?status=pending')
   }
 
   async function loadAdminData() {
@@ -402,6 +476,53 @@ function StoreAdminPage({ section = 'overview' }) {
   }, [section, summaryParams])
 
   useEffect(() => {
+    const routeStatus = new URLSearchParams(routeFilterKey).get('status')
+    if (!routeStatus) return
+
+    if (section === 'orders') {
+      const allowedStatuses = ['all', 'pending', ...orderStatusOptions.map((option) => option.value)]
+      if (!allowedStatuses.includes(routeStatus)) return
+
+      setAdminFilters((current) => ({
+        ...current,
+        orders: {
+          ...emptyAdminFilters.orders,
+          status: routeStatus,
+        },
+      }))
+      return
+    }
+
+    if (section === 'contacts') {
+      const allowedStatuses = ['all', 'pending', ...contactStatusOptions.map((option) => option.value)]
+      if (!allowedStatuses.includes(routeStatus)) return
+
+      setAdminFilters((current) => ({
+        ...current,
+        contacts: {
+          ...emptyAdminFilters.contacts,
+          status: routeStatus,
+        },
+      }))
+    }
+  }, [routeFilterKey, section])
+
+  useEffect(() => {
+    if (!summaryData || adminAlertShownRef.current) return
+
+    adminAlertShownRef.current = true
+    const alerts = []
+    if (pendingOrderCount > 0) {
+      alerts.push({ id: 'pending-orders', count: pendingOrderCount, target: 'orders' })
+    }
+    if (pendingContactCount > 0) {
+      alerts.push({ id: 'pending-contacts', count: pendingContactCount, target: 'contacts' })
+    }
+
+    setAdminAlerts(alerts)
+  }, [pendingContactCount, pendingOrderCount, summaryData])
+
+  useEffect(() => {
     return () => {
       if (productImagePreview.startsWith('blob:')) {
         URL.revokeObjectURL(productImagePreview)
@@ -414,7 +535,7 @@ function StoreAdminPage({ section = 'overview' }) {
 
     const timer = window.setTimeout(() => {
       setToast({ message: '', title: '', type: 'success' })
-    }, 3600)
+    }, toast.type === 'info' ? 5200 : 3600)
 
     return () => window.clearTimeout(timer)
   }, [toast])
@@ -576,11 +697,28 @@ function StoreAdminPage({ section = 'overview' }) {
         </button>
       </div>
 
-      <AdminToast
-        toast={toast}
-        closeLabel={t('admin.closeToast')}
-        onClose={() => setToast({ message: '', title: '', type: 'success' })}
-      />
+      {(adminAlerts.length > 0 || toast.message) && (
+        <div className="admin-toast-stack">
+          {adminAlerts.map((alert) => (
+            <AdminToast
+              key={alert.id}
+              toast={{
+                message: t(alert.target === 'orders' ? 'admin.pendingOrdersText' : 'admin.pendingContactsText', { count: alert.count }),
+                title: t(alert.target === 'orders' ? 'admin.pendingOrdersTitle' : 'admin.pendingContactsTitle'),
+                type: 'info',
+              }}
+              closeLabel={t('admin.closeToast')}
+              onClose={() => dismissAdminAlert(alert.id)}
+              onOpen={() => openAdminAlert(alert)}
+            />
+          ))}
+          <AdminToast
+            toast={toast}
+            closeLabel={t('admin.closeToast')}
+            onClose={() => setToast({ message: '', title: '', type: 'success' })}
+          />
+        </div>
+      )}
 
       <div className="admin-metrics">
         <article>
@@ -596,7 +734,7 @@ function StoreAdminPage({ section = 'overview' }) {
         <article>
           <Truck size={22} />
           <span>{t('admin.pending')}</span>
-          <strong>{awaitingOrders || summary.pendingOrderCount || 0}</strong>
+          <strong>{displayedPendingOrders}</strong>
         </article>
         <article>
           <Users size={22} />
@@ -906,8 +1044,21 @@ function StoreAdminPage({ section = 'overview' }) {
                 onChange={(event) => updateAdminFilter('orders', 'status', event.target.value)}
               >
                 <option value="all">{t('admin.allStatuses')}</option>
+                <option value="pending">{t('admin.pendingOrders')}</option>
                 {orderStatusOptions.map((option) => (
                   <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t('admin.paymentMethod')}
+              <select
+                value={adminFilters.orders.payment}
+                onChange={(event) => updateAdminFilter('orders', 'payment', event.target.value)}
+              >
+                <option value="all">{t('admin.allPayments')}</option>
+                {paymentOptions.map((payment) => (
+                  <option key={payment} value={payment}>{payment}</option>
                 ))}
               </select>
             </label>
@@ -938,6 +1089,7 @@ function StoreAdminPage({ section = 'overview' }) {
                   <th>{t('admin.customer')}</th>
                   <th>{t('admin.createdAt')}</th>
                   <th>{t('admin.items')}</th>
+                  <th>{t('admin.paymentMethod')}</th>
                   <th>{t('admin.total')}</th>
                   <th>{t('admin.status')}</th>
                 </tr>
@@ -953,6 +1105,7 @@ function StoreAdminPage({ section = 'overview' }) {
                     </td>
                     <td data-label={t('admin.createdAt')}>{formatDate(order.createdAt, language, t('admin.noInfo'))}</td>
                     <td data-label={t('admin.items')}>{t('admin.productCount', { count: order.items.length })}</td>
+                    <td data-label={t('admin.paymentMethod')}><strong>{order.payment || t('admin.noInfo')}</strong></td>
                     <td data-label={t('admin.total')}>{formatCurrency(order.total)}</td>
                     <td data-label={t('admin.status')}>
                       <select value={order.status} onChange={(event) => handleOrderStatus(order.id, event.target.value)}>
@@ -965,7 +1118,7 @@ function StoreAdminPage({ section = 'overview' }) {
                 ))}
                 {filteredOrders.length === 0 && (
                   <tr className="admin-empty-row">
-                    <td colSpan="6" data-label="">{orders.length === 0 ? t('admin.noOrders') : t('admin.noFilterResults')}</td>
+                    <td colSpan="7" data-label="">{orders.length === 0 ? t('admin.noOrders') : t('admin.noFilterResults')}</td>
                   </tr>
                 )}
               </tbody>
@@ -1230,7 +1383,14 @@ function StoreAdminPage({ section = 'overview' }) {
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user.id}>
-                    <td data-label={t('admin.customer')}><strong>{user.name}</strong></td>
+                    <td data-label={t('admin.customer')}>
+                      <div className="admin-user-cell">
+                        <span className="admin-user-avatar" aria-hidden="true">
+                          {user.avatar ? <img src={user.avatar} alt="" /> : user.name?.slice(0, 1).toUpperCase() || '?'}
+                        </span>
+                        <strong>{user.name}</strong>
+                      </div>
+                    </td>
                     <td data-label="Email">{user.email}</td>
                     <td data-label={t('admin.phone')}>{user.phone || t('admin.noInfo')}</td>
                     <td data-label={t('account.address')}>
@@ -1283,6 +1443,7 @@ function StoreAdminPage({ section = 'overview' }) {
                 onChange={(event) => updateAdminFilter('contacts', 'status', event.target.value)}
               >
                 <option value="all">{t('admin.allStatuses')}</option>
+                <option value="pending">{t('admin.pendingContacts')}</option>
                 {contactStatusOptions.map((option) => (
                   <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
                 ))}

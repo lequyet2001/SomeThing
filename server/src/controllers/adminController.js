@@ -9,6 +9,7 @@ import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
 import { Review } from '../models/Review.js'
 import { User } from '../models/User.js'
+import { createUserNotification } from './notificationController.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 
@@ -18,6 +19,11 @@ const ORDER_STATUS_LABELS = {
   shipping: 'Đang giao',
   completed: 'Hoàn thành',
   cancelled: 'Đã hủy',
+}
+const CONTACT_STATUS_LABELS = {
+  new: 'Mới',
+  processing: 'Đang xử lý',
+  done: 'Đã xong',
 }
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PRODUCT_UPLOAD_DIR = path.resolve(__dirname, '../../uploads/products')
@@ -97,6 +103,7 @@ function serializeUser(user) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    avatar: user.avatar || '',
     phone: user.phone || '',
     address: selectedAddress?.address || user.address || '',
     shippingAddresses,
@@ -314,14 +321,29 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw httpError(400, 'Trạng thái đơn hàng không hợp lệ.')
   }
 
-  const order = await Order.findOneAndUpdate(
-    { orderCode: req.params.orderCode },
-    { $set: { status } },
-    { returnDocument: 'after' },
-  )
-
+  const order = await Order.findOne({ orderCode: req.params.orderCode })
   if (!order) {
     throw httpError(404, 'Không tìm thấy đơn hàng.')
+  }
+
+  const previousStatus = order.status
+  order.status = status
+  await order.save()
+
+  if (previousStatus !== status) {
+    const notificationUser = order.user || (await User.findOne({ email: order.customer.email }))?._id
+    await createUserNotification({
+      user: notificationUser,
+      type: 'order',
+      title: 'Cập nhật đơn hàng',
+      message: `Đơn hàng ${order.orderCode} đã chuyển sang trạng thái ${ORDER_STATUS_LABELS[status]}.`,
+      link: '/account',
+      metadata: {
+        orderCode: order.orderCode,
+        previousStatus,
+        status,
+      },
+    })
   }
 
   res.json({
@@ -337,18 +359,34 @@ export const listAdminContacts = asyncHandler(async (_req, res) => {
 
 export const updateContactStatus = asyncHandler(async (req, res) => {
   const { status } = req.body
-  if (!['new', 'processing', 'done'].includes(status)) {
+  if (!Object.keys(CONTACT_STATUS_LABELS).includes(status)) {
     throw httpError(400, 'Trạng thái liên hệ không hợp lệ.')
   }
 
-  const contact = await ContactMessage.findByIdAndUpdate(
-    req.params.contactId,
-    { $set: { status } },
-    { returnDocument: 'after' },
-  )
-
+  const contact = await ContactMessage.findById(req.params.contactId)
   if (!contact) {
     throw httpError(404, 'Không tìm thấy liên hệ.')
+  }
+
+  const previousStatus = contact.status
+  contact.status = status
+  await contact.save()
+
+  if (previousStatus !== status) {
+    const notificationUser = contact.user || (await User.findOne({ email: contact.email }))?._id
+    await createUserNotification({
+      user: notificationUser,
+      type: 'contact',
+      title: 'Cập nhật yêu cầu hỗ trợ',
+      message: `Yêu cầu "${contact.topic}" đã chuyển sang trạng thái ${CONTACT_STATUS_LABELS[status]}.`,
+      link: '/account',
+      metadata: {
+        contactId: contact._id.toString(),
+        previousStatus,
+        status,
+        topic: contact.topic,
+      },
+    })
   }
 
   res.json({

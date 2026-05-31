@@ -1,6 +1,6 @@
 import { formatCurrency } from '../utils/currency'
 import { useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, CalendarDays, History, LogIn, MapPin, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, User, X } from 'lucide-react'
+import { BadgeCheck, CalendarDays, History, ImagePlus, LogIn, MapPin, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, User, X } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 
 function formatOrderDate(value) {
@@ -22,6 +22,22 @@ function createAddress(index = 0) {
     phone: '',
     address: '',
   }
+}
+
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024
+const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.addEventListener('load', () => resolve(reader.result))
+    reader.addEventListener('error', () => reject(new Error('Không đọc được ảnh.')))
+    reader.readAsDataURL(file)
+  })
+}
+
+function getAvatarFallback(user) {
+  return user?.name?.slice(0, 1).toUpperCase() || '?'
 }
 
 function normalizeAddresses(user) {
@@ -50,13 +66,17 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
   const initialAddresses = useMemo(() => normalizeAddresses(user), [user])
   const [addresses, setAddresses] = useState(initialAddresses)
   const [selectedAddressId, setSelectedAddressId] = useState(user?.selectedAddressId || initialAddresses[0]?.id || '')
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '')
+  const [avatarError, setAvatarError] = useState('')
   const [isEditingProfile, setIsEditingProfile] = useState(false)
 
   useEffect(() => {
     setAddresses(initialAddresses)
     setSelectedAddressId(user?.selectedAddressId || initialAddresses[0]?.id || '')
+    setAvatarPreview(user?.avatar || '')
+    setAvatarError('')
     setIsEditingProfile(false)
-  }, [initialAddresses, user?.selectedAddressId])
+  }, [initialAddresses, user?.avatar, user?.selectedAddressId])
 
   const selectedAddress = addresses.find((item) => item.id === selectedAddressId) || addresses[0]
 
@@ -86,7 +106,32 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
   function cancelProfileEdit() {
     setAddresses(initialAddresses)
     setSelectedAddressId(user?.selectedAddressId || initialAddresses[0]?.id || '')
+    setAvatarPreview(user?.avatar || '')
+    setAvatarError('')
     setIsEditingProfile(false)
+  }
+
+  async function handleAvatarChange(event) {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!AVATAR_TYPES.includes(file.type) || file.size > MAX_AVATAR_BYTES) {
+      event.target.value = ''
+      setAvatarError(t('account.avatarTooLarge'))
+      return
+    }
+
+    try {
+      setAvatarPreview(await readFileAsDataUrl(file))
+      setAvatarError('')
+    } catch {
+      setAvatarError(t('account.avatarReadError'))
+    }
+  }
+
+  function removeAvatar() {
+    setAvatarPreview('')
+    setAvatarError('')
   }
 
   async function handleProfileSubmit(event) {
@@ -114,7 +159,7 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
           <p>{t('account.subtitle')}</p>
         </div>
         <div className="account-avatar" aria-hidden="true">
-          {user.name.slice(0, 1).toUpperCase()}
+          {user.avatar ? <img src={user.avatar} alt="" /> : getAvatarFallback(user)}
         </div>
       </div>
 
@@ -127,6 +172,30 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
                 <X size={17} />
                 {t('account.cancelEdit')}
               </button>
+            </div>
+            <div className="account-avatar-field">
+              <div className="account-avatar-preview" aria-hidden="true">
+                {avatarPreview ? <img src={avatarPreview} alt="" /> : <span>{getAvatarFallback(user)}</span>}
+              </div>
+              <div>
+                <span>{t('account.avatar')}</span>
+                <p>{t('account.avatarHelp')}</p>
+                <div className="avatar-actions">
+                  <label className="avatar-file-button">
+                    <ImagePlus size={15} />
+                    {t('account.changeAvatar')}
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleAvatarChange} />
+                  </label>
+                  {avatarPreview && (
+                    <button type="button" className="avatar-remove" onClick={removeAvatar}>
+                      <Trash2 size={15} />
+                      {t('account.removeAvatar')}
+                    </button>
+                  )}
+                </div>
+                {avatarError && <strong className="account-avatar-error">{avatarError}</strong>}
+              </div>
+              <input type="hidden" name="avatar" value={avatarPreview} />
             </div>
             <label>
               {t('auth.name')}

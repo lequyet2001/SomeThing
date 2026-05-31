@@ -1,9 +1,25 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { ADMIN_EMAIL } from '../config/env.js'
 import { User } from '../models/User.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { hashPassword, verifyPassword } from '../utils/password.js'
 import { httpError } from '../utils/httpError.js'
 import { createToken } from '../utils/token.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const AVATAR_UPLOAD_DIR = path.resolve(__dirname, '../../uploads/avatars')
+const MAX_AVATAR_BYTES = 2 * 1024 * 1024
+const MAX_AVATAR_DATA_URL_LENGTH = Math.ceil(MAX_AVATAR_BYTES * 1.4) + 64
+const AVATAR_DATA_URL_PATTERN = /^data:image\/(jpeg|png|webp|gif);base64,([A-Za-z0-9+/]+=*)$/i
+const AVATAR_EXTENSIONS = {
+  jpeg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+  gif: 'gif',
+}
 
 function getUserShippingAddresses(user) {
   const addresses = Array.isArray(user.shippingAddresses) ? user.shippingAddresses : []
@@ -31,6 +47,7 @@ function serializeUser(user) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    avatar: user.avatar || '',
     phone: user.phone || '',
     address: selectedAddress?.address || user.address || '',
     shippingAddresses,
@@ -41,6 +58,36 @@ function serializeUser(user) {
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
+}
+
+async function normalizeAvatar(rawValue, user) {
+  const avatar = String(rawValue || '').trim()
+  if (!avatar) return ''
+
+  if (avatar.length > MAX_AVATAR_DATA_URL_LENGTH) {
+    throw httpError(400, 'Ảnh đại diện phải nhỏ hơn 2MB.')
+  }
+
+  if (/^https?:\/\//i.test(avatar) || avatar.startsWith('/uploads/')) {
+    return avatar
+  }
+
+  const match = avatar.match(AVATAR_DATA_URL_PATTERN)
+  if (!match) {
+    throw httpError(400, 'Ảnh đại diện phải là JPG, PNG, WEBP hoặc GIF.')
+  }
+
+  const [, type, base64Data] = match
+  const buffer = Buffer.from(base64Data, 'base64')
+  if (buffer.length > MAX_AVATAR_BYTES) {
+    throw httpError(400, 'Ảnh đại diện phải nhỏ hơn 2MB.')
+  }
+
+  await fs.mkdir(AVATAR_UPLOAD_DIR, { recursive: true })
+  const fileName = `avatar-${user._id}-${Date.now()}.${AVATAR_EXTENSIONS[type.toLowerCase()]}`
+  await fs.writeFile(path.join(AVATAR_UPLOAD_DIR, fileName), buffer)
+
+  return `/uploads/avatars/${fileName}`
 }
 
 async function syncConfiguredAdminRole(user) {
@@ -134,6 +181,9 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
   req.user.name = String(req.body.name || req.user.name).trim()
   req.user.email = nextEmail
+  if (req.body.avatar !== undefined) {
+    req.user.avatar = await normalizeAvatar(req.body.avatar, req.user)
+  }
   req.user.phone = String(req.body.phone || '').trim()
 
   const shippingAddresses = req.body.shippingAddresses !== undefined

@@ -1,6 +1,6 @@
 # Marseille04 Shop
 
-Marseille04 Shop là web bán hàng thời trang full-stack gồm React client, Express API và MongoDB. Dự án hỗ trợ mua hàng, quản lý giỏ hàng, đánh giá sản phẩm, lịch sử đơn hàng, sổ địa chỉ giao hàng, trang quản lý cửa hàng, upload ảnh sản phẩm, đa ngôn ngữ Việt/Anh, Docker và CI/CD Docker Hub.
+Marseille04 Shop là web bán hàng thời trang full-stack gồm React client, Express API và MongoDB. Dự án hỗ trợ mua hàng, quản lý giỏ hàng, đánh giá sản phẩm, lịch sử đơn hàng, sổ địa chỉ giao hàng, realtime notification, trang quản lý cửa hàng, upload ảnh sản phẩm/avatar, đa ngôn ngữ Việt/Anh, Docker và CI/CD Docker Hub.
 
 ## Công nghệ
 
@@ -18,9 +18,11 @@ Server:
 - Node.js, Express
 - MongoDB, Mongoose
 - JWT authentication
+- Realtime notification bằng Server-Sent Events (SSE)
 - Password hash bằng PBKDF2 từ Node `crypto`
 - CORS, dotenv
 - Upload ảnh sản phẩm vào `/uploads/products`
+- Upload avatar người dùng vào `/uploads/avatars`
 
 DevOps:
 
@@ -44,6 +46,9 @@ Khách hàng:
 - Giỏ hàng, mua hàng, thanh toán
 - Lịch sử mua hàng
 - Hồ sơ khách hàng và nhiều địa chỉ giao hàng
+- Cập nhật avatar người dùng
+- Chuông thông báo realtime, phân biệt đã đọc/chưa đọc, xóa thông báo
+- Nhận thông báo khi trạng thái đơn hàng hoặc yêu cầu hỗ trợ được admin cập nhật
 - Trang liên hệ
 - Chuyển ngôn ngữ Việt/Anh
 - Responsive mobile, header mobile dạng overlay
@@ -55,12 +60,15 @@ Admin:
 - Thống kê theo tháng hoặc khoảng ngày
 - Biểu đồ cột/list cho doanh thu, best sellers, low selling, top customers
 - Quản lý đơn hàng
+- Cập nhật trạng thái đơn hàng và gửi realtime notification cho khách hàng
 - Quản lý sản phẩm, thêm/sửa/xóa, upload ảnh lên server
 - Quản lý người dùng, nâng/hạ quyền admin
 - Quản lý liên hệ
+- Cập nhật trạng thái liên hệ/yêu cầu hỗ trợ và gửi realtime notification cho khách hàng
 - Quản lý đánh giá sản phẩm
 - Tìm kiếm và lọc trong các mục quản lý
 - Popup thông báo và popup xác nhận xóa
+- Popup nhắc đơn hàng/liên hệ chưa xử lý, click để mở đúng mục quản lý và tự lọc
 
 ## Cấu trúc thư mục
 
@@ -284,6 +292,11 @@ Auth:
 ```txt
 GET    /me
 PUT    /me
+GET    /notifications
+GET    /notifications/stream?token=<jwt-token>
+PATCH  /notifications/:notificationId/read
+PATCH  /notifications/read-all
+DELETE /notifications/:notificationId
 GET    /cart
 POST   /cart/items
 PATCH  /cart/items/:productId
@@ -293,6 +306,13 @@ POST   /orders
 GET    /orders/me
 POST   /reviews
 ```
+
+Realtime notification:
+
+- Client mở SSE stream qua `GET /api/shop/notifications/stream?token=<jwt-token>`.
+- Khi admin cập nhật đơn hàng/liên hệ, server lưu `UserNotification` vào MongoDB và đẩy event `notification` tới user đang online.
+- Client vẫn fallback tải lại thông báo khi focus tab và mỗi 60 giây nếu stream gián đoạn.
+- Với Docker/Nginx, `client/nginx.conf` đã tắt `proxy_buffering` cho `/api/` để SSE không bị delay.
 
 Admin:
 
@@ -332,6 +352,20 @@ Giới hạn:
 - File ảnh nhỏ hơn 5MB.
 - Hỗ trợ JPG, PNG, WEBP, GIF.
 - Nginx client Docker đã cấu hình `client_max_body_size 100M` để tránh lỗi 413 ở proxy.
+
+## Upload avatar người dùng
+
+Người dùng cập nhật avatar trong trang thông tin khách hàng. Client preview ảnh trước khi lưu, server lưu file vào:
+
+```txt
+server/uploads/avatars
+```
+
+Giới hạn:
+
+- File ảnh nhỏ hơn 2MB.
+- Hỗ trợ JPG, PNG, WEBP, GIF.
+- API hồ sơ trả về đường dẫn `/uploads/avatars/...` để client hiển thị.
 
 ## Docker Hub và CI/CD
 
@@ -375,10 +409,11 @@ Chi tiết: [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd
 
 - [docs/README.md](docs/README.md)
 - [docs/client-code-flow.doc](docs/client-code-flow.doc)
+- [docs/realtime-notifications.md](docs/realtime-notifications.md)
 - [docs/docker-hub-guide.md](docs/docker-hub-guide.md)
 - [docs/docker-hub-pull-guide.md](docs/docker-hub-pull-guide.md)
 - [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd.md)
-- Các file SVG trong `docs/` mô tả luồng auth, cart, checkout, admin, review, search/filter và Redux.
+- Các file SVG trong `docs/` mô tả luồng auth, cart, checkout, admin, review, search/filter, realtime notification và Redux.
 
 ## Kiểm tra trước khi push
 
@@ -435,9 +470,17 @@ Admin không đúng quyền:
 - Đăng nhập lại bằng email trùng `ADMIN_EMAIL`.
 - Admin có thể nâng/hạ quyền người dùng trong `/admin/users`.
 
+Realtime notification không hiện ngay:
+
+- Kiểm tra user đang đăng nhập và request stream `/api/shop/notifications/stream?token=...` có status `200`.
+- Nếu chạy sau reverse proxy, tắt response buffering cho SSE.
+- Kiểm tra admin cập nhật đúng đơn/liên hệ thuộc email hoặc user đang mở web.
+- Client vẫn fallback tải lại thông báo khi focus tab và mỗi 60 giây.
+
 ## Ghi chú bảo mật
 
 - Không commit `.env`, token, key, certificate.
 - Không commit `server/uploads/products`.
+- Không commit `server/uploads/avatars`.
 - Đổi `JWT_SECRET` khi deploy thật.
 - Dùng Docker Hub access token thay vì mật khẩu tài khoản.

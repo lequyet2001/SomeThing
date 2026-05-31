@@ -1,16 +1,35 @@
 import { useEffect, useRef } from 'react'
 
-import { clearAuth, getToken, shopApi } from '../../services/shopApi'
+import { clearAuth, createNotificationStream, getToken, shopApi } from '../../services/shopApi'
 import {
   cartActions,
   catalogActions,
   ordersActions,
   reviewsActions,
+  userNotificationActions,
   userActions,
 } from '../../store/shopStore'
 
+const activeOrderStatuses = ['confirmed', 'paid', 'shipping']
+
 export function useShopEffects({ cart, dispatch, setNotice, user }) {
   const syncedUserEmailRef = useRef(null)
+  const shownUserNotificationIdsRef = useRef(new Set())
+
+  function showUserNotificationToast(notification) {
+    if (!notification || shownUserNotificationIdsRef.current.has(notification.id)) return
+
+    shownUserNotificationIdsRef.current.add(notification.id)
+    setNotice({
+      actionLabel: 'Xem thông báo',
+      actionPath: notification.link || '/account',
+      dedupeKey: `user-notification-${notification.id}`,
+      duration: 6500,
+      message: notification.message,
+      title: notification.title,
+      type: 'info',
+    })
+  }
 
   useEffect(() => {
     if (!getToken()) return undefined
@@ -96,6 +115,18 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
         const data = await shopApi.listMyOrders()
         if (isMounted) {
           dispatch(ordersActions.setOrders(data.orders))
+          const activeOrders = data.orders.filter((order) => activeOrderStatuses.includes(order.status))
+          if (activeOrders.length > 0) {
+            setNotice({
+              actionLabel: 'Xem lịch sử mua hàng',
+              actionPath: '/account',
+              dedupeKey: `active-orders-${user.email}`,
+              duration: 6500,
+              message: `Bạn có ${activeOrders.length} đơn hàng đang được xử lý.`,
+              title: 'Đơn hàng của bạn',
+              type: 'info',
+            })
+          }
         }
       } catch (error) {
         setNotice(error.message)
@@ -106,6 +137,49 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
 
     return () => {
       isMounted = false
+    }
+  }, [dispatch, setNotice, user?.email])
+
+  useEffect(() => {
+    if (!user) {
+      shownUserNotificationIdsRef.current.clear()
+      dispatch(userNotificationActions.clearUserNotifications())
+      return undefined
+    }
+
+    let isMounted = true
+
+    async function loadNotifications({ showToast = false } = {}) {
+      try {
+        const data = await shopApi.listNotifications()
+        if (!isMounted) return
+
+        dispatch(userNotificationActions.setUserNotifications(data))
+
+        if (showToast) {
+          const unreadNotification = data.notifications.find((notification) => !notification.isRead)
+          showUserNotificationToast(unreadNotification)
+        }
+      } catch (error) {
+        setNotice(`Không tải được thông báo: ${error.message}`)
+      }
+    }
+
+    loadNotifications({ showToast: true })
+    const notificationStream = createNotificationStream((payload) => {
+      if (!isMounted) return
+      dispatch(userNotificationActions.receiveUserNotification(payload))
+      showUserNotificationToast(payload.notification)
+    })
+    const refreshTimer = window.setInterval(() => loadNotifications({ showToast: true }), 60000)
+    const handleFocus = () => loadNotifications({ showToast: true })
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      isMounted = false
+      notificationStream?.close()
+      window.clearInterval(refreshTimer)
+      window.removeEventListener('focus', handleFocus)
     }
   }, [dispatch, setNotice, user?.email])
 

@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
     passwordHash: { type: String, required: true, select: false },
     passwordSalt: { type: String, required: true, select: false },
+    avatar: { type: String, default: '', trim: true },
     phone: { type: String, default: '', trim: true },
     address: { type: String, default: '', trim: true },
     shippingAddresses: { type: [shippingAddressSchema], default: [] },

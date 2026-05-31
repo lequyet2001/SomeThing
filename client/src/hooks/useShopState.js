@@ -45,6 +45,7 @@ export function useShopState() {
     filteredProducts: state.filteredProducts,
     order: state.order,
     orders: state.orders,
+    notices: state.notices,
     products: state.catalog.products,
     query: state.catalog.query,
     reviews: state.reviews,
@@ -55,6 +56,8 @@ export function useShopState() {
     topCategories: state.catalog.topCategories,
     total: state.total,
     user: state.user,
+    userNotifications: state.userNotifications,
+    unreadNotificationCount: state.unreadNotificationCount,
     actions,
   }
 }

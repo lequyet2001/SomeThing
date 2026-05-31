@@ -57,6 +57,7 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
       const payload = {
         name: formData.get('name'),
         email: formData.get('email'),
+        avatar: formData.get('avatar') || '',
         phone: formData.get('phone'),
         address: formData.get('address'),
         selectedAddressId: formData.get('selectedAddressId'),

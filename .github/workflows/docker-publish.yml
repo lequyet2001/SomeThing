@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_USERNAME }}
   CLIENT_IMAGE: marseille04-client
   SERVER_IMAGE: marseille04-server

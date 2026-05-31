@@ -154,15 +154,25 @@ Khi deploy that, can doi:
 - `CLIENT_ORIGIN`: domain frontend that.
 - `MONGODB_URI`: URI MongoDB production neu khong dung Mongo container.
 
-## 8. Upload anh san pham
+## 8. Upload anh va realtime notification
 
-Server luu anh upload vao volume:
+Server luu anh san pham va avatar upload vao volume:
 
 ```yaml
 server-uploads:/app/uploads
 ```
 
-Khong xoa volume nay neu muon giu anh san pham da upload.
+Khong xoa volume nay neu muon giu anh da upload.
+
+Realtime notification dung SSE qua route `/api/shop/notifications/stream`. Client Docker chay Nginx va da cau hinh:
+
+```nginx
+proxy_buffering off;
+proxy_cache off;
+proxy_read_timeout 1h;
+```
+
+Neu deploy sau reverse proxy khac, can tat buffering cho SSE de thong bao khong bi tre.
 
 ## 9. Lenh huu ich
 

@@ -73,14 +73,19 @@
   color: var(--color-primary-dark);
 }
 
-.admin-toast {
+.admin-toast-stack {
   position: fixed;
   top: 92px;
   right: 24px;
   z-index: 80;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
   width: min(420px, calc(100vw - 32px));
+}
+
+.admin-toast {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
   border: 1px solid var(--color-line);
@@ -108,6 +113,28 @@
   color: #1d4f86;
 }
 
+.admin-toast-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+}
+
+button.admin-toast-main {
+  cursor: pointer;
+}
+
+button.admin-toast-main:hover strong {
+  text-decoration: underline;
+}
+
 .admin-toast strong {
   color: inherit;
   font-size: 15px;
@@ -119,7 +146,7 @@
   line-height: 1.45;
 }
 
-.admin-toast button {
+.admin-toast-close {
   display: inline-flex;
   width: 32px;
   height: 32px;
@@ -132,7 +159,7 @@
   padding: 0;
 }
 
-.admin-toast button:hover {
+.admin-toast-close:hover {
   border-color: currentColor;
 }
 
@@ -708,6 +735,10 @@
   background: var(--color-surface);
 }
 
+.admin-page-orders .admin-table {
+  min-width: 900px;
+}
+
 .admin-table th,
 .admin-table td {
   border-bottom: 1px solid var(--color-line);
@@ -738,6 +769,36 @@
 .admin-table td small {
   display: block;
   color: var(--color-muted);
+}
+
+.admin-user-cell {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-user-cell strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-user-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 900;
+}
+
+.admin-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .admin-table tr:last-child td {

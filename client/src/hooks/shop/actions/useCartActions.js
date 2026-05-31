@@ -58,6 +58,15 @@ export function useCartActions({ dispatch, navigate, setNotice, user }) {
   async function addToCart(productId, quantity = 1, sourceElement = null) {
     animateProductToCart(sourceElement)
     dispatch(cartActions.addCartItem({ productId, quantity }))
+    setNotice({
+      actionLabel: 'Xem giỏ hàng',
+      actionPath: '/cart',
+      dedupeKey: 'cart-added',
+      duration: 3200,
+      message: 'Đã thêm sản phẩm vào giỏ hàng.',
+      title: 'Giỏ hàng',
+      type: 'success',
+    })
 
     if (user) {
       try {

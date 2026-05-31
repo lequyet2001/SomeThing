@@ -426,13 +426,31 @@ docker compose exec server npm run seed
 
 ### Anh upload bi mat sau khi reset
 
-Anh san pham upload nam trong volume:
+Anh san pham va avatar upload nam trong volume:
 
 ```txt
 server-uploads
 ```
 
 Khong chay `docker compose down -v` neu muon giu anh va database.
+
+### Realtime notification khong hien ngay
+
+Chuc nang thong bao realtime dung SSE:
+
+```txt
+/api/shop/notifications/stream
+```
+
+Neu chay dung image client moi nhat thi Nginx da tat buffering cho `/api/`. Neu dat them reverse proxy khac phia truoc, hay tat buffering/cache cho route stream va tang read timeout.
+
+Kiem tra nhanh:
+
+```powershell
+docker compose logs -f server
+```
+
+Sau do dang nhap user, mo DevTools Network va kiem tra request `notifications/stream` co trang thai `200`.
 
 ## 13. Lenh nhanh
 

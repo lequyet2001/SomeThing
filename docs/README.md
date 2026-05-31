@@ -9,6 +9,7 @@ Thu muc nay chua tai lieu van hanh, Docker, CI/CD va cac so do luong code/client
 - [Pull tu Docker Hub](docker-hub-pull-guide.md): huong dan cho nguoi chi can pull image ve chay, khong can source code.
 - [GitHub Actions CI/CD](github-actions-docker-cicd.md): cau hinh secrets va workflow tu dong build/push Docker image sau khi push code len GitHub.
 - [Client code flow](client-code-flow.doc): tai lieu mo ta luong code frontend va Redux.
+- [Realtime notifications](realtime-notifications.md): luong thong bao realtime bang SSE, API, Redux va cach van hanh.
 
 ## So do luong chuc nang
 
@@ -24,6 +25,7 @@ Thu muc nay chua tai lieu van hanh, Docker, CI/CD va cac so do luong code/client
 - [Review flow](flow-review.svg)
 - [Contact flow](flow-contact.svg)
 - [Admin flow](flow-admin.svg)
+- [Realtime notification flow](flow-realtime-notification.svg)
 
 ## Docker images
 
@@ -44,4 +46,3 @@ Truy cap:
 ```txt
 http://localhost:5173
 ```
-

@@ -67,7 +67,7 @@
     padding: 18px 14px 34px;
   }
 
-  .notification {
+  .notification-stack {
     position: fixed;
     top: 78px;
     right: 12px;
@@ -76,8 +76,6 @@
     max-height: min(34vh, 220px);
     overflow-y: auto;
     margin-bottom: 0;
-    padding: 10px 10px 10px 12px;
-    box-shadow: var(--shadow-md);
   }
 
   .notification p {
@@ -85,7 +83,7 @@
     line-height: 1.4;
   }
 
-  .notification button {
+  .notification-close {
     width: 32px;
     height: 32px;
   }
@@ -307,6 +305,18 @@
     grid-template-columns: 1fr;
   }
 
+  .account-avatar-field {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .account-avatar-field > div:nth-child(2),
+  .avatar-actions {
+    justify-items: center;
+    justify-content: center;
+  }
+
   .address-manager-heading,
   .address-actions {
     align-items: stretch;
@@ -323,16 +333,30 @@
     grid-template-columns: 1fr;
   }
 
+  .notification-menu-container,
+  .notification-button,
   .user-menu-container,
   .user-name {
     width: 100%;
   }
 
+  .notification-dropdown,
   .user-menu-dropdown {
     position: static;
     min-width: 0;
+    width: 100%;
     margin-top: 8px;
     box-shadow: none;
+  }
+
+  .notification-dropdown-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notification-dropdown-heading button {
+    justify-content: center;
+    width: 100%;
   }
 
   .catalog,
@@ -428,7 +452,7 @@
     grid-template-columns: 1fr;
   }
 
-  .admin-toast {
+  .admin-toast-stack {
     top: 76px;
     right: 12px;
     left: 12px;
@@ -747,6 +771,15 @@
   .admin-page .admin-product-cell img {
     width: 40px;
     height: 40px;
+  }
+
+  .admin-page .admin-user-cell {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .admin-page .admin-user-avatar {
+    width: 36px;
+    height: 36px;
   }
 
   .admin-page .admin-actions {

@@ -21,6 +21,22 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY)
 }
 
+export function createNotificationStream(onNotification) {
+  const token = getToken()
+  if (!token || typeof EventSource === 'undefined') return null
+
+  const url = new URL(`${API_URL}/notifications/stream`, window.location.origin)
+  url.searchParams.set('token', token)
+
+  const source = new EventSource(url.toString())
+  source.addEventListener('notification', (event) => {
+    const data = JSON.parse(event.data)
+    onNotification(data)
+  })
+
+  return source
+}
+
 async function request(path, options = {}) {
   const token = getToken()
   const headers = {
@@ -73,6 +89,7 @@ export const shopApi = {
   createReview: (payload) => request('/reviews', { method: 'POST', body: JSON.stringify(payload) }),
   getAdminSummary: (params = {}) => request(`/admin/summary${toQueryString(params)}`),
   getCart: () => request('/cart'),
+  listNotifications: () => request('/notifications'),
   getProfile: () => request('/me'),
   listAdminContacts: () => request('/admin/contacts'),
   listAdminOrders: () => request('/admin/orders'),
@@ -83,10 +100,13 @@ export const shopApi = {
   listProducts: (params = {}) => request(`/products${toQueryString(params)}`),
   listReviews: (params = {}) => request(`/reviews${toQueryString(params)}`),
   login: (payload) => request('/login', { method: 'POST', body: JSON.stringify(payload) }),
+  markAllNotificationsRead: () => request('/notifications/read-all', { method: 'PATCH' }),
+  markNotificationRead: (notificationId) => request(`/notifications/${notificationId}/read`, { method: 'PATCH' }),
   register: (payload) => request('/register', { method: 'POST', body: JSON.stringify(payload) }),
   removeCartItem: (productId) => request(`/cart/items/${productId}`, { method: 'DELETE' }),
   deleteAdminProduct: (productId) => request(`/admin/products/${productId}`, { method: 'DELETE' }),
   deleteAdminReview: (reviewId) => request(`/admin/reviews/${reviewId}`, { method: 'DELETE' }),
+  deleteNotification: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
   sendContact: (payload) => request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
   updateCartItem: (productId, quantity) =>
     request(`/cart/items/${productId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }),

@@ -4,6 +4,7 @@ import adminRoutes from './adminRoutes.js'
 import authRoutes from './authRoutes.js'
 import cartRoutes from './cartRoutes.js'
 import contactRoutes from './contactRoutes.js'
+import notificationRoutes from './notificationRoutes.js'
 import orderRoutes from './orderRoutes.js'
 import productRoutes from './productRoutes.js'
 import reviewRoutes from './reviewRoutes.js'
@@ -16,6 +17,7 @@ router.use(productRoutes)
 router.use(reviewRoutes)
 router.use(cartRoutes)
 router.use(orderRoutes)
+router.use(notificationRoutes)
 router.use(contactRoutes)
 
 export default router

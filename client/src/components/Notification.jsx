@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 
@@ -7,8 +8,18 @@ const notificationIcons = {
   success: CheckCircle2,
 }
 
-function getNotificationType(message) {
-  const normalizedMessage = message.toLowerCase()
+function normalizeMessage(message) {
+  return String(message || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+}
+
+function getNotificationType(notice) {
+  if (notice.type) return notice.type
+
+  const normalizedMessage = normalizeMessage(notice.message)
   if (
     normalizedMessage.includes('khong') ||
     normalizedMessage.includes('loi') ||
@@ -26,20 +37,71 @@ function getNotificationType(message) {
   return 'info'
 }
 
-function Notification({ message, onClose }) {
+function NotificationItem({ notice, onClose, onOpen }) {
   const { t } = useLanguage()
-  if (!message) return null
+  const type = getNotificationType(notice)
+  const Icon = notificationIcons[type] || Info
+  const canOpen = Boolean(notice.actionPath && onOpen)
 
-  const type = getNotificationType(message)
-  const Icon = notificationIcons[type]
+  useEffect(() => {
+    if (notice.duration === 0) return undefined
+
+    const timer = window.setTimeout(
+      () => onClose(notice.id),
+      notice.duration || (type === 'error' ? 7000 : 4800),
+    )
+
+    return () => window.clearTimeout(timer)
+  }, [notice.duration, notice.id, onClose, type])
+
+  const content = (
+    <>
+      <Icon size={20} />
+      <div>
+        {notice.title && <strong>{notice.title}</strong>}
+        <p>{notice.message}</p>
+        {notice.actionLabel && <span>{notice.actionLabel}</span>}
+      </div>
+    </>
+  )
 
   return (
-    <div className={`notification notification-${type}`} role="status" aria-live="polite">
-      <Icon size={20} />
-      <p>{message}</p>
-      <button type="button" aria-label={t('common.close')} onClick={onClose}>
+    <article className={`notification notification-${type}`} role="status" aria-live="polite">
+      {canOpen ? (
+        <button type="button" className="notification-main" onClick={() => onOpen(notice)}>
+          {content}
+        </button>
+      ) : (
+        <div className="notification-main">
+          {content}
+        </div>
+      )}
+      <button type="button" className="notification-close" aria-label={t('common.close')} onClick={() => onClose(notice.id)}>
         <X size={18} />
       </button>
+    </article>
+  )
+}
+
+function Notification({ notices = [], message, onClose, onOpen }) {
+  const items = notices.length > 0
+    ? notices
+    : message
+      ? [{ id: 'legacy-notice', message }]
+      : []
+
+  if (items.length === 0) return null
+
+  return (
+    <div className="notification-stack">
+      {items.map((notice) => (
+        <NotificationItem
+          key={notice.id}
+          notice={notice}
+          onClose={onClose}
+          onOpen={onOpen}
+        />
+      ))}
     </div>
   )
 }

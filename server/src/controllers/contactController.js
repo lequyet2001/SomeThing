@@ -13,7 +13,14 @@ export const createContactMessage = asyncHandler(async (req, res) => {
     throw httpError(400, 'Vui lòng nhập tên, email và nội dung liên hệ.')
   }
 
-  const contactMessage = await ContactMessage.create({ name, email, phone, topic, message })
+  const contactMessage = await ContactMessage.create({
+    name,
+    email,
+    phone,
+    topic,
+    message,
+    user: req.user?._id,
+  })
 
   res.status(201).json({
     message: `Cảm ơn ${contactMessage.name}, Marseille04 đã nhận thông tin liên hệ.`,

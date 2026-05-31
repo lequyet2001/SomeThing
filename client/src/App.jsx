@@ -10,10 +10,24 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Header cartCount={shop.cart.length} user={shop.user} onLogout={shop.actions.logout} />
+      <Header
+        cartCount={shop.cart.length}
+        notifications={shop.userNotifications}
+        unreadNotificationCount={shop.unreadNotificationCount}
+        user={shop.user}
+        onDeleteNotification={shop.actions.deleteUserNotification}
+        onLogout={shop.actions.logout}
+        onMarkAllNotificationsRead={shop.actions.markAllUserNotificationsRead}
+        onOpenNotification={shop.actions.openUserNotification}
+      />
 
       <main>
-        <Notification message={shop.authMessage} onClose={shop.actions.dismissNotice} />
+        <Notification
+          message={shop.authMessage}
+          notices={shop.notices}
+          onClose={shop.actions.dismissNotice}
+          onOpen={shop.actions.openNotice}
+        />
         <AppRoutes shop={shop} />
       </main>
 

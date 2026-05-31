@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 
 export function useShopDerivedState() {
   const authMessage = useSelector((state) => state.notice.message)
+  const notices = useSelector((state) => state.notice.items)
   const cart = useSelector((state) => state.cart.items)
   const catalog = useSelector((state) => state.catalog)
   const order = useSelector((state) => state.orders.current)
@@ -10,6 +11,7 @@ export function useShopDerivedState() {
   const reviews = useSelector((state) => state.reviews.items)
   const showReviewLogin = useSelector((state) => state.ui.showReviewLogin)
   const user = useSelector((state) => state.user.current)
+  const userNotificationState = useSelector((state) => state.userNotifications)
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = catalog.query.trim().toLowerCase()
@@ -56,11 +58,14 @@ export function useShopDerivedState() {
     filteredProducts,
     order,
     orders,
+    notices,
     reviews,
     shipping,
     showReviewLogin,
     subtotal,
     total,
     user,
+    userNotifications: userNotificationState.items,
+    unreadNotificationCount: userNotificationState.unreadCount,
   }
 }

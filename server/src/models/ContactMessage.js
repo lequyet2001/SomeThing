@@ -5,6 +5,7 @@ const contactMessageSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, lowercase: true, trim: true },
     phone: { type: String, default: '', trim: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     topic: { type: String, default: 'Tư vấn sản phẩm', trim: true },
     message: { type: String, required: true, trim: true, maxlength: 2000 },
     status: { type: String, default: 'new', enum: ['new', 'processing', 'done'] },
