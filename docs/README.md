@@ -8,6 +8,7 @@ Thu muc nay chua tai lieu van hanh, Docker, CI/CD va cac so do luong code/client
 - [Docker Hub build/push](docker-hub-guide.md): build image local, tag va push len Docker Hub.
 - [Pull tu Docker Hub](docker-hub-pull-guide.md): huong dan cho nguoi chi can pull image ve chay, khong can source code.
 - [GitHub Actions CI/CD](github-actions-docker-cicd.md): cau hinh secrets va workflow tu dong build/push Docker image sau khi push code len GitHub.
+- [Use case va luong chinh](use-cases-and-main-flows.md): actor, use case nghiep vu, dieu kien truoc/sau va dac ta cac luong chinh.
 - [Client code flow](client-code-flow.doc): tai lieu mo ta luong code frontend va Redux.
 - [Realtime notifications](realtime-notifications.md): luong thong bao realtime bang SSE, API, Redux va cach van hanh.
 
@@ -16,6 +17,12 @@ Thu muc nay chua tai lieu van hanh, Docker, CI/CD va cac so do luong code/client
 - [Redux overview](client-redux-overview.svg)
 - [Redux initial load](client-redux-initial-load.svg)
 - [Redux action flow](client-redux-action-flow.svg)
+- [Use case overview](use-case-overview.svg)
+- [Main auth/access flow](flow-main-auth-access.svg)
+- [Main shopping/review flow](flow-main-shopping-review.svg)
+- [Main cart/checkout flow](flow-main-cart-checkout.svg)
+- [Main account/notification flow](flow-main-account-notification.svg)
+- [Main contact/admin flow](flow-main-contact-admin.svg)
 - [Auth flow](flow-auth.svg)
 - [Search/filter flow](flow-search-filter.svg)
 - [Product detail flow](flow-product-detail.svg)

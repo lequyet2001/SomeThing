@@ -2,6 +2,20 @@ import { ContactMessage } from '../models/ContactMessage.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 
+function serializeContactMessage(contactMessage) {
+  return {
+    id: contactMessage._id.toString(),
+    name: contactMessage.name,
+    email: contactMessage.email,
+    phone: contactMessage.phone,
+    topic: contactMessage.topic,
+    message: contactMessage.message,
+    status: contactMessage.status,
+    createdAt: contactMessage.createdAt,
+    updatedAt: contactMessage.updatedAt,
+  }
+}
+
 export const createContactMessage = asyncHandler(async (req, res) => {
   const name = String(req.body.name || '').trim()
   const email = String(req.body.email || '').trim().toLowerCase()
@@ -28,9 +42,22 @@ export const createContactMessage = asyncHandler(async (req, res) => {
       id: contactMessage._id.toString(),
       name: contactMessage.name,
       email: contactMessage.email,
+      phone: contactMessage.phone,
       topic: contactMessage.topic,
+      message: contactMessage.message,
       status: contactMessage.status,
       createdAt: contactMessage.createdAt,
     },
   })
+})
+
+export const listMyContactMessages = asyncHandler(async (req, res) => {
+  const contacts = await ContactMessage.find({
+    $or: [
+      { user: req.user._id },
+      { email: req.user.email },
+    ],
+  }).sort({ createdAt: -1 })
+
+  res.json({ contacts: contacts.map(serializeContactMessage) })
 })

@@ -118,6 +118,7 @@ function AppRoutes({ shop }) {
         element={
           <AccountPage
             cartCount={shop.cartLines.length}
+            contacts={shop.contacts}
             lastOrder={shop.order}
             orders={shop.orders}
             totalInCart={shop.subtotal}

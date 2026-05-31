@@ -337,7 +337,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
       type: 'order',
       title: 'Cập nhật đơn hàng',
       message: `Đơn hàng ${order.orderCode} đã chuyển sang trạng thái ${ORDER_STATUS_LABELS[status]}.`,
-      link: '/account',
+      link: `/account?focus=order&order=${encodeURIComponent(order.orderCode)}`,
       metadata: {
         orderCode: order.orderCode,
         previousStatus,
@@ -379,7 +379,7 @@ export const updateContactStatus = asyncHandler(async (req, res) => {
       type: 'contact',
       title: 'Cập nhật yêu cầu hỗ trợ',
       message: `Yêu cầu "${contact.topic}" đã chuyển sang trạng thái ${CONTACT_STATUS_LABELS[status]}.`,
-      link: '/account',
+      link: `/account?focus=contact&contact=${encodeURIComponent(contact._id.toString())}`,
       metadata: {
         contactId: contact._id.toString(),
         previousStatus,

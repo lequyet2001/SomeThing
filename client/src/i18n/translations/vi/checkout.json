@@ -1,0 +1,10 @@
+{
+  "checkout.address": "Địa chỉ giao hàng",
+  "checkout.addressPlaceholder": "Số nhà, đường, phường/xã...",
+  "checkout.bank": "Chuyển khoản ngân hàng",
+  "checkout.card": "Thẻ nội địa / Visa",
+  "checkout.cod": "Thanh toán khi nhận hàng",
+  "checkout.order": "Đặt hàng",
+  "checkout.paymentMethod": "Phương thức thanh toán",
+  "checkout.title": "Mua hàng và thanh toán"
+}

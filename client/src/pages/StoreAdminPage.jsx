@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Inbox,
   Info,
+  LoaderCircle,
   MessageSquare,
   PackagePlus,
   RefreshCw,
@@ -18,6 +19,7 @@ import {
   Star,
   Trash2,
   Truck,
+  UploadCloud,
   UserCog,
   Users,
   X,
@@ -251,6 +253,8 @@ function StoreAdminPage({ section = 'overview' }) {
   const [productForm, setProductForm] = useState(emptyProductForm)
   const [productImageFile, setProductImageFile] = useState(null)
   const [productImagePreview, setProductImagePreview] = useState('')
+  const [isProductImageUploading, setIsProductImageUploading] = useState(false)
+  const [isProductSaving, setIsProductSaving] = useState(false)
   const [editingProductId, setEditingProductId] = useState(null)
   const [deleteProductTarget, setDeleteProductTarget] = useState(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState(null)
@@ -545,6 +549,7 @@ function StoreAdminPage({ section = 'overview' }) {
     setProductForm(emptyProductForm)
     setProductImageFile(null)
     setProductImagePreview('')
+    setIsProductImageUploading(false)
   }
 
   function handleStatsFilterSubmit(event) {
@@ -579,6 +584,8 @@ function StoreAdminPage({ section = 'overview' }) {
   }
 
   function handleProductImageChange(event) {
+    if (isProductSaving) return
+
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -594,11 +601,16 @@ function StoreAdminPage({ section = 'overview' }) {
 
   async function handleProductSubmit(event) {
     event.preventDefault()
+    if (isProductSaving) return
+
+    setIsProductSaving(true)
     try {
       let image = productForm.image
       if (productImageFile) {
+        setIsProductImageUploading(true)
         const upload = await shopApi.uploadProductImage(productImageFile)
         image = upload.url
+        setIsProductImageUploading(false)
       }
 
       const payload = {
@@ -623,6 +635,9 @@ function StoreAdminPage({ section = 'overview' }) {
       notifyCatalogChanged()
     } catch (error) {
       showAdminToast(error.message, 'error')
+    } finally {
+      setIsProductImageUploading(false)
+      setIsProductSaving(false)
     }
   }
 
@@ -1249,7 +1264,7 @@ function StoreAdminPage({ section = 'overview' }) {
                 </button>
               )}
             </div>
-            <form className="admin-form" onSubmit={handleProductSubmit}>
+            <form className="admin-form" aria-busy={isProductSaving} onSubmit={handleProductSubmit}>
               <label>
                 {t('admin.productName')}
                 <input
@@ -1304,12 +1319,28 @@ function StoreAdminPage({ section = 'overview' }) {
               </label>
               <label>
                 {t('admin.productImage')}
-                <input type="file" accept="image/*" onChange={handleProductImageChange} required={!editingProductId && !productForm.image} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProductImageChange}
+                  disabled={isProductSaving}
+                  required={!editingProductId && !productForm.image}
+                />
               </label>
               {(productImagePreview || productForm.image) && (
-                <div className="admin-image-preview">
+                <div className={`admin-image-preview${isProductImageUploading ? ' is-uploading' : ''}`}>
                   <img src={productImagePreview || productForm.image} alt={t('admin.productImage')} />
                   <span>{productImageFile ? productImageFile.name : t('admin.savedImage')}</span>
+                  {isProductImageUploading && (
+                    <div className="image-upload-overlay" role="status" aria-live="polite">
+                      <UploadCloud size={28} />
+                      <strong>{t('admin.uploadingImage')}</strong>
+                      <span>{t('admin.uploadingImageText')}</span>
+                      <div className="upload-progress" aria-hidden="true">
+                        <i />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               <label>
@@ -1320,7 +1351,10 @@ function StoreAdminPage({ section = 'overview' }) {
                   required
                 />
               </label>
-              <button className="primary-action"><Save size={17} /> {editingProductId ? t('admin.saveProduct') : t('admin.addProduct')}</button>
+              <button className="primary-action" disabled={isProductSaving}>
+                {isProductSaving ? <LoaderCircle className="button-spinner" size={17} /> : <Save size={17} />}
+                {isProductSaving ? t('admin.savingProduct') : editingProductId ? t('admin.saveProduct') : t('admin.addProduct')}
+              </button>
             </form>
           </aside>
         </div>

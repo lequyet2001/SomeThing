@@ -1,0 +1,23 @@
+{
+  "home.addCart": "Thêm vào giỏ",
+  "home.categories": "Danh mục",
+  "home.emptyKicker": "Catalog đang cập nhật",
+  "home.emptyText": "Hãy thêm sản phẩm trong trang quản lý cửa hàng để homepage hiển thị bộ sưu tập mới.",
+  "home.emptyTitle": "Chưa có sản phẩm để hiển thị",
+  "home.featured": "Sản phẩm đề xuất",
+  "home.heroKicker": "Bộ sưu tập mới",
+  "home.heroText": "Những món đồ tối giản, dễ mặc và dễ phối cho ngày làm việc, cuối tuần và những buổi gặp gỡ bất chợt.",
+  "home.heroTitle": "Marseille04 everyday wardrobe",
+  "home.serviceReturn": "Đổi trả",
+  "home.serviceReturnText": "Trong 7 ngày",
+  "home.serviceShip": "Freeship",
+  "home.serviceShipText": "Đơn hàng từ 1.200.000đ",
+  "home.serviceSupport": "Hỗ trợ",
+  "home.serviceSupportText": "Tư vấn kích cỡ và đơn hàng",
+  "home.shopByNeed": "Mua theo nhu cầu",
+  "home.shopNow": "Mua sắm ngay",
+  "home.soldThisMonth": "{count} đã bán tháng này",
+  "home.trending": "Đang được quan tâm",
+  "home.viewAll": "Xem tất cả",
+  "home.viewFeatured": "Xem sản phẩm nổi bật"
+}

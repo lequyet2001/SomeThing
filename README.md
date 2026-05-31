@@ -408,12 +408,13 @@ Chi tiết: [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd
 ## Tài liệu bổ sung
 
 - [docs/README.md](docs/README.md)
+- [docs/use-cases-and-main-flows.md](docs/use-cases-and-main-flows.md)
 - [docs/client-code-flow.doc](docs/client-code-flow.doc)
 - [docs/realtime-notifications.md](docs/realtime-notifications.md)
 - [docs/docker-hub-guide.md](docs/docker-hub-guide.md)
 - [docs/docker-hub-pull-guide.md](docs/docker-hub-pull-guide.md)
 - [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd.md)
-- Các file SVG trong `docs/` mô tả luồng auth, cart, checkout, admin, review, search/filter, realtime notification và Redux.
+- Các file SVG trong `docs/` mô tả use case, luồng auth, cart, checkout, admin, review, search/filter, realtime notification và Redux.
 
 ## Kiểm tra trước khi push
 

@@ -13,6 +13,7 @@ export function useContactActions({ setNotice }) {
         message: formData.get('message'),
       })
       setNotice(data.message)
+      window.dispatchEvent(new Event('marseille04:contacts-changed'))
       event.currentTarget.reset()
     } catch (error) {
       setNotice(error.message)

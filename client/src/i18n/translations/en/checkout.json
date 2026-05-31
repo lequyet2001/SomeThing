@@ -1,0 +1,10 @@
+{
+  "checkout.address": "Shipping address",
+  "checkout.addressPlaceholder": "House number, street, ward...",
+  "checkout.bank": "Bank transfer",
+  "checkout.card": "Domestic card / Visa",
+  "checkout.cod": "Cash on delivery",
+  "checkout.order": "Place order",
+  "checkout.paymentMethod": "Payment method",
+  "checkout.title": "Order and payment"
+}

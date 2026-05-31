@@ -67,8 +67,10 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
       localStorage.setItem('marseille04_user', JSON.stringify(data.user))
       dispatch(userActions.setUser(data.user))
       setNotice(data.message)
+      return true
     } catch (error) {
       setNotice(error.message)
+      return false
     }
   }
 

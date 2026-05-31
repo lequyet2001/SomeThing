@@ -96,6 +96,7 @@ export const shopApi = {
   listAdminProducts: () => request('/admin/products'),
   listAdminReviews: () => request('/admin/reviews'),
   listAdminUsers: () => request('/admin/users'),
+  listMyContacts: () => request('/contacts/me'),
   listMyOrders: () => request('/orders/me'),
   listProducts: (params = {}) => request(`/products${toQueryString(params)}`),
   listReviews: (params = {}) => request(`/reviews${toQueryString(params)}`),

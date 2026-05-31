@@ -1,0 +1,20 @@
+{
+  "common.admin": "Admin",
+  "common.all": "All",
+  "common.back": "Back to products",
+  "common.cancel": "Cancel",
+  "common.cart": "Cart",
+  "common.checkout": "Checkout",
+  "common.close": "Close",
+  "common.contact": "Contact",
+  "common.email": "Email",
+  "common.free": "Free",
+  "common.home": "Home",
+  "common.login": "Sign in",
+  "common.logout": "Sign out",
+  "common.products": "Products",
+  "common.register": "Register",
+  "common.save": "Save information",
+  "common.shop": "Shop",
+  "common.view": "View"
+}

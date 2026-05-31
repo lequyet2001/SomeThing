@@ -1,0 +1,23 @@
+{
+  "contact.address": "Address: 18 Trang Thi Street, Hang Trong Ward, Hoan Kiem District, Hanoi",
+  "contact.content": "Message",
+  "contact.emailResponse": "Response within 24 business hours.",
+  "contact.formTitle": "Send a message",
+  "contact.heroKicker": "Contact Marseille04",
+  "contact.heroText": "Send us your details. Marseille04 will reply during business hours and help you choose suitable products.",
+  "contact.heroTitle": "Need help with products, orders, or payment?",
+  "contact.hours": "Opening hours",
+  "contact.messagePlaceholder": "What do you need help with?",
+  "contact.namePlaceholder": "Enter your full name",
+  "contact.phone": "Phone number",
+  "contact.send": "Send contact",
+  "contact.showroomText": "Try products, pick up orders, and return in store.",
+  "contact.supportText": "Support from 8:30 to 21:00 daily.",
+  "contact.topic": "Topic",
+  "contact.topicOrder": "Order support",
+  "contact.topicPayment": "Payment",
+  "contact.topicProduct": "Product consultation",
+  "contact.topicReturn": "Returns",
+  "contact.weekdays": "Monday - Friday",
+  "contact.weekend": "Saturday - Sunday"
+}

@@ -8,6 +8,7 @@ import { useContactActions } from './actions/useContactActions'
 import { useNotificationActions } from './actions/useNotificationActions'
 import { useReviewActions } from './actions/useReviewActions'
 import { noticeActions } from '../../store/shopStore'
+import { emitAccountTarget } from '../../utils/notificationTarget'
 
 export function useShopActions({ cart, cartLines, catalog, dispatch, navigate, setNotice, user }) {
   const authActions = useAuthActions({ dispatch, navigate, setNotice })
@@ -38,6 +39,7 @@ export function useShopActions({ cart, cartLines, catalog, dispatch, navigate, s
       openNotice: (notice) => {
         if (notice?.actionPath) {
           navigate(notice.actionPath)
+          emitAccountTarget(notice.actionPath)
         }
         dispatch(noticeActions.dismissNotice(notice?.id))
       },
