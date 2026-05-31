@@ -1,0 +1,11 @@
+{
+  "product.addCart": "Thêm vào giỏ hàng",
+  "product.inStock": "Còn hàng: {count}",
+  "product.loginReview": "Đăng nhập để gửi đánh giá cho sản phẩm này.",
+  "product.ratingAria": "Chọn số sao đánh giá",
+  "product.ratingText": "{rating}/5 sao",
+  "product.reviewPlaceholder": "Viết đánh giá với tên {name}...",
+  "product.reviews": "Đánh giá sản phẩm",
+  "product.sendReview": "Gửi đánh giá",
+  "product.star": "{count} sao"
+}

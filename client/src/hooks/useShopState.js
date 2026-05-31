@@ -42,6 +42,7 @@ export function useShopState() {
     cartLines: state.cartLines,
     categories: state.catalog.categories,
     category: state.catalog.category,
+    contacts: state.contacts,
     filteredProducts: state.filteredProducts,
     order: state.order,
     orders: state.orders,

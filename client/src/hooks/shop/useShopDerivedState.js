@@ -6,6 +6,7 @@ export function useShopDerivedState() {
   const notices = useSelector((state) => state.notice.items)
   const cart = useSelector((state) => state.cart.items)
   const catalog = useSelector((state) => state.catalog)
+  const contacts = useSelector((state) => state.contacts.history)
   const order = useSelector((state) => state.orders.current)
   const orders = useSelector((state) => state.orders.history)
   const reviews = useSelector((state) => state.reviews.items)
@@ -55,6 +56,7 @@ export function useShopDerivedState() {
     cart,
     cartLines,
     catalog,
+    contacts,
     filteredProducts,
     order,
     orders,

@@ -1,5 +1,6 @@
 import { shopApi } from '../../../services/shopApi'
 import { userNotificationActions } from '../../../store/shopStore'
+import { buildNotificationTargetPath, emitAccountTarget } from '../../../utils/notificationTarget'
 
 export function useNotificationActions({ dispatch, navigate, setNotice }) {
   async function openUserNotification(notification) {
@@ -14,7 +15,9 @@ export function useNotificationActions({ dispatch, navigate, setNotice }) {
       }
     }
 
-    navigate(notification.link || '/account')
+    const targetPath = buildNotificationTargetPath(notification)
+    navigate(targetPath)
+    emitAccountTarget(targetPath)
   }
 
   async function markAllUserNotificationsRead() {

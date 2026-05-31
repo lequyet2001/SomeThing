@@ -1,0 +1,11 @@
+{
+  "header.accountInfo": "Thông tin khách hàng",
+  "header.cartCount": "Giỏ hàng ({count})",
+  "header.closeMenu": "Đóng menu",
+  "header.deleteNotification": "Xóa thông báo",
+  "header.markAllRead": "Đánh dấu đã đọc",
+  "header.nav": "Điều hướng",
+  "header.noNotifications": "Chưa có thông báo.",
+  "header.notifications": "Thông báo",
+  "header.openMenu": "Mở menu"
+}

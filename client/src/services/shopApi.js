@@ -96,6 +96,7 @@ export const shopApi = {
   listAdminProducts: () => request('/admin/products'),
   listAdminReviews: () => request('/admin/reviews'),
   listAdminUsers: () => request('/admin/users'),
+  listMyContacts: () => request('/contacts/me'),
   listMyOrders: () => request('/orders/me'),
   listProducts: (params = {}) => request(`/products${toQueryString(params)}`),
   listReviews: (params = {}) => request(`/reviews${toQueryString(params)}`),
@@ -107,7 +108,10 @@ export const shopApi = {
   deleteAdminProduct: (productId) => request(`/admin/products/${productId}`, { method: 'DELETE' }),
   deleteAdminReview: (reviewId) => request(`/admin/reviews/${reviewId}`, { method: 'DELETE' }),
   deleteNotification: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
+  forgotPassword: (payload) => request('/forgot-password', { method: 'POST', body: JSON.stringify(payload) }),
   sendContact: (payload) => request('/contact', { method: 'POST', body: JSON.stringify(payload) }),
+  resetPassword: (token, payload) =>
+    request(`/reset-password/${encodeURIComponent(token)}`, { method: 'POST', body: JSON.stringify(payload) }),
   updateCartItem: (productId, quantity) =>
     request(`/cart/items/${productId}`, { method: 'PATCH', body: JSON.stringify({ quantity }) }),
   updateContactStatus: (contactId, status) =>

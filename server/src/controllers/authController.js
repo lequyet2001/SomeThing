@@ -1,8 +1,9 @@
+import { createHash, randomBytes } from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { ADMIN_EMAIL } from '../config/env.js'
+import { ADMIN_EMAIL, CLIENT_ORIGIN } from '../config/env.js'
 import { User } from '../models/User.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { hashPassword, verifyPassword } from '../utils/password.js'
@@ -20,6 +21,7 @@ const AVATAR_EXTENSIONS = {
   webp: 'webp',
   gif: 'gif',
 }
+const RESET_PASSWORD_EXPIRES_IN_MS = 30 * 60 * 1000
 
 function getUserShippingAddresses(user) {
   const addresses = Array.isArray(user.shippingAddresses) ? user.shippingAddresses : []
@@ -58,6 +60,15 @@ function serializeUser(user) {
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase()
+}
+
+function hashResetToken(token) {
+  return createHash('sha256').update(token).digest('hex')
+}
+
+function createResetPasswordUrl(req, token) {
+  const origin = req.get('origin') || CLIENT_ORIGIN
+  return `${origin.replace(/\/$/, '')}/reset-password/${encodeURIComponent(token)}`
 }
 
 async function normalizeAvatar(rawValue, user) {
@@ -166,6 +177,57 @@ export const login = asyncHandler(async (req, res) => {
     token: createToken(user),
     user: serializeUser(user),
   })
+})
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const email = normalizeEmail(req.body.email)
+  if (!email) {
+    throw httpError(400, 'Vui lòng nhập email để đặt lại mật khẩu.')
+  }
+
+  const user = await User.findOne({ email }).select('+passwordResetTokenHash +passwordResetExpiresAt')
+  const response = {
+    message: 'Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.',
+  }
+
+  if (user) {
+    const resetToken = randomBytes(32).toString('hex')
+    user.passwordResetTokenHash = hashResetToken(resetToken)
+    user.passwordResetExpiresAt = new Date(Date.now() + RESET_PASSWORD_EXPIRES_IN_MS)
+    await user.save()
+
+    response.resetUrl = createResetPasswordUrl(req, resetToken)
+    response.expiresInMinutes = Math.round(RESET_PASSWORD_EXPIRES_IN_MS / 60000)
+  }
+
+  res.json(response)
+})
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const token = String(req.body.token || req.params.token || '').trim()
+  const password = String(req.body.password || '')
+
+  if (!token || password.length < 6) {
+    throw httpError(400, 'Mật khẩu mới phải có tối thiểu 6 ký tự.')
+  }
+
+  const user = await User.findOne({
+    passwordResetTokenHash: hashResetToken(token),
+    passwordResetExpiresAt: { $gt: new Date() },
+  }).select('+passwordHash +passwordSalt +passwordResetTokenHash +passwordResetExpiresAt')
+
+  if (!user) {
+    throw httpError(400, 'Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.')
+  }
+
+  const { passwordHash, passwordSalt } = hashPassword(password)
+  user.passwordHash = passwordHash
+  user.passwordSalt = passwordSalt
+  user.passwordResetTokenHash = ''
+  user.passwordResetExpiresAt = null
+  await user.save()
+
+  res.json({ message: 'Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.' })
 })
 
 export const getProfile = asyncHandler(async (req, res) => {

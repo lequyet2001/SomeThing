@@ -42,6 +42,43 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
     }
   }
 
+  async function requestPasswordReset(event) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+
+    try {
+      const data = await shopApi.forgotPassword({
+        email: formData.get('email'),
+      })
+      setNotice(data.message)
+      return data
+    } catch (error) {
+      setNotice(error.message)
+      return null
+    }
+  }
+
+  async function resetPassword(event, token) {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirmPassword') || '')
+
+    if (password !== confirmPassword) {
+      setNotice('Mật khẩu xác nhận không khớp.')
+      return null
+    }
+
+    try {
+      const data = await shopApi.resetPassword(token, { password })
+      setNotice(data.message)
+      return data
+    } catch (error) {
+      setNotice(error.message)
+      return null
+    }
+  }
+
   function logout() {
     clearAuth()
     dispatch(userActions.clearUser())
@@ -67,8 +104,10 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
       localStorage.setItem('marseille04_user', JSON.stringify(data.user))
       dispatch(userActions.setUser(data.user))
       setNotice(data.message)
+      return true
     } catch (error) {
       setNotice(error.message)
+      return false
     }
   }
 
@@ -76,6 +115,8 @@ export function useAuthActions({ dispatch, navigate, setNotice }) {
     handleAuth,
     handleReviewLogin,
     logout,
+    requestPasswordReset,
+    resetPassword,
     submitProfile,
   }
 }

@@ -1,0 +1,7 @@
+{
+  "order.checkout": "Checkout",
+  "order.shipping": "Shipping",
+  "order.subtotal": "Subtotal",
+  "order.summary": "Order summary",
+  "order.total": "Total"
+}

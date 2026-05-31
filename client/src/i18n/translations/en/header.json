@@ -1,0 +1,11 @@
+{
+  "header.accountInfo": "Customer information",
+  "header.cartCount": "Cart ({count})",
+  "header.closeMenu": "Close menu",
+  "header.deleteNotification": "Delete notification",
+  "header.markAllRead": "Mark all read",
+  "header.nav": "Navigation",
+  "header.noNotifications": "No notifications yet.",
+  "header.notifications": "Notifications",
+  "header.openMenu": "Open menu"
+}

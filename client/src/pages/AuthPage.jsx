@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 import { useLanguage } from '../i18n/LanguageContext'
 
 function AuthPage({ mode, onNavigate, onSubmit }) {
@@ -23,6 +25,7 @@ function AuthPage({ mode, onNavigate, onSubmit }) {
           <input name="password" type="password" required minLength="6" />
         </label>
         <button className="primary-action">{isRegister ? t('auth.createAccount') : t('auth.login')}</button>
+        {!isRegister && <Link className="link-button" to="/forgot-password">{t('auth.forgotPassword')}</Link>}
         <button type="button" className="link-button" onClick={() => onNavigate(isRegister ? 'login' : 'register')}>
           {isRegister ? t('auth.hasAccount') : t('auth.noAccount')}
         </button>

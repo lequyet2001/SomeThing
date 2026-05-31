@@ -4,11 +4,13 @@ import { clearAuth, createNotificationStream, getToken, shopApi } from '../../se
 import {
   cartActions,
   catalogActions,
+  contactsActions,
   ordersActions,
   reviewsActions,
   userNotificationActions,
   userActions,
 } from '../../store/shopStore'
+import { buildNotificationTargetPath } from '../../utils/notificationTarget'
 
 const activeOrderStatuses = ['confirmed', 'paid', 'shipping']
 
@@ -22,7 +24,7 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
     shownUserNotificationIdsRef.current.add(notification.id)
     setNotice({
       actionLabel: 'Xem thông báo',
-      actionPath: notification.link || '/account',
+      actionPath: buildNotificationTargetPath(notification),
       dedupeKey: `user-notification-${notification.id}`,
       duration: 6500,
       message: notification.message,
@@ -119,7 +121,7 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
           if (activeOrders.length > 0) {
             setNotice({
               actionLabel: 'Xem lịch sử mua hàng',
-              actionPath: '/account',
+              actionPath: '/account?focus=orders',
               dedupeKey: `active-orders-${user.email}`,
               duration: 6500,
               message: `Bạn có ${activeOrders.length} đơn hàng đang được xử lý.`,
@@ -134,9 +136,39 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
     }
 
     loadOrders()
+    window.addEventListener('marseille04:orders-changed', loadOrders)
 
     return () => {
       isMounted = false
+      window.removeEventListener('marseille04:orders-changed', loadOrders)
+    }
+  }, [dispatch, setNotice, user?.email])
+
+  useEffect(() => {
+    if (!user) {
+      dispatch(contactsActions.setContacts([]))
+      return undefined
+    }
+
+    let isMounted = true
+
+    async function loadContacts() {
+      try {
+        const data = await shopApi.listMyContacts()
+        if (isMounted) {
+          dispatch(contactsActions.setContacts(data.contacts))
+        }
+      } catch (error) {
+        setNotice(`Không tải được yêu cầu hỗ trợ: ${error.message}`)
+      }
+    }
+
+    loadContacts()
+    window.addEventListener('marseille04:contacts-changed', loadContacts)
+
+    return () => {
+      isMounted = false
+      window.removeEventListener('marseille04:contacts-changed', loadContacts)
     }
   }, [dispatch, setNotice, user?.email])
 
@@ -169,6 +201,12 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
     const notificationStream = createNotificationStream((payload) => {
       if (!isMounted) return
       dispatch(userNotificationActions.receiveUserNotification(payload))
+      if (payload.notification?.type === 'order') {
+        window.dispatchEvent(new Event('marseille04:orders-changed'))
+      }
+      if (payload.notification?.type === 'contact') {
+        window.dispatchEvent(new Event('marseille04:contacts-changed'))
+      }
       showUserNotificationToast(payload.notification)
     })
     const refreshTimer = window.setInterval(() => loadNotifications({ showToast: true }), 60000)

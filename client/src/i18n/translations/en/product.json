@@ -1,0 +1,11 @@
+{
+  "product.addCart": "Add to cart",
+  "product.inStock": "In stock: {count}",
+  "product.loginReview": "Sign in to submit a review for this product.",
+  "product.ratingAria": "Choose review rating",
+  "product.ratingText": "{rating}/5 stars",
+  "product.reviewPlaceholder": "Write a review as {name}...",
+  "product.reviews": "Product reviews",
+  "product.sendReview": "Submit review",
+  "product.star": "{count} stars"
+}

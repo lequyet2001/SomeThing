@@ -430,6 +430,7 @@
   .contact-form,
     .account-form,
     .order-history,
+    .support-history,
     .admin-hero,
     .admin-panel,
     .auth-card,
@@ -439,6 +440,7 @@
 
   .order-history-heading,
   .order-history-main,
+  .support-history-main,
   .order-history-total,
   .admin-hero,
   .admin-panel-heading,

@@ -1,0 +1,23 @@
+{
+  "home.addCart": "Add to cart",
+  "home.categories": "Categories",
+  "home.emptyKicker": "Catalog updating",
+  "home.emptyText": "Add products in the store admin page so the homepage can show the latest collection.",
+  "home.emptyTitle": "No products to display",
+  "home.featured": "Recommended products",
+  "home.heroKicker": "New collection",
+  "home.heroText": "Minimal, easy-to-wear pieces for workdays, weekends, and spontaneous meetups.",
+  "home.heroTitle": "Marseille04 everyday wardrobe",
+  "home.serviceReturn": "Returns",
+  "home.serviceReturnText": "Within 7 days",
+  "home.serviceShip": "Free shipping",
+  "home.serviceShipText": "Orders from 1,200,000 VND",
+  "home.serviceSupport": "Support",
+  "home.serviceSupportText": "Size and order consultation",
+  "home.shopByNeed": "Shop by need",
+  "home.shopNow": "Shop now",
+  "home.soldThisMonth": "{count} sold this month",
+  "home.trending": "Currently popular",
+  "home.viewAll": "View all",
+  "home.viewFeatured": "View featured product"
+}

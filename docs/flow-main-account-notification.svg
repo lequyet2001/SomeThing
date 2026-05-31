@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1740" viewBox="0 0 1320 1740" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng tài khoản, địa chỉ và thông báo realtime</title>
+  <desc id="desc">Biểu đồ cột dọc cho luồng hồ sơ khách hàng, địa chỉ giao hàng, lịch sử đơn và realtime notification.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2 2 L10 6 L2 10 Z" fill="#475569"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .title { fill: #0f172a; font: 800 30px Arial, sans-serif; text-anchor: middle; }
+      .subtitle { fill: #64748b; font: 15px Arial, sans-serif; text-anchor: middle; }
+      .col { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .col-title { fill: #334155; font: 800 18px Arial, sans-serif; text-anchor: middle; }
+      .ui { fill: #eef7ff; stroke: #5b9fd3; stroke-width: 2.2; }
+      .client { fill: #f0fdf4; stroke: #49a66c; stroke-width: 2.2; }
+      .server { fill: #fff7e8; stroke: #df9c39; stroke-width: 2.2; }
+      .notify { fill: #f4f0ff; stroke: #8b5cf6; stroke-width: 2.2; }
+      .admin { fill: #fff1e6; stroke: #d97706; stroke-width: 2.2; }
+      .divider { stroke: #cbd5e1; stroke-width: 2; stroke-dasharray: 8 8; }
+      .text { fill: #111827; font: 700 16px Arial, sans-serif; text-anchor: middle; }
+      .meta { fill: #475569; font: 13px Arial, sans-serif; text-anchor: middle; }
+      .section { fill: #334155; font: 800 18px Arial, sans-serif; text-anchor: middle; }
+      .line { stroke: #475569; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #8b5cf6; stroke-width: 2; fill: none; stroke-dasharray: 7 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1320" height="1740"/>
+  <text class="title" x="660" y="54">Luồng chính: Tài khoản, địa chỉ và thông báo realtime</text>
+  <text class="subtitle" x="660" y="82">Chia cột dọc theo UI, Redux, Backend và Admin/SSE để tránh ghi đè</text>
+
+  <rect class="col" x="45" y="115" width="280" height="1545" rx="22"/>
+  <rect class="col" x="365" y="115" width="280" height="1545" rx="22"/>
+  <rect class="col" x="685" y="115" width="280" height="1545" rx="22"/>
+  <rect class="col" x="1005" y="115" width="280" height="1545" rx="22"/>
+  <text class="col-title" x="185" y="153">UI user</text>
+  <text class="col-title" x="505" y="153">Redux / Hook</text>
+  <text class="col-title" x="825" y="153">Backend / DB</text>
+  <text class="col-title" x="1145" y="153">Admin / SSE</text>
+
+  <text class="section" x="660" y="205">A. Hồ sơ, avatar, địa chỉ và lịch sử đơn</text>
+
+  <rect class="ui" x="70" y="245" width="230" height="78" rx="15"/>
+  <text class="text" x="185" y="274">Mở Account</text>
+  <text class="meta" x="185" y="298">/account</text>
+
+  <rect class="client" x="390" y="245" width="230" height="78" rx="15"/>
+  <text class="text" x="505" y="274">Load dữ liệu</text>
+  <text class="meta" x="505" y="298">profile + orders</text>
+
+  <rect class="server" x="710" y="245" width="230" height="88" rx="15"/>
+  <text class="text" x="825" y="276">User APIs</text>
+  <text class="meta" x="825" y="299">GET /me</text>
+  <text class="meta" x="825" y="317">GET /orders/me</text>
+
+  <rect class="ui" x="70" y="395" width="230" height="78" rx="15"/>
+  <text class="text" x="185" y="424">Hiển thị hồ sơ</text>
+  <text class="meta" x="185" y="448">read-only mặc định</text>
+
+  <rect class="ui" x="70" y="545" width="230" height="78" rx="15"/>
+  <text class="text" x="185" y="574">Bấm sửa</text>
+  <text class="meta" x="185" y="598">mở form edit</text>
+
+  <rect class="ui" x="70" y="695" width="230" height="88" rx="15"/>
+  <text class="text" x="185" y="726">Cập nhật hồ sơ</text>
+  <text class="meta" x="185" y="749">avatar, thông tin</text>
+  <text class="meta" x="185" y="767">địa chỉ được chọn</text>
+
+  <rect class="client" x="390" y="695" width="230" height="78" rx="15"/>
+  <text class="text" x="505" y="724">Chuẩn hóa form</text>
+  <text class="meta" x="505" y="748">submitProfile()</text>
+
+  <rect class="server" x="710" y="695" width="230" height="78" rx="15"/>
+  <text class="text" x="825" y="724">Lưu profile</text>
+  <text class="meta" x="825" y="748">PUT /me</text>
+
+  <rect class="server" x="710" y="845" width="230" height="88" rx="15"/>
+  <text class="text" x="825" y="876">MongoDB</text>
+  <text class="meta" x="825" y="899">user, avatar</text>
+  <text class="meta" x="825" y="917">addresses</text>
+
+  <rect class="ui" x="70" y="995" width="230" height="88" rx="15"/>
+  <text class="text" x="185" y="1026">Checkout dùng</text>
+  <text class="meta" x="185" y="1049">địa chỉ đang chọn</text>
+  <text class="meta" x="185" y="1067">tự điền form</text>
+
+  <line class="divider" x1="70" y1="1160" x2="1250" y2="1160"/>
+  <text class="section" x="660" y="1205">B. Realtime notification</text>
+
+  <rect class="client" x="390" y="1245" width="230" height="88" rx="15"/>
+  <text class="text" x="505" y="1276">Sau login</text>
+  <text class="meta" x="505" y="1299">GET notifications</text>
+  <text class="meta" x="505" y="1317">mở EventSource</text>
+
+  <rect class="notify" x="710" y="1245" width="230" height="88" rx="15"/>
+  <text class="text" x="825" y="1276">Stream API</text>
+  <text class="meta" x="825" y="1299">/notifications/stream</text>
+  <text class="meta" x="825" y="1317">token query</text>
+
+  <rect class="admin" x="1030" y="1245" width="230" height="88" rx="15"/>
+  <text class="text" x="1145" y="1276">Admin cập nhật</text>
+  <text class="meta" x="1145" y="1299">đơn hàng</text>
+  <text class="meta" x="1145" y="1317">hoặc liên hệ</text>
+
+  <rect class="notify" x="710" y="1395" width="230" height="88" rx="15"/>
+  <text class="text" x="825" y="1426">Tạo notification</text>
+  <text class="meta" x="825" y="1449">lưu DB trước</text>
+  <text class="meta" x="825" y="1467">đẩy SSE sau</text>
+
+  <rect class="client" x="390" y="1395" width="230" height="88" rx="15"/>
+  <text class="text" x="505" y="1426">Nhận event</text>
+  <text class="meta" x="505" y="1449">update Redux</text>
+  <text class="meta" x="505" y="1467">toast + badge</text>
+
+  <rect class="ui" x="70" y="1395" width="230" height="88" rx="15"/>
+  <text class="text" x="185" y="1426">User thao tác</text>
+  <text class="meta" x="185" y="1449">mở, đọc</text>
+  <text class="meta" x="185" y="1467">hoặc xóa</text>
+
+  <rect class="server" x="710" y="1530" width="230" height="78" rx="15"/>
+  <text class="text" x="825" y="1559">Cập nhật trạng thái</text>
+  <text class="meta" x="825" y="1583">PATCH / DELETE</text>
+
+  <path class="line" d="M300 284H390"/>
+  <path class="line" d="M620 284H710"/>
+  <path class="line" d="M825 333C780 370 350 360 300 434"/>
+  <path class="line" d="M185 473V545"/>
+  <path class="line" d="M185 623V695"/>
+  <path class="line" d="M300 739H390"/>
+  <path class="line" d="M620 734H710"/>
+  <path class="line" d="M825 773V845"/>
+  <path class="line" d="M710 889C640 950 350 970 300 1039"/>
+
+  <path class="line" d="M620 1289H710"/>
+  <path class="dash" d="M1030 1289H940"/>
+  <path class="dash" d="M825 1333V1395"/>
+  <path class="dash" d="M710 1439H620"/>
+  <path class="line" d="M390 1439H300"/>
+  <path class="line" d="M300 1470C420 1525 600 1550 710 1569"/>
+</svg>

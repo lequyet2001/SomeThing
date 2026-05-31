@@ -1,6 +1,7 @@
 import { formatCurrency } from '../utils/currency'
 import { useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, CalendarDays, History, ImagePlus, LogIn, MapPin, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, User, X } from 'lucide-react'
+import { BadgeCheck, CalendarDays, History, ImagePlus, LoaderCircle, LogIn, MapPin, MessageSquare, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, UploadCloud, User, X } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
 
 function formatOrderDate(value) {
@@ -26,6 +27,11 @@ function createAddress(index = 0) {
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
 const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const contactStatusLabelKeys = {
+  done: 'admin.contactStatus.done',
+  new: 'admin.contactStatus.new',
+  processing: 'admin.contactStatus.processing',
+}
 
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -38,6 +44,32 @@ function readFileAsDataUrl(file) {
 
 function getAvatarFallback(user) {
   return user?.name?.slice(0, 1).toUpperCase() || '?'
+}
+
+function toElementSafeId(value) {
+  return String(value || '').replace(/[^a-zA-Z0-9_-]/g, '-')
+}
+
+function getOrderTargetId(orderId) {
+  return `account-order-${toElementSafeId(orderId)}`
+}
+
+function getContactTargetId(contactId) {
+  return `account-contact-${toElementSafeId(contactId)}`
+}
+
+function getAccountTargetId(search) {
+  const params = new URLSearchParams(search)
+  const focus = params.get('focus')
+  const orderCode = params.get('order') || params.get('orderCode')
+  const contactId = params.get('contact') || params.get('contactId')
+
+  if (focus === 'order' && orderCode) return getOrderTargetId(orderCode)
+  if (focus === 'orders') return 'account-order-history'
+  if (focus === 'contact' && contactId) return getContactTargetId(contactId)
+  if (focus === 'contacts' || focus === 'support') return 'account-support-history'
+
+  return ''
 }
 
 function normalizeAddresses(user) {
@@ -60,15 +92,18 @@ function normalizeAddresses(user) {
   }]
 }
 
-function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onLogin, onSubmitProfile }) {
+function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalInCart, user, onLogin, onSubmitProfile }) {
   const { t } = useLanguage()
+  const location = useLocation()
   const latestOrder = lastOrder || orders[0]
   const initialAddresses = useMemo(() => normalizeAddresses(user), [user])
   const [addresses, setAddresses] = useState(initialAddresses)
   const [selectedAddressId, setSelectedAddressId] = useState(user?.selectedAddressId || initialAddresses[0]?.id || '')
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '')
   const [avatarError, setAvatarError] = useState('')
+  const [highlightTargetId, setHighlightTargetId] = useState('')
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [isProfileSaving, setIsProfileSaving] = useState(false)
 
   useEffect(() => {
     setAddresses(initialAddresses)
@@ -76,9 +111,55 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
     setAvatarPreview(user?.avatar || '')
     setAvatarError('')
     setIsEditingProfile(false)
+    setIsProfileSaving(false)
   }, [initialAddresses, user?.avatar, user?.selectedAddressId])
 
   const selectedAddress = addresses.find((item) => item.id === selectedAddressId) || addresses[0]
+  const isAvatarUploading = isProfileSaving && avatarPreview.startsWith('data:')
+
+  useEffect(() => {
+    const targetId = getAccountTargetId(location.search)
+    if (!targetId) return undefined
+
+    const scrollTimer = window.setTimeout(() => {
+      const target = document.getElementById(targetId)
+      if (!target) return
+
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightTargetId(targetId)
+    }, 160)
+
+    const highlightTimer = window.setTimeout(() => {
+      setHighlightTargetId((current) => (current === targetId ? '' : current))
+    }, 4800)
+
+    return () => {
+      window.clearTimeout(scrollTimer)
+      window.clearTimeout(highlightTimer)
+    }
+  }, [contacts, location.search, orders])
+
+  useEffect(() => {
+    function handleAccountTarget(event) {
+      const targetId = getAccountTargetId(event.detail?.search || '')
+      if (!targetId) return
+
+      const target = document.getElementById(targetId)
+      if (!target) return
+
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setHighlightTargetId(targetId)
+      window.setTimeout(() => {
+        setHighlightTargetId((current) => (current === targetId ? '' : current))
+      }, 4800)
+    }
+
+    window.addEventListener('marseille04:account-target', handleAccountTarget)
+
+    return () => {
+      window.removeEventListener('marseille04:account-target', handleAccountTarget)
+    }
+  }, [contacts, orders])
 
   function updateAddress(addressId, field, value) {
     setAddresses((current) => current.map((item) => (item.id === addressId ? { ...item, [field]: value } : item)))
@@ -104,6 +185,8 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
   }
 
   function cancelProfileEdit() {
+    if (isProfileSaving) return
+
     setAddresses(initialAddresses)
     setSelectedAddressId(user?.selectedAddressId || initialAddresses[0]?.id || '')
     setAvatarPreview(user?.avatar || '')
@@ -112,6 +195,8 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
   }
 
   async function handleAvatarChange(event) {
+    if (isProfileSaving) return
+
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -130,13 +215,25 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
   }
 
   function removeAvatar() {
+    if (isProfileSaving) return
+
     setAvatarPreview('')
     setAvatarError('')
   }
 
   async function handleProfileSubmit(event) {
-    await onSubmitProfile(event)
-    setIsEditingProfile(false)
+    event.preventDefault()
+    if (isProfileSaving) return
+
+    setIsProfileSaving(true)
+    try {
+      const saved = await onSubmitProfile(event)
+      if (saved !== false) {
+        setIsEditingProfile(false)
+      }
+    } finally {
+      setIsProfileSaving(false)
+    }
   }
 
   if (!user) {
@@ -168,31 +265,53 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
           <form className="account-form" onSubmit={handleProfileSubmit}>
             <div className="account-form-heading">
               <h2>{t('account.profile')}</h2>
-              <button type="button" onClick={cancelProfileEdit} aria-label={t('account.cancelEdit')}>
+              <button type="button" onClick={cancelProfileEdit} disabled={isProfileSaving} aria-label={t('account.cancelEdit')}>
                 <X size={17} />
                 {t('account.cancelEdit')}
               </button>
             </div>
             <div className="account-avatar-field">
-              <div className="account-avatar-preview" aria-hidden="true">
+              <div className={`account-avatar-preview${isAvatarUploading ? ' is-uploading' : ''}`} aria-hidden="true">
                 {avatarPreview ? <img src={avatarPreview} alt="" /> : <span>{getAvatarFallback(user)}</span>}
+                {isAvatarUploading && (
+                  <div className="avatar-upload-overlay">
+                    <LoaderCircle size={24} />
+                  </div>
+                )}
               </div>
               <div>
                 <span>{t('account.avatar')}</span>
                 <p>{t('account.avatarHelp')}</p>
                 <div className="avatar-actions">
-                  <label className="avatar-file-button">
+                  <label className={`avatar-file-button${isProfileSaving ? ' is-disabled' : ''}`}>
                     <ImagePlus size={15} />
                     {t('account.changeAvatar')}
-                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleAvatarChange} />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleAvatarChange}
+                      disabled={isProfileSaving}
+                    />
                   </label>
                   {avatarPreview && (
-                    <button type="button" className="avatar-remove" onClick={removeAvatar}>
+                    <button type="button" className="avatar-remove" onClick={removeAvatar} disabled={isProfileSaving}>
                       <Trash2 size={15} />
                       {t('account.removeAvatar')}
                     </button>
                   )}
                 </div>
+                {isAvatarUploading && (
+                  <div className="account-upload-status" role="status" aria-live="polite">
+                    <UploadCloud size={17} />
+                    <div>
+                      <strong>{t('account.uploadingAvatar')}</strong>
+                      <p>{t('account.uploadingAvatarText')}</p>
+                      <div className="upload-progress" aria-hidden="true">
+                        <i />
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {avatarError && <strong className="account-avatar-error">{avatarError}</strong>}
               </div>
               <input type="hidden" name="avatar" value={avatarPreview} />
@@ -255,7 +374,10 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
                 </article>
               ))}
             </div>
-            <button className="primary-action"><Save size={17} /> {t('common.save')}</button>
+            <button className="primary-action" disabled={isProfileSaving}>
+              {isProfileSaving ? <LoaderCircle className="button-spinner" size={17} /> : <Save size={17} />}
+              {isProfileSaving ? t('account.savingProfile') : t('common.save')}
+            </button>
           </form>
         ) : (
           <section className="account-profile-card">
@@ -333,7 +455,7 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
         </aside>
       </div>
 
-      <section className="order-history">
+      <section className="order-history" id="account-order-history">
         <div className="order-history-heading">
           <div>
             <p className="account-kicker"><History size={15} /> {t('account.history')}</p>
@@ -350,8 +472,14 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
           </div>
         ) : (
           <div className="order-history-list">
-            {orders.map((orderItem) => (
-              <article className="order-history-card" key={orderItem.id}>
+            {orders.map((orderItem) => {
+              const targetId = getOrderTargetId(orderItem.id)
+              return (
+              <article
+                className={`order-history-card ${highlightTargetId === targetId ? 'is-notification-target' : ''}`.trim()}
+                id={targetId}
+                key={orderItem.id}
+              >
                 <div className="order-history-main">
                   <div>
                     <span>{t('account.orderCode')}</span>
@@ -384,7 +512,52 @@ function AccountPage({ cartCount, lastOrder, orders = [], totalInCart, user, onL
                   <strong>{formatCurrency(orderItem.total)}</strong>
                 </div>
               </article>
-            ))}
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="support-history" id="account-support-history">
+        <div className="order-history-heading">
+          <div>
+            <p className="account-kicker"><MessageSquare size={15} /> {t('account.supportHistory')}</p>
+            <h2>{t('account.supportTitle')}</h2>
+          </div>
+          <span>{t('account.supportCount', { count: contacts.length })}</span>
+        </div>
+
+        {contacts.length === 0 ? (
+          <div className="order-history-empty">
+            <MessageSquare size={26} />
+            <strong>{t('account.supportEmpty')}</strong>
+            <p>{t('account.supportEmptyText')}</p>
+          </div>
+        ) : (
+          <div className="support-history-list">
+            {contacts.map((contact) => {
+              const targetId = getContactTargetId(contact.id)
+              return (
+                <article
+                  className={`support-history-card ${highlightTargetId === targetId ? 'is-notification-target' : ''}`.trim()}
+                  id={targetId}
+                  key={contact.id}
+                >
+                  <div className="support-history-main">
+                    <div>
+                      <span>{t('contact.topic')}</span>
+                      <strong>{contact.topic}</strong>
+                    </div>
+                    <div className="support-status">{t(contactStatusLabelKeys[contact.status] || 'admin.contactStatus.new')}</div>
+                  </div>
+                  <p>{contact.message}</p>
+                  <div className="order-history-meta">
+                    <span><CalendarDays size={15} /> {formatOrderDate(contact.createdAt)}</span>
+                    <span>{contact.email}</span>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         )}
       </section>
