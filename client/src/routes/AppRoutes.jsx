@@ -5,8 +5,10 @@ import AuthPage from '../pages/AuthPage'
 import CartPage from '../pages/CartPage'
 import CheckoutPage from '../pages/CheckoutPage'
 import ContactPage from '../pages/ContactPage'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import HomePage from '../pages/HomePage'
 import PaymentPage from '../pages/PaymentPage'
+import ResetPasswordPage from '../pages/ResetPasswordPage'
 import ShopPage from '../pages/ShopPage'
 import StoreAdminPage from '../pages/StoreAdminPage'
 import { LegacyProductRedirect, ProductSlugRoute } from './ProductRoutes'
@@ -131,6 +133,14 @@ function AppRoutes({ shop }) {
       <Route
         path="/login"
         element={<AuthPage mode="login" onNavigate={actions.goToLegacyPage} onSubmit={actions.handleAuth} />}
+      />
+      <Route
+        path="/forgot-password"
+        element={<ForgotPasswordPage onSubmit={actions.requestPasswordReset} />}
+      />
+      <Route
+        path="/reset-password/:token"
+        element={<ResetPasswordPage onSubmit={actions.resetPassword} />}
       />
       <Route
         path="/register"

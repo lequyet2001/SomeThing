@@ -22,6 +22,7 @@ export function useCatalogActions({ catalog, dispatch, navigate }) {
       cart: '/cart',
       checkout: '/checkout',
       contact: '/contact',
+      forgotPassword: '/forgot-password',
       home: '/',
       login: '/login',
       register: '/register',

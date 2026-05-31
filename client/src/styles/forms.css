@@ -62,6 +62,48 @@ textarea {
   line-height: 1.08;
 }
 
+.auth-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.auth-description {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+
+.auth-dev-link {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(15, 95, 85, 0.18);
+  border-radius: var(--radius-sm);
+  background: #eef8f4;
+  padding: 12px;
+}
+
+.auth-dev-link strong {
+  color: var(--color-primary-dark);
+}
+
+.auth-dev-link p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-dev-link a {
+  color: var(--color-primary);
+  font-weight: 900;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
