@@ -37,6 +37,22 @@ export function createNotificationStream(onNotification) {
   return source
 }
 
+export function createAdminEventStream(onEvent) {
+  const token = getToken()
+  if (!token || typeof EventSource === 'undefined') return null
+
+  const url = new URL(`${API_URL}/admin/events/stream`, window.location.origin)
+  url.searchParams.set('token', token)
+
+  const source = new EventSource(url.toString())
+  source.addEventListener('admin-event', (event) => {
+    const data = JSON.parse(event.data)
+    onEvent(data)
+  })
+
+  return source
+}
+
 async function request(path, options = {}) {
   const token = getToken()
   const headers = {
@@ -91,11 +107,11 @@ export const shopApi = {
   getCart: () => request('/cart'),
   listNotifications: () => request('/notifications'),
   getProfile: () => request('/me'),
-  listAdminContacts: () => request('/admin/contacts'),
-  listAdminOrders: () => request('/admin/orders'),
-  listAdminProducts: () => request('/admin/products'),
-  listAdminReviews: () => request('/admin/reviews'),
-  listAdminUsers: () => request('/admin/users'),
+  listAdminContacts: (params = {}) => request(`/admin/contacts${toQueryString(params)}`),
+  listAdminOrders: (params = {}) => request(`/admin/orders${toQueryString(params)}`),
+  listAdminProducts: (params = {}) => request(`/admin/products${toQueryString(params)}`),
+  listAdminReviews: (params = {}) => request(`/admin/reviews${toQueryString(params)}`),
+  listAdminUsers: (params = {}) => request(`/admin/users${toQueryString(params)}`),
   listMyContacts: () => request('/contacts/me'),
   listMyOrders: () => request('/orders/me'),
   listProducts: (params = {}) => request(`/products${toQueryString(params)}`),

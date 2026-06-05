@@ -2,12 +2,16 @@
 node_modules/
 client/node_modules/
 server/node_modules/
+admin-mobile/node_modules/
+admin-mobile
 
 # Build output
 dist/
 build/
 client/dist/
 server/dist/
+admin-mobile/dist/
+admin-mobile/web-build/
 .vite-build-check/
 
 # Environment variables and secrets
@@ -17,10 +21,14 @@ client/.env
 client/.env.*
 server/.env
 server/.env.*
+admin-mobile/.env
+admin-mobile/.env.*
+admin-mobile/android/local.properties
 !.env.example
 !client/.env.example
 !server/.env.example
-
+!admin-mobile/.env.example
+google-play-upload-guide.md
 # Local npm/auth config
 .npmrc
 client/.npmrc
@@ -29,9 +37,14 @@ server/.npmrc
 # Keys and certificates
 *.pem
 *.key
+*.jks
+*.keystore
 *.p12
 *.pfx
 *.crt
+admin-mobile/android/upload-key.properties
+admin-mobile/android/app/*.jks
+admin-mobile/android/app/*.keystore
 
 # Logs
 *.log
@@ -65,6 +78,7 @@ docker-compose.override.yml
 
 # Cache and temporary files
 .cache/
+admin-mobile/.expo/
 .eslintcache
 *.tmp
 *.temp

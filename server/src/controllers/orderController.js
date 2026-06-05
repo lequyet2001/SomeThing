@@ -1,6 +1,7 @@
 import { Cart } from '../models/Cart.js'
 import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
+import { emitAdminEvent } from './notificationController.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 
@@ -86,6 +87,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   if (req.user) {
     await Cart.updateOne({ user: req.user._id }, { $set: { items: [] } })
   }
+
+  emitAdminEvent({
+    type: 'order-created',
+    order: serializeOrder(order),
+    orderCode: order.orderCode,
+    createdAt: new Date().toISOString(),
+  })
 
   res.status(201).json({
     message: 'Đặt hàng thành công.',

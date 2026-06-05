@@ -5,6 +5,7 @@ import {
   deleteAdminProduct,
   deleteAdminReview,
   getAdminSummary,
+  listAdminCustomers,
   listAdminProducts,
   listAdminContacts,
   listAdminOrders,
@@ -16,12 +17,15 @@ import {
   updateUserRole,
   uploadProductImage,
 } from '../controllers/adminController.js'
+import { streamAdminEvents } from '../controllers/notificationController.js'
 import { requireAdmin, requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
+router.get('/admin/events/stream', streamAdminEvents)
 router.use('/admin', requireAuth, requireAdmin)
 router.get('/admin/summary', getAdminSummary)
+router.get('/admin/customers', listAdminCustomers)
 router.get('/admin/orders', listAdminOrders)
 router.patch('/admin/orders/:orderCode/status', updateOrderStatus)
 router.get('/admin/contacts', listAdminContacts)

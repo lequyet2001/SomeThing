@@ -27,7 +27,7 @@ import {
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../i18n/LanguageContext'
-import { shopApi } from '../services/shopApi'
+import { createAdminEventStream, shopApi } from '../services/shopApi'
 import { formatCategoryLabel } from '../utils/categoryLabel'
 import { formatCurrency } from '../utils/currency'
 
@@ -75,11 +75,11 @@ const emptyStatsFilters = {
 }
 
 const emptyAdminFilters = {
-  orders: { query: '', status: 'all', payment: 'all', minTotal: '', maxTotal: '' },
+  orders: { query: '', status: 'all', payment: 'all', minTotal: '', maxTotal: '', startDate: '', endDate: '' },
   products: { query: '', category: 'all', stock: 'all', minPrice: '', maxPrice: '' },
   users: { query: '', role: 'all', address: 'all' },
-  contacts: { query: '', status: 'all' },
-  reviews: { query: '', rating: 'all' },
+  contacts: { query: '', status: 'all', startDate: '', endDate: '' },
+  reviews: { query: '', rating: 'all', startDate: '', endDate: '' },
   lowStock: { query: '', category: 'all' },
 }
 
@@ -113,6 +113,25 @@ function isWithinNumberRange(value, minValue, maxValue) {
   const max = maxValue === '' ? null : Number(maxValue)
 
   return (min === null || number >= min) && (max === null || number <= max)
+}
+
+function getDateBoundary(value, time) {
+  if (!value) return null
+  const timestamp = new Date(`${value}T${time}`).getTime()
+  return Number.isNaN(timestamp) ? null : timestamp
+}
+
+function isWithinDateRange(value, startDate, endDate) {
+  if (!startDate && !endDate) return true
+  if (!value) return false
+
+  const timestamp = new Date(value).getTime()
+  if (Number.isNaN(timestamp)) return false
+
+  const start = getDateBoundary(startDate, '00:00:00')
+  const end = getDateBoundary(endDate, '23:59:59.999')
+
+  return (start === null || timestamp >= start) && (end === null || timestamp <= end)
 }
 
 function countStatuses(statusStats = [], statuses) {
@@ -317,7 +336,8 @@ function StoreAdminPage({ section = 'overview' }) {
         ], filters.query) &&
         matchesStatus &&
         (filters.payment === 'all' || order.payment === filters.payment) &&
-        isWithinNumberRange(order.total, filters.minTotal, filters.maxTotal)
+        isWithinNumberRange(order.total, filters.minTotal, filters.maxTotal) &&
+        isWithinDateRange(order.createdAt, filters.startDate, filters.endDate)
       )
     })
   }, [adminFilters.orders, language, orders])
@@ -363,7 +383,8 @@ function StoreAdminPage({ section = 'overview' }) {
 
       return (
         matchesSearch([contact.name, contact.email, contact.phone, contact.topic, contact.message, contact.status], filters.query) &&
-        matchesStatus
+        matchesStatus &&
+        isWithinDateRange(contact.createdAt, filters.startDate, filters.endDate)
       )
     })
   }, [adminFilters.contacts, contacts])
@@ -372,7 +393,8 @@ function StoreAdminPage({ section = 'overview' }) {
     const filters = adminFilters.reviews
     return adminReviews.filter((review) => (
       matchesSearch([review.productId, review.productName, review.name, review.userEmail, review.comment], filters.query) &&
-      (filters.rating === 'all' || Number(review.rating) === Number(filters.rating))
+      (filters.rating === 'all' || Number(review.rating) === Number(filters.rating)) &&
+      isWithinDateRange(review.createdAt, filters.startDate, filters.endDate)
     ))
   }, [adminFilters.reviews, adminReviews])
 
@@ -477,6 +499,15 @@ function StoreAdminPage({ section = 'overview' }) {
 
   useEffect(() => {
     loadAdminData()
+  }, [section, summaryParams])
+
+  useEffect(() => {
+    const source = createAdminEventStream((event) => {
+      if (!['order-created', 'order-updated'].includes(event?.type)) return
+      loadAdminData()
+    })
+
+    return () => source?.close()
   }, [section, summaryParams])
 
   useEffect(() => {
@@ -1095,6 +1126,22 @@ function StoreAdminPage({ section = 'overview' }) {
                 onChange={(event) => updateAdminFilter('orders', 'maxTotal', event.target.value)}
               />
             </label>
+            <label>
+              {t('admin.startDate')}
+              <input
+                type="date"
+                value={adminFilters.orders.startDate}
+                onChange={(event) => updateAdminFilter('orders', 'startDate', event.target.value)}
+              />
+            </label>
+            <label>
+              {t('admin.endDate')}
+              <input
+                type="date"
+                value={adminFilters.orders.endDate}
+                onChange={(event) => updateAdminFilter('orders', 'endDate', event.target.value)}
+              />
+            </label>
           </AdminFilterPanel>
           <div className="admin-table-wrap">
             <table className="admin-table">
@@ -1483,6 +1530,22 @@ function StoreAdminPage({ section = 'overview' }) {
                 ))}
               </select>
             </label>
+            <label>
+              {t('admin.startDate')}
+              <input
+                type="date"
+                value={adminFilters.contacts.startDate}
+                onChange={(event) => updateAdminFilter('contacts', 'startDate', event.target.value)}
+              />
+            </label>
+            <label>
+              {t('admin.endDate')}
+              <input
+                type="date"
+                value={adminFilters.contacts.endDate}
+                onChange={(event) => updateAdminFilter('contacts', 'endDate', event.target.value)}
+              />
+            </label>
           </AdminFilterPanel>
           <div className="admin-table-wrap">
             <table className="admin-table">
@@ -1556,6 +1619,22 @@ function StoreAdminPage({ section = 'overview' }) {
                   <option key={rating} value={rating}>{t('product.star', { count: rating })}</option>
                 ))}
               </select>
+            </label>
+            <label>
+              {t('admin.startDate')}
+              <input
+                type="date"
+                value={adminFilters.reviews.startDate}
+                onChange={(event) => updateAdminFilter('reviews', 'startDate', event.target.value)}
+              />
+            </label>
+            <label>
+              {t('admin.endDate')}
+              <input
+                type="date"
+                value={adminFilters.reviews.endDate}
+                onChange={(event) => updateAdminFilter('reviews', 'endDate', event.target.value)}
+              />
             </label>
           </AdminFilterPanel>
           <div className="admin-table-wrap">

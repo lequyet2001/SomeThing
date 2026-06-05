@@ -495,8 +495,8 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
                 </div>
 
                 <div className="order-history-items">
-                  {orderItem.items?.slice(0, 3).map((item) => (
-                    <div key={`${orderItem.id}-${item.productId}`} className="order-history-product">
+                  {orderItem.items?.slice(0, 3).map((item, index) => (
+                    <div key={`${orderItem.id}-${item.productId || item.name || 'item'}-${index}`} className="order-history-product">
                       <img src={item.image} alt={item.name} />
                       <div>
                         <strong>{item.name}</strong>
