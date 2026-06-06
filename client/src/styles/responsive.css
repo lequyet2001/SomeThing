@@ -860,6 +860,10 @@
     grid-template-columns: 1fr;
   }
 
+  .admin-page .admin-date-range-field {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-page .admin-inventory-history-list {
     max-height: none;
     overflow: visible;
@@ -942,7 +946,7 @@
   .admin-page .admin-inventory-tabs {
     display: grid;
     width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .admin-page .admin-inventory-tabs button {
@@ -953,6 +957,23 @@
 
   .admin-page .admin-inventory-table-panel {
     gap: 10px;
+  }
+
+  .admin-page .admin-category-create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-category-grid,
+  .admin-page .admin-category-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .admin-category-actions {
+    justify-content: stretch;
+  }
+
+  .admin-page .admin-category-actions button {
+    flex: 1;
   }
 
   .admin-page .admin-inventory-table-wrap .admin-table th:nth-child(4),
@@ -1063,5 +1084,9 @@
   .meta-line {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .admin-page .admin-date-range-field {
+    grid-template-columns: 1fr;
   }
 }

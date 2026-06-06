@@ -17,6 +17,8 @@ function renderHistoryValue(field, value, t) {
 
   if (field === 'price') return formatCurrency(Number(value) || 0)
   if (field === 'category') return formatCategoryLabel(value)
+  if (field === 'categoryName') return formatCategoryLabel(value)
+  if (field === 'orderStatus') return t(`admin.orderStatus.${value}`)
   if (field === 'image') {
     return (
       <span className="admin-change-image-value">
@@ -29,10 +31,29 @@ function renderHistoryValue(field, value, t) {
   return String(value)
 }
 
+function getHistorySubject(log, t) {
+  if (log.entityType === 'category') {
+    const categoryName = log.categoryName || log.productCategory || log.productName
+    return {
+      title: formatCategoryLabel(categoryName),
+      subtitle: t('admin.categoryManagement'),
+    }
+  }
+
+  return {
+    title: log.productName,
+    subtitle: log.orderCode
+      ? `${t('admin.orderCode')} ${log.orderCode} · SKU #${log.productId} · ${formatCategoryLabel(log.productCategory)}`
+      : `SKU #${log.productId} · ${formatCategoryLabel(log.productCategory)}`,
+  }
+}
+
 function InventoryHistoryDetailDialog({ language, log, onClose, t }) {
   if (!log) return null
 
   const historyChanges = getHistoryChanges(log)
+  const subject = getHistorySubject(log, t)
+  const hasStockChange = log.previousStock !== null && log.newStock !== null
 
   return (
     <div className="admin-dialog-backdrop" role="presentation">
@@ -42,11 +63,11 @@ function InventoryHistoryDetailDialog({ language, log, onClose, t }) {
         </div>
         <div className="admin-dialog-copy">
           <h2 id="inventory-history-detail-title">{t('admin.inventoryHistoryDetailTitle')}</h2>
-          <div className="admin-history-detail-product">
+          <div className={`admin-history-detail-product${log.productImage ? '' : ' is-no-image'}`}>
             {log.productImage && <img src={log.productImage} alt={log.productName} />}
             <div>
-              <strong>{log.productName}</strong>
-              <span>SKU #{log.productId} · {formatCategoryLabel(log.productCategory)}</span>
+              <strong>{subject.title}</strong>
+              <span>{subject.subtitle}</span>
             </div>
           </div>
         </div>
@@ -67,11 +88,9 @@ function InventoryHistoryDetailDialog({ language, log, onClose, t }) {
           <article>
             <span>{t('admin.stockChange')}</span>
             <strong>
-              {log.previousStock ?? 0}
-              {' -> '}
-              {log.newStock ?? 0}
-              {' '}
-              {t('admin.units')}
+              {hasStockChange
+                ? `${log.previousStock ?? 0} -> ${log.newStock ?? 0} ${t('admin.units')}`
+                : t('admin.noInfo')}
             </strong>
           </article>
         </div>

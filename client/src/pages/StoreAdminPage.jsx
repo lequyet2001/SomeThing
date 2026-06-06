@@ -18,10 +18,12 @@ import {
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../i18n/LanguageContext'
-import AdminFilterPanel from './admin/AdminFilterPanel'
+import AdminFilterPanel from '../components/admin/AdminFilterPanel'
+import AdminCustomersSection from './admin/AdminCustomersSection'
+import AdminOrderDetailDialog from '../components/admin/AdminOrderDetailDialog'
 import AdminOverviewSection from './admin/AdminOverviewSection'
-import AdminSearchInput from './admin/AdminSearchInput'
-import AdminToast from './admin/AdminToast'
+import AdminSearchInput from '../components/admin/AdminSearchInput'
+import AdminToast from '../components/admin/AdminToast'
 import InventoryAdminSection from './admin/InventoryAdminSection'
 import {
   buildSummaryParams,
@@ -38,6 +40,7 @@ import {
   orderStatusOptions,
   pendingContactStatuses,
   pendingOrderStatuses,
+  revenueOrderStatuses,
 } from './admin/adminUtils'
 import { createAdminEventStream, shopApi } from '../services/shopApi'
 import { formatCategoryLabel } from '../utils/categoryLabel'
@@ -47,10 +50,28 @@ const adminTabs = [
   { id: 'overview', labelKey: 'admin.overview', icon: BarChart3 },
   { id: 'orders', labelKey: 'admin.orders', icon: ClipboardList },
   { id: 'products', labelKey: 'admin.products', icon: Boxes, path: '/admin/inventory' },
-  { id: 'users', labelKey: 'admin.users', icon: Users },
+  { id: 'customers', labelKey: 'admin.customers', icon: Users },
+  { id: 'users', labelKey: 'admin.users', icon: UserCog },
   { id: 'contacts', labelKey: 'admin.contacts', icon: Inbox },
   { id: 'reviews', labelKey: 'admin.reviews', icon: MessageSquare },
 ]
+
+function getMonthDateRange(monthValue) {
+  const match = String(monthValue || '').trim().match(/^(\d{4})-(\d{1,2})$/)
+  if (!match) return {}
+
+  const year = Number(match[1])
+  const monthIndex = Number(match[2])
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || monthIndex < 1 || monthIndex > 12) return {}
+
+  const monthText = String(monthIndex).padStart(2, '0')
+  const lastDay = new Date(year, monthIndex, 0).getDate()
+
+  return {
+    endDate: `${year}-${monthText}-${String(lastDay).padStart(2, '0')}`,
+    startDate: `${year}-${monthText}-01`,
+  }
+}
 
 
 function StoreAdminPage({ section = 'overview' }) {
@@ -63,11 +84,13 @@ function StoreAdminPage({ section = 'overview' }) {
   const [users, setUsers] = useState([])
   const [contacts, setContacts] = useState([])
   const [adminReviews, setAdminReviews] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState(null)
   const [toast, setToast] = useState({ message: '', title: '', type: 'success' })
   const [adminAlerts, setAdminAlerts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [inventoryReloadKey, setInventoryReloadKey] = useState(0)
+  const [customersReloadKey, setCustomersReloadKey] = useState(0)
   const [statsFilters, setStatsFilters] = useState(emptyStatsFilters)
   const [summaryParams, setSummaryParams] = useState({})
   const [overviewView, setOverviewView] = useState('list')
@@ -104,7 +127,10 @@ function StoreAdminPage({ section = 'overview' }) {
       const orderItems = order.items?.map((item) => item.name || item.productName || item.product?.name).join(' ') || ''
       const matchesStatus =
         filters.status === 'all' ||
-        (filters.status === 'pending' ? pendingOrderStatuses.includes(order.status) : order.status === filters.status)
+        (filters.status === 'pending' && pendingOrderStatuses.includes(order.status)) ||
+        (filters.status === 'revenue' && revenueOrderStatuses.includes(order.status)) ||
+        order.status === filters.status
+      const filterDate = filters.dateField === 'updatedAt' ? order.updatedAt || order.createdAt : order.createdAt
 
       return (
         matchesSearch([
@@ -115,12 +141,12 @@ function StoreAdminPage({ section = 'overview' }) {
           order.status,
           order.payment,
           orderItems,
-          formatAdminDate(order.createdAt, language, ''),
+          formatAdminDate(filterDate, language, ''),
         ], filters.query) &&
         matchesStatus &&
         (filters.payment === 'all' || order.payment === filters.payment) &&
         isWithinNumberRange(order.total, filters.minTotal, filters.maxTotal) &&
-        isWithinDateRange(order.createdAt, filters.startDate, filters.endDate)
+        isWithinDateRange(filterDate, filters.startDate, filters.endDate)
       )
     })
   }, [adminFilters.orders, language, orders])
@@ -221,7 +247,7 @@ function StoreAdminPage({ section = 'overview' }) {
     navigate('/admin/contacts?status=pending')
   }
 
-  async function loadAdminData({ refreshInventory = false } = {}) {
+  async function loadAdminData({ refreshCustomers = false, refreshInventory = false } = {}) {
     setIsLoading(true)
     try {
       const summaryResponse = await shopApi.getAdminSummary(summaryParams)
@@ -257,6 +283,9 @@ function StoreAdminPage({ section = 'overview' }) {
       if (refreshInventory) {
         setInventoryReloadKey((current) => current + 1)
       }
+      if (refreshCustomers) {
+        setCustomersReloadKey((current) => current + 1)
+      }
     }
   }
 
@@ -274,18 +303,29 @@ function StoreAdminPage({ section = 'overview' }) {
   }, [section, summaryParams])
 
   useEffect(() => {
-    const routeStatus = new URLSearchParams(routeFilterKey).get('status')
-    if (!routeStatus) return
+    if (!routeFilterKey) return
+
+    const routeParams = new URLSearchParams(routeFilterKey)
+    const routeStatus = routeParams.get('status')
+    const routeQuery = routeParams.get('query') || ''
+    const routeStartDate = routeParams.get('startDate') || ''
+    const routeEndDate = routeParams.get('endDate') || ''
 
     if (section === 'orders') {
-      const allowedStatuses = ['all', 'pending', ...orderStatusOptions.map((option) => option.value)]
-      if (!allowedStatuses.includes(routeStatus)) return
+      const allowedStatuses = ['all', 'pending', 'revenue', ...orderStatusOptions.map((option) => option.value)]
+      const nextStatus = allowedStatuses.includes(routeStatus) ? routeStatus : 'all'
+      const routeDateField = routeParams.get('dateField')
+      const nextDateField = ['createdAt', 'updatedAt'].includes(routeDateField) ? routeDateField : 'createdAt'
 
       setAdminFilters((current) => ({
         ...current,
         orders: {
           ...emptyAdminFilters.orders,
-          status: routeStatus,
+          dateField: nextDateField,
+          endDate: routeEndDate,
+          query: routeQuery,
+          startDate: routeStartDate,
+          status: nextStatus,
         },
       }))
       return
@@ -293,13 +333,32 @@ function StoreAdminPage({ section = 'overview' }) {
 
     if (section === 'contacts') {
       const allowedStatuses = ['all', 'pending', ...contactStatusOptions.map((option) => option.value)]
-      if (!allowedStatuses.includes(routeStatus)) return
+      const nextStatus = allowedStatuses.includes(routeStatus) ? routeStatus : 'all'
 
       setAdminFilters((current) => ({
         ...current,
         contacts: {
           ...emptyAdminFilters.contacts,
-          status: routeStatus,
+          endDate: routeEndDate,
+          query: routeQuery,
+          startDate: routeStartDate,
+          status: nextStatus,
+        },
+      }))
+      return
+    }
+
+    if (section === 'users') {
+      const routeRole = routeParams.get('role')
+      const routeAddress = routeParams.get('address')
+
+      setAdminFilters((current) => ({
+        ...current,
+        users: {
+          ...emptyAdminFilters.users,
+          address: ['all', 'hasAddress', 'missingAddress'].includes(routeAddress) ? routeAddress : 'all',
+          query: routeQuery,
+          role: ['all', 'customer', 'admin'].includes(routeRole) ? routeRole : 'all',
         },
       }))
     }
@@ -344,10 +403,83 @@ function StoreAdminPage({ section = 'overview' }) {
     try {
       const data = await shopApi.updateOrderStatus(orderCode, status)
       setOrders((current) => current.map((order) => (order.id === orderCode ? data.order : order)))
+      setSelectedOrder((current) => (current?.id === orderCode ? data.order : current))
       showAdminToast(data.message)
     } catch (error) {
       showAdminToast(error.message, 'error')
     }
+  }
+
+  function navigateWithParams(path, params) {
+    const query = new URLSearchParams()
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        query.set(key, value)
+      }
+    })
+
+    const queryString = query.toString()
+    navigate(queryString ? `${path}?${queryString}` : path)
+  }
+
+  function getSummaryDateParams() {
+    if (summaryParams.month) return getMonthDateRange(summaryParams.month)
+    return {
+      endDate: summaryParams.endDate,
+      startDate: summaryParams.startDate,
+    }
+  }
+
+  function openAdminOrders(params = {}) {
+    navigateWithParams('/admin/orders', {
+      ...getSummaryDateParams(),
+      ...params,
+    })
+  }
+
+  function openAdminContacts(params = {}) {
+    navigateWithParams('/admin/contacts', {
+      ...getSummaryDateParams(),
+      ...params,
+    })
+  }
+
+  function openAdminUsers(params = {}) {
+    navigateWithParams('/admin/users', params)
+  }
+
+  function openAdminInventory(params = {}) {
+    navigateWithParams('/admin/inventory', params)
+  }
+
+  function openAdminProduct(item) {
+    const productId = item?.productId || item?.id || ''
+    const query = productId || item?.name || item?.productName || ''
+
+    setSelectedOrder(null)
+    navigateWithParams('/admin/inventory', {
+      focusProductId: productId,
+      query,
+    })
+  }
+
+  function openAdminCustomer(customer) {
+    const email = String(customer?.email || '').trim().toLowerCase()
+    const query = email || customer?.name || ''
+
+    setSelectedOrder(null)
+    navigateWithParams('/admin/customers', {
+      ...getSummaryDateParams(),
+      focusEmail: email,
+      query,
+    })
+  }
+
+  function openAdminCustomers(params = {}) {
+    navigateWithParams('/admin/customers', {
+      ...getSummaryDateParams(),
+      ...params,
+    })
   }
 
   async function handleContactStatus(contactId, status) {
@@ -392,7 +524,11 @@ function StoreAdminPage({ section = 'overview' }) {
           <h1>{t('admin.heroTitle')}</h1>
           <p>{t('admin.heroText')}</p>
         </div>
-        <button className="admin-refresh" onClick={() => loadAdminData({ refreshInventory: section === 'products' })} disabled={isLoading}>
+        <button
+          className="admin-refresh"
+          onClick={() => loadAdminData({ refreshCustomers: section === 'customers', refreshInventory: section === 'products' })}
+          disabled={isLoading}
+        >
           <RefreshCw size={17} />
           {t('admin.refresh')}
         </button>
@@ -483,6 +619,13 @@ function StoreAdminPage({ section = 'overview' }) {
           summary={summary}
           summaryData={summaryData}
           t={t}
+          onOpenContacts={openAdminContacts}
+          onOpenCustomer={openAdminCustomer}
+          onOpenCustomers={openAdminCustomers}
+          onOpenOrders={openAdminOrders}
+          onOpenProduct={openAdminProduct}
+          onOpenProducts={openAdminInventory}
+          onOpenUsers={openAdminUsers}
           topCustomers={topCustomers}
           topProducts={topProducts}
         />
@@ -514,9 +657,20 @@ function StoreAdminPage({ section = 'overview' }) {
               >
                 <option value="all">{t('admin.allStatuses')}</option>
                 <option value="pending">{t('admin.pendingOrders')}</option>
+                <option value="revenue">{t('admin.revenueOrders')}</option>
                 {orderStatusOptions.map((option) => (
                   <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
                 ))}
+              </select>
+            </label>
+            <label>
+              {t('admin.dateField')}
+              <select
+                value={adminFilters.orders.dateField}
+                onChange={(event) => updateAdminFilter('orders', 'dateField', event.target.value)}
+              >
+                <option value="createdAt">{t('admin.createdDate')}</option>
+                <option value="updatedAt">{t('admin.updatedDate')}</option>
               </select>
             </label>
             <label>
@@ -581,19 +735,54 @@ function StoreAdminPage({ section = 'overview' }) {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td data-label={t('admin.orderCode')}><strong>{order.id}</strong></td>
+                  <tr key={order.id} className="admin-clickable-row" onClick={() => setSelectedOrder(order)}>
+                    <td data-label={t('admin.orderCode')}>
+                      <button
+                        type="button"
+                        className="admin-inline-link"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setSelectedOrder(order)
+                        }}
+                      >
+                        {order.id}
+                      </button>
+                    </td>
                     <td data-label={t('admin.customer')}>
-                      <strong>{order.customer.name}</strong>
-                      <small>{order.customer.email}</small>
-                      <small>{order.customer.address}</small>
+                      <button
+                        type="button"
+                        className="admin-customer-link-cell"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          openAdminCustomer(order.customer)
+                        }}
+                      >
+                        <strong>{order.customer.name}</strong>
+                        <small>{order.customer.email}</small>
+                        <small>{order.customer.address}</small>
+                      </button>
                     </td>
                     <td data-label={t('admin.createdAt')}>{formatAdminDate(order.createdAt, language, t('admin.noInfo'))}</td>
-                    <td data-label={t('admin.items')}>{t('admin.productCount', { count: order.items.length })}</td>
+                    <td data-label={t('admin.items')}>
+                      <button
+                        type="button"
+                        className="admin-inline-link"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setSelectedOrder(order)
+                        }}
+                      >
+                        {t('admin.productCount', { count: order.items.length })}
+                      </button>
+                    </td>
                     <td data-label={t('admin.paymentMethod')}><strong>{order.payment || t('admin.noInfo')}</strong></td>
                     <td data-label={t('admin.total')}>{formatCurrency(order.total)}</td>
                     <td data-label={t('admin.status')}>
-                      <select value={order.status} onChange={(event) => handleOrderStatus(order.id, event.target.value)}>
+                      <select
+                        value={order.status}
+                        onClick={(event) => event.stopPropagation()}
+                        onChange={(event) => handleOrderStatus(order.id, event.target.value)}
+                      >
                         {orderStatusOptions.map((option) => (
                           <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
                         ))}
@@ -614,6 +803,15 @@ function StoreAdminPage({ section = 'overview' }) {
 
       {section === 'products' && (
         <InventoryAdminSection reloadKey={inventoryReloadKey} showAdminToast={showAdminToast} />
+      )}
+
+      {section === 'customers' && (
+        <AdminCustomersSection
+          language={language}
+          reloadKey={customersReloadKey}
+          showAdminToast={showAdminToast}
+          t={t}
+        />
       )}
 
       {section === 'users' && (
@@ -991,6 +1189,15 @@ function StoreAdminPage({ section = 'overview' }) {
           </section>
         </div>
       )}
+
+      <AdminOrderDetailDialog
+        language={language}
+        order={selectedOrder}
+        t={t}
+        onClose={() => setSelectedOrder(null)}
+        onOpenCustomer={openAdminCustomer}
+        onOpenProduct={openAdminProduct}
+      />
     </section>
   )
 }

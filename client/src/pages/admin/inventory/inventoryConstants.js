@@ -1,7 +1,6 @@
 export const emptyProductForm = {
   name: '',
   category: '',
-  newCategory: '',
   price: '',
   stock: '',
   image: '',
@@ -20,13 +19,23 @@ export const inventoryActionOptions = [
   { value: 'stock-updated', labelKey: 'admin.inventoryAction.stock-updated' },
   { value: 'details-updated', labelKey: 'admin.inventoryAction.details-updated' },
   { value: 'deleted', labelKey: 'admin.inventoryAction.deleted' },
+  { value: 'category-created', labelKey: 'admin.inventoryAction.category-created' },
+  { value: 'category-updated', labelKey: 'admin.inventoryAction.category-updated' },
+  { value: 'category-deleted', labelKey: 'admin.inventoryAction.category-deleted' },
+  { value: 'order-deducted', labelKey: 'admin.inventoryAction.order-deducted' },
 ]
 
 export const productFieldLabelKeys = {
   category: 'admin.category',
+  categoryName: 'admin.categoryName',
+  categoryProductCount: 'admin.categoryProducts',
+  customer: 'admin.customer',
+  deductedQuantity: 'admin.deductedQuantity',
   description: 'admin.description',
   image: 'admin.productImage',
   name: 'admin.productName',
+  orderCode: 'admin.orderCode',
+  orderStatus: 'admin.status',
   price: 'admin.price',
   rating: 'admin.rating',
   stock: 'admin.stock',

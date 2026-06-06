@@ -72,6 +72,7 @@ function AppRoutes({ shop }) {
       <Route path="/admin/orders" element={renderAdminPage('orders')} />
       <Route path="/admin/inventory" element={renderAdminPage('products')} />
       <Route path="/admin/products" element={renderAdminPage('products')} />
+      <Route path="/admin/customers" element={renderAdminPage('customers')} />
       <Route path="/admin/users" element={renderAdminPage('users')} />
       <Route path="/admin/contacts" element={renderAdminPage('contacts')} />
       <Route path="/admin/reviews" element={renderAdminPage('reviews')} />

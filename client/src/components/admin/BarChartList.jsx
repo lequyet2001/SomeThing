@@ -2,7 +2,7 @@ function maxValue(items, key) {
   return Math.max(1, ...items.map((item) => Number(item[key]) || 0))
 }
 
-function BarChartList({ emptyText, items, labelKey, valueFormatter, valueKey }) {
+function BarChartList({ emptyText, items, labelKey, onOpenItem, valueFormatter, valueKey }) {
   if (items.length === 0) {
     return <div className="admin-empty">{emptyText}</div>
   }
@@ -11,11 +11,12 @@ function BarChartList({ emptyText, items, labelKey, valueFormatter, valueKey }) 
 
   return (
     <div className="admin-bar-chart">
-      {items.slice(0, 5).map((item) => {
+      {items.slice(0, 5).map((item, index) => {
         const value = Number(item[valueKey]) || 0
         const width = Math.max(6, Math.round((value / max) * 100))
-        return (
-          <article key={item[labelKey]}>
+        const itemKey = item.id || item.productId || item.email || `${item[labelKey]}-${index}`
+        const content = (
+          <>
             <div>
               <span>{item[labelKey]}</span>
               <strong>{valueFormatter(value, item)}</strong>
@@ -23,6 +24,16 @@ function BarChartList({ emptyText, items, labelKey, valueFormatter, valueKey }) 
             <div className="admin-bar-track" aria-hidden="true">
               <i style={{ width: `${width}%` }} />
             </div>
+          </>
+        )
+
+        return onOpenItem ? (
+          <button key={itemKey} type="button" className="admin-bar-row" onClick={() => onOpenItem(item)}>
+            {content}
+          </button>
+        ) : (
+          <article key={itemKey}>
+            {content}
           </article>
         )
       })}

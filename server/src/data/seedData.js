@@ -1,3 +1,5 @@
+import { ADMIN_EMAIL } from '../config/env.js'
+
 const imageUrls = [
   'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80',
   'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80',
@@ -125,10 +127,10 @@ export const seedProducts = allProductBlueprints.map(([name, category, price, ra
 const baseSeedUsers = [
   {
     name: 'Admin Test',
-    email: 'test@gmail.com',
+    email: ADMIN_EMAIL,
     password: '123456',
     phone: '0901000001',
-    address: '12 Le Loi, Quan 1, TP.HCM',
+    address: '24 phố Lý Thường Kiệt, Hoàn Kiếm, Hà Nội',
     role: 'admin',
   },
   {
@@ -136,7 +138,7 @@ const baseSeedUsers = [
     email: 'minhanh@example.com',
     password: '123456',
     phone: '0902000001',
-    address: '22 Nguyen Trai, Quan 5, TP.HCM',
+    address: '12 phố Hàng Bông, Hoàn Kiếm, Hà Nội',
     role: 'customer',
   },
   {
@@ -144,7 +146,7 @@ const baseSeedUsers = [
     email: 'quanghuy@example.com',
     password: '123456',
     phone: '0902000002',
-    address: '18 Cach Mang Thang 8, Quan 3, TP.HCM',
+    address: '18 phố Nhà Chung, Hoàn Kiếm, Hà Nội',
     role: 'customer',
   },
   {
@@ -152,7 +154,7 @@ const baseSeedUsers = [
     email: 'thanhnga@example.com',
     password: '123456',
     phone: '0902000003',
-    address: '45 Tran Hung Dao, Quan 1, TP.HCM',
+    address: '45 phố Trần Hưng Đạo, Hoàn Kiếm, Hà Nội',
     role: 'customer',
   },
   {
@@ -160,7 +162,7 @@ const baseSeedUsers = [
     email: 'hoangnam@example.com',
     password: '123456',
     phone: '0902000004',
-    address: '9 Phan Xich Long, Phu Nhuan, TP.HCM',
+    address: '9 phố Phan Huy Chú, Hoàn Kiếm, Hà Nội',
     role: 'customer',
   },
   {
@@ -168,7 +170,7 @@ const baseSeedUsers = [
     email: 'linhchi@example.com',
     password: '123456',
     phone: '0902000005',
-    address: '33 Nguyen Van Cu, Quan 5, TP.HCM',
+    address: '33 phố Lò Đúc, Hai Bà Trưng, Hà Nội',
     role: 'customer',
   },
   {
@@ -176,7 +178,7 @@ const baseSeedUsers = [
     email: 'baotran@example.com',
     password: '123456',
     phone: '0902000006',
-    address: '77 Vo Van Tan, Quan 3, TP.HCM',
+    address: '77 phố Bà Triệu, Hai Bà Trưng, Hà Nội',
     role: 'customer',
   },
   {
@@ -184,7 +186,7 @@ const baseSeedUsers = [
     email: 'giahan@example.com',
     password: '123456',
     phone: '0902000007',
-    address: '101 Dien Bien Phu, Binh Thanh, TP.HCM',
+    address: '101 phố Kim Mã, Ba Đình, Hà Nội',
     role: 'customer',
   },
 ]
@@ -213,11 +215,38 @@ const generatedUsers = [
   email: `customer${String(index + 1).padStart(2, '0')}@example.com`,
   password: '123456',
   phone: `091${String(index + 1).padStart(7, '0')}`,
-  address: `${12 + index} pho ${['Trang Thi', 'Ba Trieu', 'Ly Thuong Kiet', 'Nguyen Du', 'Kim Ma', 'Hue'][index % 6]}, Ha Noi`,
+  address: `${12 + index} phố ${['Tràng Thi', 'Bà Triệu', 'Lý Thường Kiệt', 'Nguyễn Du', 'Kim Mã', 'Huế'][index % 6]}, Hà Nội`,
   role: 'customer',
 }))
 
-export const seedUsers = [...baseSeedUsers, ...generatedUsers]
+function addSeedShippingAddresses(user, index) {
+  const primaryId = `seed-${String(index + 1).padStart(2, '0')}-home`
+  const officeId = `seed-${String(index + 1).padStart(2, '0')}-office`
+
+  return {
+    ...user,
+    selectedAddressId: primaryId,
+    shippingAddresses: [
+      {
+        id: primaryId,
+        label: 'Nhà riêng',
+        recipient: user.name,
+        phone: user.phone,
+        address: user.address,
+      },
+      {
+        id: officeId,
+        label: 'Văn phòng',
+        recipient: user.name,
+        phone: user.phone,
+        address: `${18 + index} phố ${['Hai Bà Trưng', 'Quang Trung', 'Tràng Tiền', 'Ngô Quyền'][index % 4]}, Hoàn Kiếm, Hà Nội`,
+      },
+    ],
+  }
+}
+
+export const seedUsers = [...baseSeedUsers, ...generatedUsers].map(addSeedShippingAddresses)
+export const seedCategories = [...new Set(seedProducts.map((product) => product.category).filter(Boolean))]
 
 const baseSeedReviews = [
   { productId: 1, userEmail: 'minhanh@example.com', name: 'Minh Anh', rating: 5, comment: 'Chất vải mát, form đẹp hơn mong đợi.' },

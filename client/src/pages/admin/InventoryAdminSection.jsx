@@ -4,6 +4,7 @@ import {
   Save,
   Trash2,
 } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../../i18n/LanguageContext'
 import {
@@ -23,12 +24,17 @@ import {
 import { getProductStockStatus } from './inventory/inventoryUtils'
 import InventoryHistoryDetailDialog from './inventory/InventoryHistoryDetailDialog'
 import InventoryHistoryTab from './inventory/InventoryHistoryTab'
+import InventoryCategoriesTab from './inventory/InventoryCategoriesTab'
 import InventoryItemsTab from './inventory/InventoryItemsTab'
 import InventoryOverviewPanel from './inventory/InventoryOverviewPanel'
+import InventoryProductForm from './inventory/InventoryProductForm'
 
 function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
   const { language, t } = useLanguage()
+  const [searchParams] = useSearchParams()
+  const routeFilterKey = searchParams.toString()
   const [activeTab, setActiveTab] = useState('items')
+  const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [inventoryHistory, setInventoryHistory] = useState([])
   const [filters, setFilters] = useState(emptyInventoryFilters)
@@ -37,15 +43,22 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
   const [productImagePreview, setProductImagePreview] = useState('')
   const [isProductImageUploading, setIsProductImageUploading] = useState(false)
   const [isProductSaving, setIsProductSaving] = useState(false)
+  const [isCategorySaving, setIsCategorySaving] = useState(false)
   const [stockUpdateProductId, setStockUpdateProductId] = useState(null)
   const [editingProductId, setEditingProductId] = useState(null)
+  const [isProductDialogOpen, setIsProductDialogOpen] = useState(false)
+  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState(null)
   const [deleteProductTarget, setDeleteProductTarget] = useState(null)
   const [selectedHistoryLog, setSelectedHistoryLog] = useState(null)
+  const [focusedProductId, setFocusedProductId] = useState('')
   const productFormPanelRef = useRef(null)
 
   const productCategories = useMemo(
-    () => [...new Set(products.map((product) => product.category).filter(Boolean))].sort(),
-    [products],
+    () => [...new Set([
+      ...categories.map((category) => category.name),
+      ...products.map((product) => product.category),
+    ].filter(Boolean))].sort((first, second) => first.localeCompare(second, 'vi')),
+    [categories, products],
   )
   const inventoryMetrics = useMemo(() => products.reduce((metrics, product) => {
     const stock = Number(product.stock) || 0
@@ -92,6 +105,8 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
         log.productId,
         log.productName,
         log.productCategory,
+        log.categoryName,
+        log.orderCode,
         log.actor?.name,
         log.actor?.email,
         t(`admin.inventoryAction.${log.action}`),
@@ -103,12 +118,14 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
 
   async function loadInventoryData() {
     try {
-      const [productsResponse, inventoryHistoryResponse] = await Promise.all([
+      const [productsResponse, inventoryHistoryResponse, categoriesResponse] = await Promise.all([
         shopApi.listAdminProducts(),
         shopApi.listAdminInventoryHistory({ limit: 60 }),
+        shopApi.listAdminCategories(),
       ])
       setProducts(productsResponse.products || [])
       setInventoryHistory(inventoryHistoryResponse.history || [])
+      setCategories(categoriesResponse.categories || [])
     } catch (error) {
       showAdminToast(error.message, 'error')
     }
@@ -117,6 +134,39 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
   useEffect(() => {
     loadInventoryData()
   }, [reloadKey])
+
+  useEffect(() => {
+    if (!routeFilterKey) {
+      setFocusedProductId('')
+      return
+    }
+
+    const params = new URLSearchParams(routeFilterKey)
+    const nextQuery = params.get('query') || params.get('focusProductId') || ''
+    const nextFocusProductId = params.get('focusProductId') || ''
+
+    setActiveTab('items')
+    setFocusedProductId(nextFocusProductId)
+    if (nextQuery) {
+      setFilters((current) => ({
+        ...current,
+        products: {
+          ...emptyInventoryFilters.products,
+          query: nextQuery,
+        },
+      }))
+    }
+  }, [routeFilterKey])
+
+  useEffect(() => {
+    if (!focusedProductId || products.length === 0) return undefined
+
+    const timer = window.setTimeout(() => {
+      document.getElementById(`admin-product-${focusedProductId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 120)
+
+    return () => window.clearTimeout(timer)
+  }, [focusedProductId, products])
 
   useEffect(() => {
     return () => {
@@ -159,34 +209,42 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
     }
   }
 
-  function resetProductForm() {
+  function resetProductForm({ closeDialog = false } = {}) {
     setEditingProductId(null)
     setProductForm(emptyProductForm)
     setProductImageFile(null)
     setProductImagePreview('')
     setIsProductImageUploading(false)
+    if (closeDialog) {
+      setIsProductDialogOpen(false)
+    }
+  }
+
+  function openCreateProductDialog() {
+    setActiveTab('items')
+    resetProductForm()
+    setIsProductDialogOpen(true)
+  }
+
+  function closeProductDialog() {
+    if (isProductSaving) return
+    resetProductForm({ closeDialog: true })
   }
 
   function editProduct(product) {
     setActiveTab('items')
     setEditingProductId(product.id)
+    setIsProductDialogOpen(true)
     setProductForm({
       category: product.category,
       description: product.description,
       image: product.image,
       name: product.name,
-      newCategory: '',
       price: product.price,
       stock: product.stock,
     })
     setProductImageFile(null)
     setProductImagePreview(product.image)
-
-    if (window.matchMedia('(max-width: 680px)').matches) {
-      window.requestAnimationFrame(() => {
-        productFormPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
   }
 
   function handleProductImageChange(event) {
@@ -221,12 +279,11 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
 
       const payload = {
         ...productForm,
-        category: productForm.category === '__new__' ? productForm.newCategory.trim() : productForm.category,
+        category: productForm.category,
         image,
         price: Number(productForm.price),
         stock: Number(productForm.stock),
       }
-      delete payload.newCategory
 
       const data = editingProductId
         ? await shopApi.updateAdminProduct(editingProductId, payload)
@@ -238,7 +295,7 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
       })
       prependInventoryLog(data.inventoryLog)
       showAdminToast(data.message)
-      resetProductForm()
+      resetProductForm({ closeDialog: true })
       notifyCatalogChanged()
     } catch (error) {
       showAdminToast(error.message, 'error')
@@ -259,6 +316,80 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
       notifyCatalogChanged()
     } catch (error) {
       showAdminToast(error.message, 'error')
+    }
+  }
+
+  async function createCategory(name) {
+    const categoryName = String(name || '').trim()
+    if (!categoryName || isCategorySaving) return false
+
+    setIsCategorySaving(true)
+    try {
+      const data = await shopApi.createAdminCategory({ name: categoryName })
+      setCategories(data.categories || [])
+      prependInventoryLog(data.inventoryLog)
+      showAdminToast(data.message)
+      return true
+    } catch (error) {
+      showAdminToast(error.message, 'error')
+      return false
+    } finally {
+      setIsCategorySaving(false)
+    }
+  }
+
+  async function renameCategory(categoryName, nextName) {
+    const normalizedCategoryName = String(categoryName || '').trim()
+    const normalizedNextName = String(nextName || '').trim()
+    if (!normalizedCategoryName || !normalizedNextName || isCategorySaving) return false
+
+    setIsCategorySaving(true)
+    try {
+      const data = await shopApi.updateAdminCategory(normalizedCategoryName, { name: normalizedNextName })
+      setCategories(data.categories || [])
+      if (data.products) {
+        setProducts(data.products)
+      }
+      prependInventoryLog(data.inventoryLog)
+      setFilters((current) => ({
+        ...current,
+        products: {
+          ...current.products,
+          category: current.products.category === normalizedCategoryName ? normalizedNextName : current.products.category,
+        },
+      }))
+      showAdminToast(data.message)
+      notifyCatalogChanged()
+      return true
+    } catch (error) {
+      showAdminToast(error.message, 'error')
+      return false
+    } finally {
+      setIsCategorySaving(false)
+    }
+  }
+
+  async function confirmDeleteCategory() {
+    if (!deleteCategoryTarget || isCategorySaving) return
+
+    setIsCategorySaving(true)
+    try {
+      const data = await shopApi.deleteAdminCategory(deleteCategoryTarget.name)
+      setCategories(data.categories || [])
+      prependInventoryLog(data.inventoryLog)
+      setFilters((current) => ({
+        ...current,
+        products: {
+          ...current.products,
+          category: current.products.category === deleteCategoryTarget.name ? 'all' : current.products.category,
+        },
+      }))
+      showAdminToast(data.message)
+      setDeleteCategoryTarget(null)
+    } catch (error) {
+      showAdminToast(error.message, 'error')
+    } finally {
+      setIsCategorySaving(false)
     }
   }
 
@@ -288,7 +419,11 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
       const stockFill = `${Math.min(100, Math.max(0, Number(product.stock) || 0) * 5)}%`
 
       return (
-        <tr key={product.id} className={`admin-inventory-row admin-inventory-row-${stockStatus}`}>
+        <tr
+          key={product.id}
+          id={`admin-product-${product.id}`}
+          className={`admin-inventory-row admin-inventory-row-${stockStatus} ${String(product.id) === String(focusedProductId) ? 'is-focused' : ''}`}
+        >
           <td data-label={t('admin.product')}>
             <div className="admin-product-cell">
               <img src={product.image} alt={product.name} />
@@ -357,6 +492,7 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
         inventoryHistory={inventoryHistory}
         inventoryMetrics={inventoryMetrics}
         inventoryRiskCount={inventoryRiskCount}
+        productCategories={productCategories}
         products={products}
         setActiveTab={setActiveTab}
         t={t}
@@ -364,25 +500,27 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
 
       {activeTab === 'items' && (
         <InventoryItemsTab
-          editingProductId={editingProductId}
           filters={filters}
           filteredProducts={filteredProducts}
-          handleProductImageChange={handleProductImageChange}
-          handleProductSubmit={handleProductSubmit}
-          isProductImageUploading={isProductImageUploading}
-          isProductSaving={isProductSaving}
+          onAddProduct={openCreateProductDialog}
           productCategories={productCategories}
-          productForm={productForm}
-          productFormPanelRef={productFormPanelRef}
-          productImageFile={productImageFile}
-          productImagePreview={productImagePreview}
           products={products}
           renderInventoryRows={renderInventoryRows}
           resetFilter={resetFilter}
-          resetProductForm={resetProductForm}
-          setProductForm={setProductForm}
           t={t}
           updateFilter={updateFilter}
+        />
+      )}
+
+      {activeTab === 'categories' && (
+        <InventoryCategoriesTab
+          isCategorySaving={isCategorySaving}
+          onCreateCategory={createCategory}
+          onDeleteCategory={setDeleteCategoryTarget}
+          onRenameCategory={renameCategory}
+          productCategories={productCategories}
+          products={products}
+          t={t}
         />
       )}
 
@@ -407,6 +545,30 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
         t={t}
       />
 
+      {isProductDialogOpen && (
+        <div className="admin-dialog-backdrop" role="presentation">
+          <section className="admin-dialog admin-product-form-dialog" role="dialog" aria-modal="true" aria-labelledby="inventory-product-form-title">
+            <InventoryProductForm
+              editingProductId={editingProductId}
+              handleProductImageChange={handleProductImageChange}
+              handleProductSubmit={handleProductSubmit}
+              isDialog
+              isProductImageUploading={isProductImageUploading}
+              isProductSaving={isProductSaving}
+              onClose={closeProductDialog}
+              productCategories={productCategories}
+              productForm={productForm}
+              productFormPanelRef={productFormPanelRef}
+              productImageFile={productImageFile}
+              productImagePreview={productImagePreview}
+              resetProductForm={resetProductForm}
+              setProductForm={setProductForm}
+              t={t}
+            />
+          </section>
+        </div>
+      )}
+
       {deleteProductTarget && (
         <div className="admin-dialog-backdrop" role="presentation">
           <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-product-title">
@@ -424,6 +586,29 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
               <button type="button" className="danger" onClick={confirmDeleteProduct}>
                 <Trash2 size={16} />
                 {t('admin.deleteProduct')}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {deleteCategoryTarget && (
+        <div className="admin-dialog-backdrop" role="presentation">
+          <section className="admin-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-category-title">
+            <div className="admin-dialog-icon">
+              <AlertTriangle size={24} />
+            </div>
+            <div className="admin-dialog-copy">
+              <h2 id="delete-category-title">{t('admin.deleteCategoryQuestion')}</h2>
+              <p>
+                {t('admin.deleteCategoryText', { name: formatCategoryLabel(deleteCategoryTarget.name) })}
+              </p>
+            </div>
+            <div className="admin-dialog-actions">
+              <button type="button" onClick={() => setDeleteCategoryTarget(null)}>{t('admin.cancelDelete')}</button>
+              <button type="button" className="danger" disabled={isCategorySaving} onClick={confirmDeleteCategory}>
+                <Trash2 size={16} />
+                {t('admin.deleteCategory')}
               </button>
             </div>
           </section>

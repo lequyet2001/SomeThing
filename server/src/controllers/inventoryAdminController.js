@@ -3,8 +3,14 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { Category } from '../models/Category.js'
 import { InventoryLog } from '../models/InventoryLog.js'
 import { Product } from '../models/Product.js'
+import {
+  createCategoryInventoryLog,
+  createProductInventoryLog,
+  serializeInventoryLog,
+} from '../services/inventoryLogService.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 import {
@@ -26,6 +32,10 @@ const IMAGE_TYPES = {
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 const productChangeFields = ['name', 'category', 'price', 'stock', 'image', 'description', 'rating']
 
+function normalizeCategoryName(value) {
+  return String(value || '').trim()
+}
+
 function serializeProduct(product) {
   return {
     id: product.legacyId,
@@ -39,24 +49,27 @@ function serializeProduct(product) {
   }
 }
 
-function serializeInventoryLog(log) {
+async function ensureCategoryExists(name) {
+  const categoryName = normalizeCategoryName(name)
+  if (!categoryName) return
+
+  const existingCategory = await Category.findOne({ name: new RegExp(`^${escapeRegex(categoryName)}$`, 'i') })
+  if (!existingCategory) {
+    await Category.create({ name: categoryName })
+  }
+}
+
+function serializeCategory(category, stats = {}) {
+  const productCount = Number(stats.productCount || 0)
+  const stock = Number(stats.stock || 0)
+  const value = Number(stats.value || 0)
+
   return {
-    id: log._id.toString(),
-    action: log.action,
-    actor: log.actor || {},
-    changes: (log.changes || []).map((change) => ({
-      field: change.field,
-      newValue: change.newValue,
-      previousValue: change.previousValue,
-    })),
-    delta: log.delta,
-    newStock: log.newStock,
-    previousStock: log.previousStock,
-    productCategory: log.productCategory,
-    productId: log.productId,
-    productImage: log.productImage,
-    productName: log.productName,
-    createdAt: log.createdAt,
+    id: category._id?.toString() || category.name,
+    name: category.name,
+    productCount,
+    stock,
+    value,
   }
 }
 
@@ -92,32 +105,6 @@ function readProductSnapshotChanges(product, mode) {
     }))
 }
 
-async function createInventoryLog(req, product, action, previousStock, newStock, changes = []) {
-  const normalizedPreviousStock = previousStock === undefined || previousStock === null ? null : Number(previousStock)
-  const normalizedNewStock = newStock === undefined || newStock === null ? null : Number(newStock)
-  const delta =
-    normalizedPreviousStock === null || normalizedNewStock === null
-      ? 0
-      : normalizedNewStock - normalizedPreviousStock
-
-  return InventoryLog.create({
-    action,
-    actor: {
-      id: req.user?._id?.toString() || '',
-      name: req.user?.name || '',
-      email: req.user?.email || '',
-    },
-    changes,
-    delta,
-    newStock: normalizedNewStock,
-    previousStock: normalizedPreviousStock,
-    productCategory: product.category,
-    productId: product.legacyId,
-    productImage: product.image,
-    productName: product.name,
-  })
-}
-
 function readProductPayload(body, isCreate = false) {
   const payload = {}
   const requiredFields = ['name', 'category', 'price', 'stock', 'image', 'description']
@@ -149,6 +136,68 @@ function readProductPayload(body, isCreate = false) {
   }
 
   return payload
+}
+
+async function readAdminCategoryList() {
+  let [storedCategories, productStats] = await Promise.all([
+    Category.find().sort({ name: 1 }),
+    Product.aggregate([
+      {
+        $group: {
+          _id: '$category',
+          productCount: { $sum: 1 },
+          stock: { $sum: '$stock' },
+          value: { $sum: { $multiply: ['$stock', '$price'] } },
+        },
+      },
+    ]),
+  ])
+  const existingCategoryNames = new Set(storedCategories.map((category) => category.name.toLowerCase()))
+  const queuedCategoryNames = new Set()
+  const missingProductCategories = productStats
+    .map((item) => normalizeCategoryName(item._id))
+    .filter((name) => {
+      const normalizedName = name.toLowerCase()
+      if (!name || existingCategoryNames.has(normalizedName) || queuedCategoryNames.has(normalizedName)) return false
+      queuedCategoryNames.add(normalizedName)
+      return true
+    })
+
+  if (missingProductCategories.length > 0) {
+    await Category.bulkWrite(
+      missingProductCategories.map((name) => ({
+        updateOne: {
+          filter: { name },
+          update: { $setOnInsert: { name } },
+          upsert: true,
+        },
+      })),
+      { ordered: false },
+    )
+    storedCategories = await Category.find().sort({ name: 1 })
+  }
+
+  const categoryByName = new Map(
+    storedCategories
+      .filter((category) => category.name)
+      .map((category) => [category.name, category]),
+  )
+  const statsByName = new Map(
+    productStats
+      .filter((item) => item._id)
+      .map((item) => [item._id, item]),
+  )
+
+  productStats.forEach((item) => {
+    const name = normalizeCategoryName(item._id)
+    if (name && !categoryByName.has(name)) {
+      categoryByName.set(name, { name })
+    }
+  })
+
+  return [...categoryByName.values()]
+    .map((category) => serializeCategory(category, statsByName.get(category.name)))
+    .sort((first, second) => first.name.localeCompare(second.name, 'vi'))
 }
 
 export const listAdminProducts = asyncHandler(async (req, res) => {
@@ -196,6 +245,123 @@ export const listAdminProducts = asyncHandler(async (req, res) => {
   })
 })
 
+export const listAdminCategories = asyncHandler(async (req, res) => {
+  res.json({
+    categories: await readAdminCategoryList(),
+  })
+})
+
+export const createAdminCategory = asyncHandler(async (req, res) => {
+  const name = normalizeCategoryName(req.body.name)
+  if (!name) {
+    throw httpError(400, 'Vui lòng nhập tên danh mục.')
+  }
+
+  const categoryNameRegex = new RegExp(`^${escapeRegex(name)}$`, 'i')
+  const [existingCategory, existingProductCategory] = await Promise.all([
+    Category.findOne({ name: categoryNameRegex }),
+    Product.exists({ category: categoryNameRegex }),
+  ])
+  if (existingCategory || existingProductCategory) {
+    throw httpError(409, 'Danh mục này đã tồn tại.')
+  }
+
+  const category = await Category.create({ name })
+  const inventoryLog = await createCategoryInventoryLog({
+    action: 'category-created',
+    categoryName: name,
+    changes: [
+      { field: 'categoryName', previousValue: null, newValue: name },
+    ],
+    nextName: name,
+    productCount: 0,
+    user: req.user,
+  })
+
+  res.status(201).json({
+    category: serializeCategory(category),
+    categories: await readAdminCategoryList(),
+    inventoryLog: serializeInventoryLog(inventoryLog),
+    message: 'Đã thêm danh mục kho.',
+  })
+})
+
+export const updateAdminCategory = asyncHandler(async (req, res) => {
+  const currentName = normalizeCategoryName(req.params.categoryName)
+  const nextName = normalizeCategoryName(req.body.name)
+
+  if (!currentName || !nextName) {
+    throw httpError(400, 'Tên danh mục không hợp lệ.')
+  }
+
+  if (currentName.toLowerCase() !== nextName.toLowerCase()) {
+    const categoryNameRegex = new RegExp(`^${escapeRegex(nextName)}$`, 'i')
+    const [existingCategory, existingProductCategory] = await Promise.all([
+      Category.findOne({ name: categoryNameRegex }),
+      Product.exists({ category: categoryNameRegex }),
+    ])
+    if (existingCategory || existingProductCategory) {
+      throw httpError(409, 'Danh mục mới đã tồn tại.')
+    }
+  }
+
+  const category = await Category.findOneAndUpdate(
+    { name: currentName },
+    { name: nextName },
+    { returnDocument: 'after', upsert: true },
+  )
+  const updateResult = await Product.updateMany({ category: currentName }, { category: nextName })
+  const inventoryLog = await createCategoryInventoryLog({
+    action: 'category-updated',
+    categoryName: nextName,
+    changes: [
+      { field: 'categoryName', previousValue: currentName, newValue: nextName },
+    ],
+    nextName,
+    previousName: currentName,
+    productCount: updateResult.modifiedCount || 0,
+    user: req.user,
+  })
+
+  res.json({
+    category: serializeCategory(category),
+    categories: await readAdminCategoryList(),
+    inventoryLog: serializeInventoryLog(inventoryLog),
+    message: 'Đã cập nhật danh mục kho.',
+    products: (await Product.find().sort({ legacyId: 1 })).map(serializeProduct),
+  })
+})
+
+export const deleteAdminCategory = asyncHandler(async (req, res) => {
+  const name = normalizeCategoryName(req.params.categoryName)
+  if (!name) {
+    throw httpError(400, 'Tên danh mục không hợp lệ.')
+  }
+
+  const productCount = await Product.countDocuments({ category: name })
+  if (productCount > 0) {
+    throw httpError(400, 'Không thể xóa danh mục đang có mặt hàng. Vui lòng chuyển mặt hàng sang danh mục khác trước.')
+  }
+
+  await Category.deleteOne({ name })
+  const inventoryLog = await createCategoryInventoryLog({
+    action: 'category-deleted',
+    categoryName: name,
+    changes: [
+      { field: 'categoryName', previousValue: name, newValue: null },
+    ],
+    previousName: name,
+    productCount,
+    user: req.user,
+  })
+
+  res.json({
+    categories: await readAdminCategoryList(),
+    inventoryLog: serializeInventoryLog(inventoryLog),
+    message: 'Đã xóa danh mục kho.',
+  })
+})
+
 export const listAdminInventoryHistory = asyncHandler(async (req, res) => {
   const query = String(req.query.query || '').trim()
   const action = String(req.query.action || 'all').trim()
@@ -209,7 +375,17 @@ export const listAdminInventoryHistory = asyncHandler(async (req, res) => {
   }
 
   if (action !== 'all') {
-    const allowedActions = ['created', 'stock-adjusted', 'stock-updated', 'details-updated', 'deleted']
+    const allowedActions = [
+      'created',
+      'stock-adjusted',
+      'stock-updated',
+      'details-updated',
+      'deleted',
+      'category-created',
+      'category-updated',
+      'category-deleted',
+      'order-deducted',
+    ]
     if (!allowedActions.includes(action)) {
       throw httpError(400, 'Bộ lọc lịch sử kho không hợp lệ.')
     }
@@ -225,6 +401,8 @@ export const listAdminInventoryHistory = asyncHandler(async (req, res) => {
     match.$or = [
       { productName: searchRegex },
       { productCategory: searchRegex },
+      { categoryName: searchRegex },
+      { orderCode: searchRegex },
       { 'actor.name': searchRegex },
       { 'actor.email': searchRegex },
       ...(Number.isFinite(Number(query)) ? [{ productId: Number(query) }] : []),
@@ -245,20 +423,21 @@ export const listAdminInventoryHistory = asyncHandler(async (req, res) => {
 
 export const createAdminProduct = asyncHandler(async (req, res) => {
   const payload = readProductPayload(req.body, true)
+  await ensureCategoryExists(payload.category)
   const lastProduct = await Product.findOne().sort({ legacyId: -1 })
   const product = await Product.create({
     ...payload,
     legacyId: (lastProduct?.legacyId || 0) + 1,
     rating: payload.rating ?? 0,
   })
-  const inventoryLog = await createInventoryLog(
-    req,
+  const inventoryLog = await createProductInventoryLog({
+    user: req.user,
     product,
-    'created',
-    0,
-    product.stock,
-    readProductSnapshotChanges(product, 'created'),
-  )
+    action: 'created',
+    previousStock: 0,
+    newStock: product.stock,
+    changes: readProductSnapshotChanges(product, 'created'),
+  })
 
   res.status(201).json({
     message: 'Đã thêm mặt hàng vào kho.',
@@ -277,6 +456,9 @@ export const updateAdminProduct = asyncHandler(async (req, res) => {
   const previousStock = Number(product.stock) || 0
   const updateSource = String(req.body.source || '').trim()
   const productChanges = readProductChanges(product, payload)
+  if (payload.category !== undefined) {
+    await ensureCategoryExists(payload.category)
+  }
   Object.entries(payload).forEach(([field, value]) => {
     product[field] = value
   })
@@ -285,16 +467,23 @@ export const updateAdminProduct = asyncHandler(async (req, res) => {
   const stockChanged = payload.stock !== undefined && previousStock !== product.stock
   const hasChanges = productChanges.length > 0
   const inventoryLog = stockChanged
-    ? await createInventoryLog(
-      req,
+    ? await createProductInventoryLog({
+      user: req.user,
       product,
-      updateSource === 'quick-adjust' ? 'stock-adjusted' : 'stock-updated',
+      action: updateSource === 'quick-adjust' ? 'stock-adjusted' : 'stock-updated',
       previousStock,
-      product.stock,
-      productChanges,
-    )
+      newStock: product.stock,
+      changes: productChanges,
+    })
     : hasChanges
-      ? await createInventoryLog(req, product, 'details-updated', previousStock, product.stock, productChanges)
+      ? await createProductInventoryLog({
+        user: req.user,
+        product,
+        action: 'details-updated',
+        previousStock,
+        newStock: product.stock,
+        changes: productChanges,
+      })
       : null
 
   res.json({
@@ -309,14 +498,14 @@ export const deleteAdminProduct = asyncHandler(async (req, res) => {
   if (!product) {
     throw httpError(404, 'Không tìm thấy sản phẩm.')
   }
-  const inventoryLog = await createInventoryLog(
-    req,
+  const inventoryLog = await createProductInventoryLog({
+    user: req.user,
     product,
-    'deleted',
-    product.stock,
-    0,
-    readProductSnapshotChanges(product, 'deleted'),
-  )
+    action: 'deleted',
+    previousStock: product.stock,
+    newStock: 0,
+    changes: readProductSnapshotChanges(product, 'deleted'),
+  })
 
   res.json({
     message: 'Đã xóa mặt hàng khỏi kho.',

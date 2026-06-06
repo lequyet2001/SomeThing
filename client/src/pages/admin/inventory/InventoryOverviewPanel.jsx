@@ -1,4 +1,4 @@
-import { AlertTriangle, Boxes, CheckCircle2, History, ShoppingBag } from 'lucide-react'
+import { AlertTriangle, Boxes, CheckCircle2, History, ShoppingBag, Tags } from 'lucide-react'
 
 import { formatCurrency } from '../../../utils/currency'
 
@@ -9,6 +9,7 @@ function InventoryOverviewPanel({
   inventoryHistory,
   inventoryMetrics,
   inventoryRiskCount,
+  productCategories,
   products,
   setActiveTab,
   t,
@@ -66,6 +67,17 @@ function InventoryOverviewPanel({
         >
           <Boxes size={16} />
           {t('admin.inventoryTabItems')}
+        </button>
+        <button
+          type="button"
+          className={activeTab === 'categories' ? 'is-active' : ''}
+          role="tab"
+          aria-selected={activeTab === 'categories'}
+          onClick={() => setActiveTab('categories')}
+        >
+          <Tags size={16} />
+          {t('admin.inventoryTabCategories')}
+          <span>{productCategories.length}</span>
         </button>
         <button
           type="button"

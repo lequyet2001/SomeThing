@@ -1,11 +1,33 @@
 import { History } from 'lucide-react'
 
-import AdminFilterPanel from '../AdminFilterPanel'
-import AdminSearchInput from '../AdminSearchInput'
+import AdminFilterPanel from '../../../components/admin/AdminFilterPanel'
+import AdminSearchInput from '../../../components/admin/AdminSearchInput'
 import { formatCategoryLabel } from '../../../utils/categoryLabel'
 import { formatAdminDate } from '../adminUtils'
 import { inventoryActionOptions } from './inventoryConstants'
 import { formatStockDelta } from './inventoryUtils'
+
+function getHistoryMarker(log) {
+  if (log.entityType === 'category') return 'CAT'
+  if (log.action === 'order-deducted') return 'ORD'
+  return formatStockDelta(log.delta)
+}
+
+function getHistoryTitle(log) {
+  if (log.entityType === 'category') return formatCategoryLabel(log.categoryName || log.productCategory || log.productName)
+  return log.productName
+}
+
+function getHistorySummary(log, t) {
+  if (log.entityType === 'category') {
+    return `${t('admin.category')}: ${formatCategoryLabel(log.categoryName || log.productCategory || log.productName)}`
+  }
+
+  const stockSummary = `${log.previousStock ?? 0} -> ${log.newStock ?? 0} ${t('admin.units')}`
+  return log.orderCode
+    ? `${t('admin.orderCode')} ${log.orderCode} · ${stockSummary}`
+    : `SKU #${log.productId} · ${stockSummary}`
+}
 
 function InventoryHistoryTab({
   filters,
@@ -49,22 +71,25 @@ function InventoryHistoryTab({
             ))}
           </select>
         </label>
-        <label>
-          {t('admin.startDate')}
-          <input
-            type="date"
-            value={filters.history.startDate}
-            onChange={(event) => updateFilter('history', 'startDate', event.target.value)}
-          />
-        </label>
-        <label>
-          {t('admin.endDate')}
-          <input
-            type="date"
-            value={filters.history.endDate}
-            onChange={(event) => updateFilter('history', 'endDate', event.target.value)}
-          />
-        </label>
+        <fieldset className="admin-date-range-field">
+          <legend>{t('admin.dateRange')}</legend>
+          <label>
+            {t('admin.startDate')}
+            <input
+              type="date"
+              value={filters.history.startDate}
+              onChange={(event) => updateFilter('history', 'startDate', event.target.value)}
+            />
+          </label>
+          <label>
+            {t('admin.endDate')}
+            <input
+              type="date"
+              value={filters.history.endDate}
+              onChange={(event) => updateFilter('history', 'endDate', event.target.value)}
+            />
+          </label>
+        </fieldset>
       </AdminFilterPanel>
       <div className="admin-inventory-history-list admin-inventory-history-grid">
         {filteredInventoryHistory.map((log) => (
@@ -77,22 +102,14 @@ function InventoryHistoryTab({
             onKeyDown={(event) => handleHistoryKeyDown(event, log)}
           >
             <div className="admin-history-marker">
-              <span>{formatStockDelta(log.delta)}</span>
+              <span>{getHistoryMarker(log)}</span>
             </div>
             <div className="admin-history-copy">
               <div className="admin-history-top">
-                <strong>{log.productName}</strong>
+                <strong>{getHistoryTitle(log)}</strong>
                 <span>{t(`admin.inventoryAction.${log.action}`)}</span>
               </div>
-              <p>
-                SKU #{log.productId}
-                {' · '}
-                {log.previousStock ?? 0}
-                {' -> '}
-                {log.newStock ?? 0}
-                {' '}
-                {t('admin.units')}
-              </p>
+              <p>{getHistorySummary(log, t)}</p>
               <small>
                 {formatAdminDate(log.createdAt, language, t('admin.noInfo'))}
                 {' · '}
