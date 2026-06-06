@@ -1,8 +1,3 @@
-import crypto from 'node:crypto'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { ADMIN_EMAIL } from '../config/env.js'
 import { ContactMessage } from '../models/ContactMessage.js'
 import { Order } from '../models/Order.js'
@@ -10,6 +5,16 @@ import { Product } from '../models/Product.js'
 import { Review } from '../models/Review.js'
 import { User } from '../models/User.js'
 import { createUserNotification, emitAdminEvent } from './notificationController.js'
+import {
+  applyPagination,
+  createDateMatch,
+  createLocalDate,
+  createPagination,
+  DASHBOARD_TIMEZONE_OFFSET,
+  escapeRegex,
+  readDateRangeFilter,
+  readPagination,
+} from './adminQueryUtils.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 
@@ -28,16 +33,6 @@ const CONTACT_STATUS_LABELS = {
 const REVENUE_ORDER_STATUSES = ['paid', 'completed']
 const PENDING_ORDER_STATUSES = ['confirmed', 'paid', 'shipping']
 const PENDING_CONTACT_STATUSES = ['new', 'processing']
-const DASHBOARD_TIMEZONE_OFFSET = '+07:00'
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const PRODUCT_UPLOAD_DIR = path.resolve(__dirname, '../../uploads/products')
-const IMAGE_TYPES = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-}
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
 function serializeOrder(order) {
   return {
@@ -133,78 +128,6 @@ function normalizeSummaryMonth(value) {
   }
 
   return rawMonth
-}
-
-function createLocalDate(dateValue, time = '00:00:00.000') {
-  return new Date(`${dateValue}T${time}${DASHBOARD_TIMEZONE_OFFSET}`)
-}
-
-function createDateMatch(field, dateRange) {
-  return dateRange ? { [field]: dateRange } : {}
-}
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function readPositiveInteger(value, fallback, maxValue) {
-  const parsed = Number.parseInt(value, 10)
-  if (!Number.isFinite(parsed) || parsed < 1) return fallback
-  return Math.min(parsed, maxValue)
-}
-
-function readPagination(query, defaultLimit = 20) {
-  return {
-    limit: readPositiveInteger(query.limit, defaultLimit, 100),
-    page: readPositiveInteger(query.page, 1, 100000),
-    shouldPaginate: query.page !== undefined || query.limit !== undefined,
-  }
-}
-
-function createPagination(total, pagination) {
-  const totalPages = pagination.shouldPaginate ? Math.max(1, Math.ceil(total / pagination.limit)) : 1
-
-  return {
-    hasMore: pagination.shouldPaginate ? pagination.page < totalPages : false,
-    limit: pagination.shouldPaginate ? pagination.limit : total,
-    page: pagination.shouldPaginate ? pagination.page : 1,
-    total,
-    totalPages,
-  }
-}
-
-function applyPagination(query, pagination) {
-  if (!pagination.shouldPaginate) return query
-  return query.skip((pagination.page - 1) * pagination.limit).limit(pagination.limit)
-}
-
-function readDateRangeFilter(query) {
-  const startDate = String(query.startDate || '').trim()
-  const endDate = String(query.endDate || '').trim()
-  const dateRange = {}
-
-  if (startDate) {
-    const start = createLocalDate(startDate)
-    if (Number.isNaN(start.getTime())) {
-      throw httpError(400, 'Ngày bắt đầu không hợp lệ.')
-    }
-    dateRange.$gte = start
-  }
-
-  if (endDate) {
-    const end = createLocalDate(endDate)
-    if (Number.isNaN(end.getTime())) {
-      throw httpError(400, 'Ngày kết thúc không hợp lệ.')
-    }
-    end.setUTCDate(end.getUTCDate() + 1)
-    dateRange.$lt = end
-  }
-
-  if (dateRange.$gte && dateRange.$lt && dateRange.$gte >= dateRange.$lt) {
-    throw httpError(400, 'Khoảng thời gian không hợp lệ.')
-  }
-
-  return Object.keys(dateRange).length ? dateRange : null
 }
 
 function readSummaryPeriod(query) {
@@ -312,6 +235,8 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
     adminCount,
     productsForSales,
     lowStockProducts,
+    lowStockCount,
+    outOfStockCount,
     newContactCount,
     recentOrders,
     recentContacts,
@@ -369,7 +294,9 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
     User.countDocuments(),
     User.countDocuments({ role: 'admin' }),
     Product.find().sort({ name: 1 }),
-    Product.find({ stock: { $lte: 10 } }).sort({ stock: 1 }).limit(8),
+    Product.find({ stock: { $gt: 0, $lte: 10 } }).sort({ stock: 1 }).limit(8),
+    Product.countDocuments({ stock: { $gt: 0, $lte: 10 } }),
+    Product.countDocuments({ stock: 0 }),
     ContactMessage.countDocuments({ status: 'new', ...contactCreatedAtMatch }),
     Order.find(orderCreatedAtMatch).sort({ createdAt: -1 }).limit(5),
     ContactMessage.find(contactCreatedAtMatch).sort({ createdAt: -1 }).limit(5),
@@ -389,7 +316,8 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
       productCount,
       userCount,
       adminCount,
-      lowStockCount: lowStockProducts.length,
+      lowStockCount,
+      outOfStockCount,
       newContactCount,
       statusStats: statusStats.map((item) => ({
         status: item._id,
@@ -830,161 +758,5 @@ export const updateUserRole = asyncHandler(async (req, res) => {
   res.json({
     message: 'Đã cập nhật quyền người dùng.',
     user: serializeUser(user),
-  })
-})
-
-export const listAdminProducts = asyncHandler(async (req, res) => {
-  const query = String(req.query.query || '').trim()
-  const category = String(req.query.category || 'all').trim()
-  const stock = String(req.query.stock || 'all').trim()
-  const pagination = readPagination(req.query)
-  const match = {}
-
-  if (query) {
-    const searchRegex = new RegExp(escapeRegex(query), 'i')
-    match.$or = [
-      { name: searchRegex },
-      { category: searchRegex },
-      { description: searchRegex },
-      ...(Number.isFinite(Number(query)) ? [{ legacyId: Number(query) }] : []),
-    ]
-  }
-
-  if (category !== 'all') {
-    match.category = category
-  }
-
-  if (stock === 'low') {
-    match.stock = { $lte: 10 }
-  } else if (stock === 'out') {
-    match.stock = 0
-  } else if (stock !== 'all') {
-    throw httpError(400, 'Bộ lọc tồn kho không hợp lệ.')
-  }
-
-  const productQuery = applyPagination(Product.find(match).sort({ legacyId: 1 }), pagination)
-  const [products, total, categoryOptions] = await Promise.all([
-    productQuery,
-    Product.countDocuments(match),
-    Product.distinct('category'),
-  ])
-
-  res.json({
-    products: products.map(serializeProduct),
-    pagination: createPagination(total, pagination),
-    categoryOptions: categoryOptions.filter(Boolean).sort(),
-  })
-})
-
-function readProductPayload(body, isCreate = false) {
-  const payload = {}
-  const requiredFields = ['name', 'category', 'price', 'stock', 'image', 'description']
-
-  requiredFields.forEach((field) => {
-    if (body[field] !== undefined) {
-      payload[field] = typeof body[field] === 'string' ? body[field].trim() : body[field]
-    }
-  })
-
-  if (body.price !== undefined) payload.price = Number(body.price)
-  if (body.stock !== undefined) payload.stock = Number(body.stock)
-  if (body.rating !== undefined) payload.rating = Number(body.rating)
-
-  if (isCreate && requiredFields.some((field) => payload[field] === undefined || payload[field] === '')) {
-    throw httpError(400, 'Vui lòng nhập đầy đủ thông tin sản phẩm.')
-  }
-
-  if (payload.price !== undefined && (!Number.isFinite(payload.price) || payload.price < 0)) {
-    throw httpError(400, 'Giá sản phẩm không hợp lệ.')
-  }
-
-  if (payload.stock !== undefined && (!Number.isInteger(payload.stock) || payload.stock < 0)) {
-    throw httpError(400, 'Tồn kho không hợp lệ.')
-  }
-
-  if (payload.rating !== undefined && (payload.rating < 0 || payload.rating > 5)) {
-    throw httpError(400, 'Điểm đánh giá phải từ 0 đến 5.')
-  }
-
-  return payload
-}
-
-export const createAdminProduct = asyncHandler(async (req, res) => {
-  const payload = readProductPayload(req.body, true)
-  const lastProduct = await Product.findOne().sort({ legacyId: -1 })
-  const product = await Product.create({
-    ...payload,
-    legacyId: (lastProduct?.legacyId || 0) + 1,
-    rating: payload.rating ?? 0,
-  })
-
-  res.status(201).json({
-    message: 'Đã thêm sản phẩm mới.',
-    product: serializeProduct(product),
-  })
-})
-
-export const updateAdminProduct = asyncHandler(async (req, res) => {
-  const payload = readProductPayload(req.body)
-  const product = await Product.findOneAndUpdate(
-    { legacyId: Number(req.params.productId) },
-    { $set: payload },
-    { returnDocument: 'after', runValidators: true },
-  )
-
-  if (!product) {
-    throw httpError(404, 'Không tìm thấy sản phẩm.')
-  }
-
-  res.json({
-    message: 'Đã cập nhật sản phẩm.',
-    product: serializeProduct(product),
-  })
-})
-
-export const deleteAdminProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findOneAndDelete({ legacyId: Number(req.params.productId) })
-  if (!product) {
-    throw httpError(404, 'Không tìm thấy sản phẩm.')
-  }
-
-  res.json({
-    message: 'Đã xóa sản phẩm.',
-    product: serializeProduct(product),
-  })
-})
-
-export const uploadProductImage = asyncHandler(async (req, res) => {
-  const { dataUrl, fileName = '', mimeType } = req.body
-  const imageMimeType = mimeType || String(dataUrl || '').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/)?.[1]
-  const extension = IMAGE_TYPES[imageMimeType]
-
-  if (!extension || !dataUrl) {
-    throw httpError(400, 'Ảnh sản phẩm phải là JPG, PNG, WEBP hoặc GIF.')
-  }
-
-  const base64 = String(dataUrl).replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '')
-  const buffer = Buffer.from(base64, 'base64')
-
-  if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) {
-    throw httpError(400, 'Ảnh sản phẩm phải nhỏ hơn 5MB.')
-  }
-
-  await fs.mkdir(PRODUCT_UPLOAD_DIR, { recursive: true })
-
-  const safeName = path
-    .basename(fileName, path.extname(fileName))
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 40)
-  const storedFileName = `${safeName || 'product'}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${extension}`
-  const storedPath = path.join(PRODUCT_UPLOAD_DIR, storedFileName)
-
-  await fs.writeFile(storedPath, buffer)
-
-  res.status(201).json({
-    message: 'Đã upload ảnh sản phẩm.',
-    url: `/uploads/products/${storedFileName}`,
   })
 })

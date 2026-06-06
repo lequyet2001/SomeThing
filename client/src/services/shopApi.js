@@ -108,6 +108,7 @@ export const shopApi = {
   listNotifications: () => request('/notifications'),
   getProfile: () => request('/me'),
   listAdminContacts: (params = {}) => request(`/admin/contacts${toQueryString(params)}`),
+  listAdminInventoryHistory: (params = {}) => request(`/admin/inventory-history${toQueryString(params)}`),
   listAdminOrders: (params = {}) => request(`/admin/orders${toQueryString(params)}`),
   listAdminProducts: (params = {}) => request(`/admin/products${toQueryString(params)}`),
   listAdminReviews: (params = {}) => request(`/admin/reviews${toQueryString(params)}`),

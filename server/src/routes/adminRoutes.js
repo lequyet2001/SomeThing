@@ -1,22 +1,25 @@
 import { Router } from 'express'
 
 import {
-  createAdminProduct,
-  deleteAdminProduct,
   deleteAdminReview,
   getAdminSummary,
   listAdminCustomers,
-  listAdminProducts,
   listAdminContacts,
   listAdminOrders,
   listAdminReviews,
   listAdminUsers,
-  updateAdminProduct,
   updateContactStatus,
   updateOrderStatus,
   updateUserRole,
-  uploadProductImage,
 } from '../controllers/adminController.js'
+import {
+  createAdminProduct,
+  deleteAdminProduct,
+  listAdminInventoryHistory,
+  listAdminProducts,
+  updateAdminProduct,
+  uploadProductImage,
+} from '../controllers/inventoryAdminController.js'
 import { streamAdminEvents } from '../controllers/notificationController.js'
 import { requireAdmin, requireAuth } from '../middleware/auth.js'
 
@@ -35,6 +38,7 @@ router.delete('/admin/reviews/:reviewId', deleteAdminReview)
 router.get('/admin/users', listAdminUsers)
 router.patch('/admin/users/:userId/role', updateUserRole)
 router.get('/admin/products', listAdminProducts)
+router.get('/admin/inventory-history', listAdminInventoryHistory)
 router.post('/admin/uploads/product-image', uploadProductImage)
 router.post('/admin/products', createAdminProduct)
 router.patch('/admin/products/:productId', updateAdminProduct)
