@@ -13,10 +13,14 @@ import {
   updateUserRole,
 } from '../controllers/adminController.js'
 import {
+  createAdminCategory,
   createAdminProduct,
+  deleteAdminCategory,
   deleteAdminProduct,
+  listAdminCategories,
   listAdminInventoryHistory,
   listAdminProducts,
+  updateAdminCategory,
   updateAdminProduct,
   uploadProductImage,
 } from '../controllers/inventoryAdminController.js'
@@ -37,6 +41,10 @@ router.get('/admin/reviews', listAdminReviews)
 router.delete('/admin/reviews/:reviewId', deleteAdminReview)
 router.get('/admin/users', listAdminUsers)
 router.patch('/admin/users/:userId/role', updateUserRole)
+router.get('/admin/categories', listAdminCategories)
+router.post('/admin/categories', createAdminCategory)
+router.patch('/admin/categories/:categoryName', updateAdminCategory)
+router.delete('/admin/categories/:categoryName', deleteAdminCategory)
 router.get('/admin/products', listAdminProducts)
 router.get('/admin/inventory-history', listAdminInventoryHistory)
 router.post('/admin/uploads/product-image', uploadProductImage)

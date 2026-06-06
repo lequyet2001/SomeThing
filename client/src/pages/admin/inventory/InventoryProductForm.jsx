@@ -6,8 +6,10 @@ function InventoryProductForm({
   editingProductId,
   handleProductImageChange,
   handleProductSubmit,
+  isDialog = false,
   isProductImageUploading,
   isProductSaving,
+  onClose,
   productCategories,
   productForm,
   productFormPanelRef,
@@ -17,15 +19,27 @@ function InventoryProductForm({
   setProductForm,
   t,
 }) {
+  const Root = isDialog ? 'section' : 'aside'
+  const titleId = isDialog ? 'inventory-product-form-title' : undefined
+
   return (
-    <aside className="admin-panel admin-product-form-panel" ref={productFormPanelRef}>
+    <Root
+      className={isDialog ? 'admin-product-form-panel admin-product-form-dialog-panel' : 'admin-panel admin-product-form-panel'}
+      ref={productFormPanelRef}
+      role={isDialog ? 'document' : undefined}
+    >
       <div className="admin-panel-heading">
         <div>
           <p className="admin-kicker"><PackagePlus size={15} /> {t('admin.inventoryForm')}</p>
-          <h2>{editingProductId ? t('admin.editInventoryItem') : t('admin.addInventoryItem')}</h2>
+          <h2 id={titleId}>{editingProductId ? t('admin.editInventoryItem') : t('admin.addInventoryItem')}</h2>
         </div>
-        {editingProductId && (
-          <button className="admin-icon-button" type="button" onClick={resetProductForm} aria-label={t('admin.cancelEdit')}>
+        {(editingProductId || isDialog) && (
+          <button
+            className="admin-icon-button"
+            type="button"
+            onClick={isDialog ? onClose : resetProductForm}
+            aria-label={isDialog ? t('admin.close') : t('admin.cancelEdit')}
+          >
             <X size={17} />
           </button>
         )}
@@ -50,19 +64,8 @@ function InventoryProductForm({
             {productCategories.map((category) => (
               <option key={category} value={category}>{formatCategoryLabel(category)}</option>
             ))}
-            <option value="__new__">+ {t('admin.newCategory')}</option>
           </select>
         </label>
-        {productForm.category === '__new__' && (
-          <label>
-            {t('admin.newCategory')}
-            <input
-              value={productForm.newCategory}
-              onChange={(event) => setProductForm((current) => ({ ...current, newCategory: event.target.value }))}
-              required
-            />
-          </label>
-        )}
         <label>
           {t('admin.price')}
           <input
@@ -122,7 +125,7 @@ function InventoryProductForm({
           {isProductSaving ? t('admin.savingProduct') : editingProductId ? t('admin.saveProduct') : t('admin.addInventoryItem')}
         </button>
       </form>
-    </aside>
+    </Root>
   )
 }
 

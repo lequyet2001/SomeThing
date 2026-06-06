@@ -1,33 +1,22 @@
-import { SlidersHorizontal } from 'lucide-react'
+import { PackagePlus, SlidersHorizontal } from 'lucide-react'
 
-import AdminFilterPanel from '../AdminFilterPanel'
-import AdminSearchInput from '../AdminSearchInput'
+import AdminFilterPanel from '../../../components/admin/AdminFilterPanel'
+import AdminSearchInput from '../../../components/admin/AdminSearchInput'
 import { formatCategoryLabel } from '../../../utils/categoryLabel'
-import InventoryProductForm from './InventoryProductForm'
 
 function InventoryItemsTab({
-  editingProductId,
   filters,
   filteredProducts,
-  handleProductImageChange,
-  handleProductSubmit,
-  isProductImageUploading,
-  isProductSaving,
+  onAddProduct,
   productCategories,
-  productForm,
-  productFormPanelRef,
-  productImageFile,
-  productImagePreview,
   products,
   renderInventoryRows,
   resetFilter,
-  resetProductForm,
-  setProductForm,
   t,
   updateFilter,
 }) {
   return (
-    <div className="admin-grid admin-inventory-grid">
+    <div className="admin-inventory-items">
       <section className="admin-panel admin-inventory-table-panel">
         <AdminFilterPanel
           className="admin-product-filter admin-inventory-filter"
@@ -89,7 +78,13 @@ function InventoryItemsTab({
             <p className="admin-kicker"><SlidersHorizontal size={15} /> {t('admin.inventoryList')}</p>
             <h3>{t('admin.inventoryTable')}</h3>
           </div>
-          <span>{t('admin.filteredCount', { shown: filteredProducts.length, total: products.length })}</span>
+          <div className="admin-inventory-list-actions">
+            <span>{t('admin.filteredCount', { shown: filteredProducts.length, total: products.length })}</span>
+            <button type="button" className="admin-panel-open" onClick={onAddProduct}>
+              <PackagePlus size={15} />
+              {t('admin.addInventoryItem')}
+            </button>
+          </div>
         </div>
         <div className="admin-table-wrap admin-inventory-table-wrap">
           <table className="admin-table">
@@ -114,22 +109,6 @@ function InventoryItemsTab({
           </table>
         </div>
       </section>
-
-      <InventoryProductForm
-        editingProductId={editingProductId}
-        handleProductImageChange={handleProductImageChange}
-        handleProductSubmit={handleProductSubmit}
-        isProductImageUploading={isProductImageUploading}
-        isProductSaving={isProductSaving}
-        productCategories={productCategories}
-        productForm={productForm}
-        productFormPanelRef={productFormPanelRef}
-        productImageFile={productImageFile}
-        productImagePreview={productImagePreview}
-        resetProductForm={resetProductForm}
-        setProductForm={setProductForm}
-        t={t}
-      />
     </div>
   )
 }

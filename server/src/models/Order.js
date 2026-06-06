@@ -29,6 +29,8 @@ const orderSchema = new mongoose.Schema(
     items: { type: [orderItemSchema], required: true },
     payment: { type: String, required: true, trim: true },
     status: { type: String, default: 'confirmed', enum: ['confirmed', 'paid', 'shipping', 'completed', 'cancelled'] },
+    inventoryAppliedAt: { type: Date, default: null },
+    inventoryAppliedStatus: { type: String, default: '', trim: true },
     subtotal: { type: Number, required: true, min: 0 },
     shipping: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },

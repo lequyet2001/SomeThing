@@ -100,6 +100,7 @@ function readFileAsDataUrl(file) {
 export const shopApi = {
   addCartItem: (payload) => request('/cart/items', { method: 'POST', body: JSON.stringify(payload) }),
   clearCart: () => request('/cart', { method: 'DELETE' }),
+  createAdminCategory: (payload) => request('/admin/categories', { method: 'POST', body: JSON.stringify(payload) }),
   createAdminProduct: (payload) => request('/admin/products', { method: 'POST', body: JSON.stringify(payload) }),
   createOrder: (payload) => request('/orders', { method: 'POST', body: JSON.stringify(payload) }),
   createReview: (payload) => request('/reviews', { method: 'POST', body: JSON.stringify(payload) }),
@@ -107,7 +108,9 @@ export const shopApi = {
   getCart: () => request('/cart'),
   listNotifications: () => request('/notifications'),
   getProfile: () => request('/me'),
+  listAdminCategories: () => request('/admin/categories'),
   listAdminContacts: (params = {}) => request(`/admin/contacts${toQueryString(params)}`),
+  listAdminCustomers: (params = {}) => request(`/admin/customers${toQueryString(params)}`),
   listAdminInventoryHistory: (params = {}) => request(`/admin/inventory-history${toQueryString(params)}`),
   listAdminOrders: (params = {}) => request(`/admin/orders${toQueryString(params)}`),
   listAdminProducts: (params = {}) => request(`/admin/products${toQueryString(params)}`),
@@ -122,6 +125,8 @@ export const shopApi = {
   markNotificationRead: (notificationId) => request(`/notifications/${notificationId}/read`, { method: 'PATCH' }),
   register: (payload) => request('/register', { method: 'POST', body: JSON.stringify(payload) }),
   removeCartItem: (productId) => request(`/cart/items/${productId}`, { method: 'DELETE' }),
+  deleteAdminCategory: (categoryName) =>
+    request(`/admin/categories/${encodeURIComponent(categoryName)}`, { method: 'DELETE' }),
   deleteAdminProduct: (productId) => request(`/admin/products/${productId}`, { method: 'DELETE' }),
   deleteAdminReview: (reviewId) => request(`/admin/reviews/${reviewId}`, { method: 'DELETE' }),
   deleteNotification: (notificationId) => request(`/notifications/${notificationId}`, { method: 'DELETE' }),
@@ -135,6 +140,8 @@ export const shopApi = {
     request(`/admin/contacts/${contactId}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
   updateOrderStatus: (orderCode, status) =>
     request(`/admin/orders/${orderCode}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  updateAdminCategory: (categoryName, payload) =>
+    request(`/admin/categories/${encodeURIComponent(categoryName)}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   updateAdminProduct: (productId, payload) =>
     request(`/admin/products/${productId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   updateProfile: (payload) => request('/me', { method: 'PUT', body: JSON.stringify(payload) }),

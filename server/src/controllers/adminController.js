@@ -3,6 +3,7 @@ import { ContactMessage } from '../models/ContactMessage.js'
 import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
 import { Review } from '../models/Review.js'
+import { applyOrderInventoryIfNeeded, serializeInventoryLog } from '../services/inventoryLogService.js'
 import { User } from '../models/User.js'
 import { createUserNotification, emitAdminEvent } from './notificationController.js'
 import {
@@ -42,10 +43,13 @@ function serializeOrder(order) {
     payment: order.payment,
     status: order.status,
     statusLabel: ORDER_STATUS_LABELS[order.status] || order.status,
+    inventoryAppliedAt: order.inventoryAppliedAt,
+    inventoryAppliedStatus: order.inventoryAppliedStatus,
     subtotal: order.subtotal,
     shipping: order.shipping,
     total: order.total,
     createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
   }
 }
 
@@ -507,6 +511,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const previousStatus = order.status
   order.status = status
   await order.save()
+  const inventoryLogs = await applyOrderInventoryIfNeeded(order, req.user)
 
   if (previousStatus !== status) {
     const notificationUser = order.user || (await User.findOne({ email: order.customer.email }))?._id
@@ -529,12 +534,14 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
       orderCode: order.orderCode,
       previousStatus,
       status,
+      inventoryLogs: inventoryLogs.map(serializeInventoryLog),
       createdAt: new Date().toISOString(),
     })
   }
 
   res.json({
     message: 'Đã cập nhật trạng thái đơn hàng.',
+    inventoryLogs: inventoryLogs.map(serializeInventoryLog),
     order: serializeOrder(order),
   })
 })

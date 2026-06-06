@@ -1,12 +1,36 @@
 import { BarChart3, Boxes, ShoppingBag, Users } from 'lucide-react'
 
 import { formatCurrency } from '../../utils/currency'
-import BarChartList from './BarChartList'
+import BarChartList from '../../components/admin/BarChartList'
+
+function getMonthDateRange(monthValue) {
+  const match = String(monthValue || '').trim().match(/^(\d{4})-(\d{1,2})$/)
+  if (!match) return {}
+
+  const year = Number(match[1])
+  const monthIndex = Number(match[2])
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex) || monthIndex < 1 || monthIndex > 12) return {}
+
+  const monthText = String(monthIndex).padStart(2, '0')
+  const lastDay = new Date(year, monthIndex, 0).getDate()
+
+  return {
+    endDate: `${year}-${monthText}-${String(lastDay).padStart(2, '0')}`,
+    startDate: `${year}-${monthText}-01`,
+  }
+}
 
 function AdminOverviewSection({
   handleStatsFilterSubmit,
   leastProducts,
   monthlyRevenue,
+  onOpenContacts,
+  onOpenCustomer,
+  onOpenCustomers,
+  onOpenOrders,
+  onOpenProduct,
+  onOpenProducts,
+  onOpenUsers,
   overviewView,
   resetStatsFilters,
   setOverviewView,
@@ -18,6 +42,14 @@ function AdminOverviewSection({
   topCustomers,
   topProducts,
 }) {
+  function openRevenueOrders(params = {}) {
+    onOpenOrders?.({
+      dateField: 'updatedAt',
+      status: 'revenue',
+      ...params,
+    })
+  }
+
   return (
     <>
       <section className="admin-panel admin-report-filter">
@@ -109,19 +141,52 @@ function AdminOverviewSection({
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr className="admin-clickable-row" onClick={() => openRevenueOrders()}>
                   <td data-label={t('admin.metric')}>{t('admin.averageOrder')}</td>
-                  <td data-label={t('admin.value')}>{formatCurrency(summary.averageOrder || 0)}</td>
+                  <td data-label={t('admin.value')}>
+                    <button
+                      type="button"
+                      className="admin-inline-link"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        openRevenueOrders()
+                      }}
+                    >
+                      {formatCurrency(summary.averageOrder || 0)}
+                    </button>
+                  </td>
                   <td data-label={t('admin.note')}>{t('admin.noCancelled')}</td>
                 </tr>
-                <tr>
+                <tr className="admin-clickable-row" onClick={() => onOpenUsers?.({ role: 'admin' })}>
                   <td data-label={t('admin.metric')}>Admin</td>
-                  <td data-label={t('admin.value')}>{summary.adminCount || 0}</td>
+                  <td data-label={t('admin.value')}>
+                    <button
+                      type="button"
+                      className="admin-inline-link"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onOpenUsers?.({ role: 'admin' })
+                      }}
+                    >
+                      {summary.adminCount || 0}
+                    </button>
+                  </td>
                   <td data-label={t('admin.note')}>{t('admin.adminCountNote')}</td>
                 </tr>
-                <tr>
+                <tr className="admin-clickable-row" onClick={() => onOpenContacts?.({ status: 'new' })}>
                   <td data-label={t('admin.metric')}>{t('admin.newContact')}</td>
-                  <td data-label={t('admin.value')}>{summary.newContactCount || 0}</td>
+                  <td data-label={t('admin.value')}>
+                    <button
+                      type="button"
+                      className="admin-inline-link"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onOpenContacts?.({ status: 'new' })
+                      }}
+                    >
+                      {summary.newContactCount || 0}
+                    </button>
+                  </td>
                   <td data-label={t('admin.note')}>{t('admin.newContactNote')}</td>
                 </tr>
               </tbody>
@@ -136,6 +201,9 @@ function AdminOverviewSection({
                 <p className="admin-kicker"><ShoppingBag size={15} /> {t('admin.revenue')}</p>
                 <h2>{t('admin.revenueByMonth')}</h2>
               </div>
+              <button type="button" className="admin-panel-open" onClick={() => openRevenueOrders()}>
+                {t('admin.openManagement')}
+              </button>
             </div>
             <div className="admin-mini-list">
               {monthlyRevenue.length === 0 ? (
@@ -147,17 +215,23 @@ function AdminOverviewSection({
                   labelKey="month"
                   valueFormatter={(value) => formatCurrency(value)}
                   emptyText={t('admin.noRevenue')}
+                  onOpenItem={(item) => openRevenueOrders(getMonthDateRange(item.month))}
                 />
               ) : (
                 monthlyRevenue.slice(0, 5).map((item, index) => (
-                  <article key={item.month} className="admin-rank-item">
+                  <button
+                    key={item.month}
+                    type="button"
+                    className="admin-rank-item admin-rank-button"
+                    onClick={() => openRevenueOrders(getMonthDateRange(item.month))}
+                  >
                     <b>{index + 1}</b>
                     <div>
                       <span>{item.month}</span>
                       <strong>{formatCurrency(item.revenue)}</strong>
                       <p>{t('admin.orderCount', { count: item.count })}</p>
                     </div>
-                  </article>
+                  </button>
                 ))
               )}
             </div>
@@ -169,6 +243,9 @@ function AdminOverviewSection({
                 <p className="admin-kicker"><Boxes size={15} /> {t('admin.topSelling')}</p>
                 <h2>{t('admin.topProducts')}</h2>
               </div>
+              <button type="button" className="admin-panel-open" onClick={() => onOpenProducts?.()}>
+                {t('admin.openManagement')}
+              </button>
             </div>
             <div className="admin-mini-list">
               {topProducts.length === 0 ? (
@@ -180,17 +257,23 @@ function AdminOverviewSection({
                   labelKey="name"
                   valueFormatter={(value, item) => `${t('admin.soldCount', { count: value })} | ${formatCurrency(item.revenue)}`}
                   emptyText={t('admin.noTopProducts')}
+                  onOpenItem={(product) => onOpenProduct?.(product)}
                 />
               ) : (
                 topProducts.slice(0, 5).map((product, index) => (
-                  <article key={product.productId} className="admin-rank-item">
+                  <button
+                    key={product.productId}
+                    type="button"
+                    className="admin-rank-item admin-rank-button"
+                    onClick={() => onOpenProduct?.(product)}
+                  >
                     <b>{index + 1}</b>
                     <div>
                       <span>{t('admin.soldCount', { count: product.quantity })}</span>
                       <strong>{product.name}</strong>
                       <p>{formatCurrency(product.revenue)}</p>
                     </div>
-                  </article>
+                  </button>
                 ))
               )}
             </div>
@@ -202,6 +285,9 @@ function AdminOverviewSection({
                 <p className="admin-kicker"><Boxes size={15} /> {t('admin.lowSelling')}</p>
                 <h2>{t('admin.leastProducts')}</h2>
               </div>
+              <button type="button" className="admin-panel-open" onClick={() => onOpenProducts?.()}>
+                {t('admin.openManagement')}
+              </button>
             </div>
             <div className="admin-mini-list">
               {leastProducts.length === 0 ? (
@@ -213,17 +299,23 @@ function AdminOverviewSection({
                   labelKey="name"
                   valueFormatter={(value, item) => `${t('admin.soldCount', { count: value })} | ${formatCurrency(item.revenue)}`}
                   emptyText={t('admin.noLowProducts')}
+                  onOpenItem={(product) => onOpenProduct?.(product)}
                 />
               ) : (
                 leastProducts.slice(0, 5).map((product, index) => (
-                  <article key={product.productId} className="admin-rank-item">
+                  <button
+                    key={product.productId}
+                    type="button"
+                    className="admin-rank-item admin-rank-button"
+                    onClick={() => onOpenProduct?.(product)}
+                  >
                     <b>{index + 1}</b>
                     <div>
                       <span>{t('admin.soldCount', { count: product.quantity })}</span>
                       <strong>{product.name}</strong>
                       <p>{formatCurrency(product.revenue)}</p>
                     </div>
-                  </article>
+                  </button>
                 ))
               )}
             </div>
@@ -235,6 +327,9 @@ function AdminOverviewSection({
                 <p className="admin-kicker"><Users size={15} /> {t('admin.topCustomers')}</p>
                 <h2>{t('admin.topCustomers')}</h2>
               </div>
+              <button type="button" className="admin-panel-open" onClick={() => onOpenCustomers?.()}>
+                {t('admin.openManagement')}
+              </button>
             </div>
             <div className="admin-mini-list">
               {topCustomers.length === 0 ? (
@@ -246,10 +341,16 @@ function AdminOverviewSection({
                   labelKey="name"
                   valueFormatter={(value, item) => `${formatCurrency(value)} | ${t('admin.orderCount', { count: item.orderCount })}`}
                   emptyText={t('admin.noTopCustomers')}
+                  onOpenItem={(customer) => onOpenCustomer?.(customer)}
                 />
               ) : (
                 topCustomers.slice(0, 5).map((customer, index) => (
-                  <article key={customer.email} className="admin-rank-item">
+                  <button
+                    key={customer.email}
+                    type="button"
+                    className="admin-rank-item admin-rank-button"
+                    onClick={() => onOpenCustomer?.(customer)}
+                  >
                     <b>{index + 1}</b>
                     <div>
                       <span>{t('admin.customerSpent')}</span>
@@ -257,7 +358,7 @@ function AdminOverviewSection({
                       <p>{customer.email}</p>
                       <p>{formatCurrency(customer.totalSpent)} | {t('admin.orderCount', { count: customer.orderCount })} | {t('admin.itemCount', { count: customer.itemCount })}</p>
                     </div>
-                  </article>
+                  </button>
                 ))
               )}
             </div>
