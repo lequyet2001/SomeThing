@@ -1,8 +1,9 @@
 import { Clock, Mail, MapPin, Phone, Send } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 
-function ContactPage({ onSubmitContact }) {
+function ContactPage({ onSubmitContact, user }) {
   const { t } = useLanguage()
+  const isSignedIn = Boolean(user?.email)
 
   return (
     <section className="contact-page">
@@ -17,18 +18,22 @@ function ContactPage({ onSubmitContact }) {
       <div className="contact-layout">
         <form className="contact-form" onSubmit={onSubmitContact}>
           <h2>{t('contact.formTitle')}</h2>
-          <label>
-            {t('auth.name')}
-            <input name="name" required placeholder={t('contact.namePlaceholder')} />
-          </label>
-          <label>
-            Email
-            <input name="email" type="email" required placeholder="you@example.com" />
-          </label>
-          <label>
-            {t('contact.phone')}
-            <input name="phone" placeholder="090..." />
-          </label>
+          {!isSignedIn ? (
+            <>
+              <label>
+                {t('auth.name')}
+                <input name="name" required placeholder={t('contact.namePlaceholder')} />
+              </label>
+              <label>
+                Email
+                <input name="email" type="email" required placeholder="you@example.com" />
+              </label>
+              <label>
+                {t('contact.phone')}
+                <input name="phone" placeholder="090..." />
+              </label>
+            </>
+          ) : null}
           <label>
             {t('contact.topic')}
             <select name="topic" defaultValue={t('contact.topicProduct')}>

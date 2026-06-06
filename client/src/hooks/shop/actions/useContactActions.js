@@ -1,14 +1,15 @@
 import { shopApi } from '../../../services/shopApi'
 
-export function useContactActions({ setNotice }) {
+export function useContactActions({ setNotice, user }) {
   async function submitContact(event) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
+    const fallbackName = user?.name || user?.email?.split('@')[0] || ''
     try {
       const data = await shopApi.sendContact({
-        name: formData.get('name'),
-        email: formData.get('email'),
-        phone: formData.get('phone'),
+        name: formData.get('name') || fallbackName,
+        email: formData.get('email') || user?.email || '',
+        phone: formData.get('phone') || user?.phone || '',
         topic: formData.get('topic'),
         message: formData.get('message'),
       })

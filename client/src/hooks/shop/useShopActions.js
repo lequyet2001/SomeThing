@@ -14,7 +14,7 @@ export function useShopActions({ cart, cartLines, catalog, dispatch, navigate, s
   const authActions = useAuthActions({ dispatch, navigate, setNotice })
   const cartActions = useCartActions({ dispatch, navigate, setNotice, user })
   const catalogActions = useCatalogActions({ catalog, dispatch, navigate })
-  const contactActions = useContactActions({ setNotice })
+  const contactActions = useContactActions({ setNotice, user })
   const notificationActions = useNotificationActions({ dispatch, navigate, setNotice })
   const reviewActions = useReviewActions({ dispatch, setNotice, user })
   const checkoutActions = useCheckoutActions({

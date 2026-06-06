@@ -1,6 +1,6 @@
 import { formatCurrency } from '../utils/currency'
 import { useEffect, useMemo, useState } from 'react'
-import { BadgeCheck, CalendarDays, History, ImagePlus, LoaderCircle, LogIn, MapPin, MessageSquare, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, UploadCloud, User, X } from 'lucide-react'
+import { BadgeCheck, CalendarDays, ChevronDown, ChevronUp, History, ImagePlus, LoaderCircle, LogIn, MapPin, MessageSquare, PackageCheck, Pencil, Plus, Save, ShoppingCart, Trash2, UploadCloud, User, X } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
 
@@ -26,6 +26,7 @@ function createAddress(index = 0) {
 }
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
+const ORDER_HISTORY_COLLAPSED_LIMIT = 4
 const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const contactStatusLabelKeys = {
   done: 'admin.contactStatus.done',
@@ -103,6 +104,7 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
   const [avatarError, setAvatarError] = useState('')
   const [highlightTargetId, setHighlightTargetId] = useState('')
   const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [isOrderHistoryExpanded, setIsOrderHistoryExpanded] = useState(false)
   const [isProfileSaving, setIsProfileSaving] = useState(false)
 
   useEffect(() => {
@@ -116,10 +118,26 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
 
   const selectedAddress = addresses.find((item) => item.id === selectedAddressId) || addresses[0]
   const isAvatarUploading = isProfileSaving && avatarPreview.startsWith('data:')
+  const shouldCollapseOrders = orders.length > ORDER_HISTORY_COLLAPSED_LIMIT
+  const visibleOrders = shouldCollapseOrders && !isOrderHistoryExpanded
+    ? orders.slice(0, ORDER_HISTORY_COLLAPSED_LIMIT)
+    : orders
+  const hiddenOrderCount = Math.max(orders.length - ORDER_HISTORY_COLLAPSED_LIMIT, 0)
+
+  function revealHiddenOrderTarget(targetId) {
+    const orderIndex = orders.findIndex((orderItem) => getOrderTargetId(orderItem.id) === targetId)
+    if (orderIndex >= ORDER_HISTORY_COLLAPSED_LIMIT) {
+      setIsOrderHistoryExpanded(true)
+      return true
+    }
+
+    return false
+  }
 
   useEffect(() => {
     const targetId = getAccountTargetId(location.search)
     if (!targetId) return undefined
+    const expandedForTarget = revealHiddenOrderTarget(targetId)
 
     const scrollTimer = window.setTimeout(() => {
       const target = document.getElementById(targetId)
@@ -127,7 +145,7 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
 
       target.scrollIntoView({ behavior: 'smooth', block: 'center' })
       setHighlightTargetId(targetId)
-    }, 160)
+    }, expandedForTarget ? 260 : 160)
 
     const highlightTimer = window.setTimeout(() => {
       setHighlightTargetId((current) => (current === targetId ? '' : current))
@@ -144,14 +162,18 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
       const targetId = getAccountTargetId(event.detail?.search || '')
       if (!targetId) return
 
-      const target = document.getElementById(targetId)
-      if (!target) return
+      const expandedForTarget = revealHiddenOrderTarget(targetId)
 
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setHighlightTargetId(targetId)
       window.setTimeout(() => {
-        setHighlightTargetId((current) => (current === targetId ? '' : current))
-      }, 4800)
+        const target = document.getElementById(targetId)
+        if (!target) return
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setHighlightTargetId(targetId)
+        window.setTimeout(() => {
+          setHighlightTargetId((current) => (current === targetId ? '' : current))
+        }, 4800)
+      }, expandedForTarget ? 180 : 0)
     }
 
     window.addEventListener('marseille04:account-target', handleAccountTarget)
@@ -472,7 +494,7 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
           </div>
         ) : (
           <div className="order-history-list">
-            {orders.map((orderItem) => {
+            {visibleOrders.map((orderItem) => {
               const targetId = getOrderTargetId(orderItem.id)
               return (
               <article
@@ -514,6 +536,18 @@ function AccountPage({ cartCount, contacts = [], lastOrder, orders = [], totalIn
               </article>
               )
             })}
+            {shouldCollapseOrders ? (
+              <button
+                type="button"
+                className="order-history-toggle"
+                onClick={() => setIsOrderHistoryExpanded((current) => !current)}
+              >
+                {isOrderHistoryExpanded ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                {isOrderHistoryExpanded
+                  ? t('account.collapseOrders')
+                  : t('account.showMoreOrders', { count: hiddenOrderCount })}
+              </button>
+            ) : null}
           </div>
         )}
       </section>

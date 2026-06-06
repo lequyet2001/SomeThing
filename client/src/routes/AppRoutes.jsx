@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import AccountPage from '../pages/AccountPage'
@@ -12,6 +13,8 @@ import ResetPasswordPage from '../pages/ResetPasswordPage'
 import ShopPage from '../pages/ShopPage'
 import StoreAdminPage from '../pages/StoreAdminPage'
 import { LegacyProductRedirect, ProductSlugRoute } from './ProductRoutes'
+
+const HiddenGamePage = lazy(() => import('../pages/HiddenGamePage'))
 
 function AppRoutes({ shop }) {
   const { actions } = shop
@@ -72,6 +75,14 @@ function AppRoutes({ shop }) {
       <Route path="/admin/contacts" element={renderAdminPage('contacts')} />
       <Route path="/admin/reviews" element={renderAdminPage('reviews')} />
       <Route
+        path="/secret-atelier-runner"
+        element={(
+          <Suspense fallback={null}>
+            <HiddenGamePage />
+          </Suspense>
+        )}
+      />
+      <Route
         path="*"
         element={
           <ProductSlugRoute
@@ -114,7 +125,7 @@ function AppRoutes({ shop }) {
         }
       />
       <Route path="/payment" element={<PaymentPage order={shop.order} onContinue={() => actions.navigate('/shop')} />} />
-      <Route path="/contact" element={<ContactPage onSubmitContact={actions.submitContact} />} />
+      <Route path="/contact" element={<ContactPage user={shop.user} onSubmitContact={actions.submitContact} />} />
       <Route
         path="/account"
         element={

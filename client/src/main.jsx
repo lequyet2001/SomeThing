@@ -15,6 +15,7 @@ import './styles/product.css'
 import './styles/cart.css'
 import './styles/checkout.css'
 import './styles/contact.css'
+import './styles/game.css'
 import './styles/footer.css'
 import './styles/responsive.css'
 
