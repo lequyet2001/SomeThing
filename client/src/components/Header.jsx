@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, CheckCheck, CreditCard, LayoutDashboard, LogIn, LogOut, Mail, Menu, ShoppingBag, ShoppingCart, Trash2, User, UserPlus, X } from 'lucide-react'
+import { Bell, CheckCheck, CreditCard, LayoutDashboard, LogIn, LogOut, Mail, Menu, ShoppingBag, ShoppingCart, Trash2, User, UserPlus, X ,HomeIcon} from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useLanguage } from '../i18n/LanguageContext'
 
@@ -97,6 +97,7 @@ function Header({
 
       <div className="topbar-panel">
         <nav className="nav-tabs" aria-label={t('header.nav')}>
+          <NavLink to="/" onClick={closeMenus}><HomeIcon size={17} /> <span>{t('common.home')}</span></NavLink>
           <NavLink to="/shop" onClick={closeMenus}><ShoppingBag size={17} /> <span>{t('common.products')}</span></NavLink>
         {
           !user && (

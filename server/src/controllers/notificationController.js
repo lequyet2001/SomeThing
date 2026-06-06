@@ -5,6 +5,7 @@ import { httpError } from '../utils/httpError.js'
 import { verifyToken } from '../utils/token.js'
 
 const notificationClients = new Map()
+const adminEventClients = new Set()
 
 function serializeNotification(notification) {
   return {
@@ -40,6 +41,43 @@ function sendNotificationEvent(userId, payload) {
 
   const data = `event: notification\ndata: ${JSON.stringify(payload)}\n\n`
   clients.forEach((client) => client.write(data))
+}
+
+async function readStreamUser(req) {
+  if (req.user) return req.user
+
+  const authorization = req.get('authorization') || ''
+  const [scheme, headerToken] = authorization.split(' ')
+  const token = scheme === 'Bearer' && headerToken
+    ? headerToken
+    : String(req.query.token || '').trim()
+
+  if (!token) return null
+
+  const payload = verifyToken(token)
+  if (!payload?.sub) return null
+
+  return User.findById(payload.sub)
+}
+
+function addAdminEventClient(res) {
+  adminEventClients.add(res)
+  return () => {
+    adminEventClients.delete(res)
+  }
+}
+
+export function emitAdminEvent(payload) {
+  if (!payload || adminEventClients.size === 0) return
+
+  const data = `event: admin-event\ndata: ${JSON.stringify(payload)}\n\n`
+  adminEventClients.forEach((client) => {
+    try {
+      client.write(data)
+    } catch (_error) {
+      adminEventClients.delete(client)
+    }
+  })
 }
 
 export async function createUserNotification({ user, type = 'system', title, message, link = '', metadata = {} }) {
@@ -129,13 +167,7 @@ export const deleteNotification = asyncHandler(async (req, res) => {
 })
 
 export const streamMyNotifications = asyncHandler(async (req, res) => {
-  const token = String(req.query.token || '').trim()
-  const payload = verifyToken(token)
-  if (!payload?.sub) {
-    throw httpError(401, 'Cần đăng nhập để nhận thông báo realtime.')
-  }
-
-  const user = await User.findById(payload.sub)
+  const user = await readStreamUser(req)
   if (!user) {
     throw httpError(401, 'Cần đăng nhập để nhận thông báo realtime.')
   }
@@ -146,6 +178,30 @@ export const streamMyNotifications = asyncHandler(async (req, res) => {
   res.flushHeaders?.()
 
   const removeClient = addNotificationClient(user._id, res)
+  res.write(`event: connected\ndata: ${JSON.stringify({ ok: true })}\n\n`)
+
+  const heartbeat = setInterval(() => {
+    res.write(': heartbeat\n\n')
+  }, 25000)
+
+  req.on('close', () => {
+    clearInterval(heartbeat)
+    removeClient()
+  })
+})
+
+export const streamAdminEvents = asyncHandler(async (req, res) => {
+  const user = await readStreamUser(req)
+  if (user?.role !== 'admin') {
+    throw httpError(403, 'Chỉ tài khoản admin mới được nhận sự kiện realtime.')
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache, no-transform')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders?.()
+
+  const removeClient = addAdminEventClient(res)
   res.write(`event: connected\ndata: ${JSON.stringify({ ok: true })}\n\n`)
 
   const heartbeat = setInterval(() => {

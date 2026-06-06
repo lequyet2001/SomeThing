@@ -1,15 +1,20 @@
-import crypto from 'node:crypto'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { ADMIN_EMAIL } from '../config/env.js'
 import { ContactMessage } from '../models/ContactMessage.js'
 import { Order } from '../models/Order.js'
 import { Product } from '../models/Product.js'
 import { Review } from '../models/Review.js'
 import { User } from '../models/User.js'
-import { createUserNotification } from './notificationController.js'
+import { createUserNotification, emitAdminEvent } from './notificationController.js'
+import {
+  applyPagination,
+  createDateMatch,
+  createLocalDate,
+  createPagination,
+  DASHBOARD_TIMEZONE_OFFSET,
+  escapeRegex,
+  readDateRangeFilter,
+  readPagination,
+} from './adminQueryUtils.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { httpError } from '../utils/httpError.js'
 
@@ -25,15 +30,9 @@ const CONTACT_STATUS_LABELS = {
   processing: 'Đang xử lý',
   done: 'Đã xong',
 }
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const PRODUCT_UPLOAD_DIR = path.resolve(__dirname, '../../uploads/products')
-const IMAGE_TYPES = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp',
-  'image/gif': 'gif',
-}
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const REVENUE_ORDER_STATUSES = ['paid', 'completed']
+const PENDING_ORDER_STATUSES = ['confirmed', 'paid', 'shipping']
+const PENDING_CONTACT_STATUSES = ['new', 'processing']
 
 function serializeOrder(order) {
   return {
@@ -113,8 +112,26 @@ function serializeUser(user) {
   }
 }
 
+function normalizeSummaryMonth(value) {
+  const rawMonth = String(value || '').trim()
+  if (!rawMonth) return ''
+
+  const currentYear = new Date().getFullYear()
+  const monthOnlyMatch = rawMonth.match(/^(\d{1,2})$/)
+  if (monthOnlyMatch) {
+    return `${currentYear}-${String(Number(monthOnlyMatch[1])).padStart(2, '0')}`
+  }
+
+  const yearMonthMatch = rawMonth.match(/^(\d{4})-(\d{1,2})$/)
+  if (yearMonthMatch) {
+    return `${yearMonthMatch[1]}-${String(Number(yearMonthMatch[2])).padStart(2, '0')}`
+  }
+
+  return rawMonth
+}
+
 function readSummaryPeriod(query) {
-  const month = String(query.month || '').trim()
+  const month = normalizeSummaryMonth(query.month)
   const startDate = String(query.startDate || '').trim()
   const endDate = String(query.endDate || '').trim()
 
@@ -128,42 +145,42 @@ function readSummaryPeriod(query) {
       throw httpError(400, 'Tháng thống kê không hợp lệ.')
     }
 
+    const start = createLocalDate(`${year}-${String(monthIndex).padStart(2, '0')}-01`)
+    const nextMonthYear = monthIndex === 12 ? year + 1 : year
+    const nextMonthIndex = monthIndex === 12 ? 1 : monthIndex + 1
+    const end = createLocalDate(`${nextMonthYear}-${String(nextMonthIndex).padStart(2, '0')}-01`)
+
     return {
       label: month,
-      dateFilter: {
-        createdAt: {
-          $gte: new Date(Date.UTC(year, monthIndex - 1, 1)),
-          $lt: new Date(Date.UTC(year, monthIndex, 1)),
-        },
-      },
+      dateRange: { $gte: start, $lt: end },
     }
   }
 
-  const createdAt = {}
+  const dateRange = {}
   if (startDate) {
-    const start = new Date(`${startDate}T00:00:00.000Z`)
+    const start = createLocalDate(startDate)
     if (Number.isNaN(start.getTime())) {
       throw httpError(400, 'Ngày bắt đầu thống kê không hợp lệ.')
     }
-    createdAt.$gte = start
+    dateRange.$gte = start
   }
 
   if (endDate) {
-    const end = new Date(`${endDate}T00:00:00.000Z`)
+    const end = createLocalDate(endDate)
     if (Number.isNaN(end.getTime())) {
       throw httpError(400, 'Ngày kết thúc thống kê không hợp lệ.')
     }
     end.setUTCDate(end.getUTCDate() + 1)
-    createdAt.$lt = end
+    dateRange.$lt = end
   }
 
-  if (createdAt.$gte && createdAt.$lt && createdAt.$gte >= createdAt.$lt) {
+  if (dateRange.$gte && dateRange.$lt && dateRange.$gte >= dateRange.$lt) {
     throw httpError(400, 'Khoảng thời gian thống kê không hợp lệ.')
   }
 
   return {
     label: startDate || endDate ? `${startDate || '...'} - ${endDate || '...'}` : 'all',
-    dateFilter: Object.keys(createdAt).length ? { createdAt } : {},
+    dateRange: Object.keys(dateRange).length ? dateRange : null,
   }
 }
 
@@ -181,12 +198,33 @@ function mapProductSales(products, salesByProduct) {
   })
 }
 
+function serializeCustomerStat(customer, user) {
+  return {
+    id: customer.email,
+    userId: user?._id?.toString() || '',
+    name: user?.name || customer.name || customer.email,
+    email: customer.email,
+    avatar: user?.avatar || '',
+    phone: user?.phone || customer.phone || '',
+    address: user?.address || customer.address || '',
+    role: user?.role || 'guest',
+    orderCount: customer.orderCount || 0,
+    itemCount: customer.itemCount || 0,
+    totalSpent: customer.totalSpent || 0,
+    latestOrderAt: customer.latestOrderAt,
+    registeredAt: user?.createdAt || null,
+  }
+}
+
 export const getAdminSummary = asyncHandler(async (req, res) => {
   const period = readSummaryPeriod(req.query)
-  const completedOrderMatch = { status: { $ne: 'cancelled' }, ...period.dateFilter }
+  const orderCreatedAtMatch = createDateMatch('createdAt', period.dateRange)
+  const contactCreatedAtMatch = createDateMatch('createdAt', period.dateRange)
+  const revenueOrderMatch = { status: { $in: REVENUE_ORDER_STATUSES }, ...createDateMatch('updatedAt', period.dateRange) }
 
   const [
-    orderStats,
+    revenueStats,
+    orderCount,
     statusStats,
     monthlyRevenue,
     salesByProduct,
@@ -197,23 +235,26 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
     adminCount,
     productsForSales,
     lowStockProducts,
+    lowStockCount,
+    outOfStockCount,
     newContactCount,
     recentOrders,
     recentContacts,
   ] = await Promise.all([
     Order.aggregate([
-      { $match: completedOrderMatch },
+      { $match: revenueOrderMatch },
       { $group: { _id: null, revenue: { $sum: '$total' }, orderCount: { $sum: 1 }, averageOrder: { $avg: '$total' } } },
     ]),
-    Order.aggregate([{ $match: period.dateFilter }, { $group: { _id: '$status', count: { $sum: 1 }, total: { $sum: '$total' } } }]),
+    Order.countDocuments(orderCreatedAtMatch),
+    Order.aggregate([{ $match: orderCreatedAtMatch }, { $group: { _id: '$status', count: { $sum: 1 }, total: { $sum: '$total' } } }]),
     Order.aggregate([
-      { $match: completedOrderMatch },
-      { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } }, revenue: { $sum: '$total' }, count: { $sum: 1 } } },
+      { $match: revenueOrderMatch },
+      { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$updatedAt', timezone: DASHBOARD_TIMEZONE_OFFSET } }, revenue: { $sum: '$total' }, count: { $sum: 1 } } },
       { $sort: { _id: -1 } },
-      ...(Object.keys(period.dateFilter).length ? [] : [{ $limit: 6 }]),
+      ...(period.dateRange ? [] : [{ $limit: 6 }]),
     ]),
     Order.aggregate([
-      { $match: completedOrderMatch },
+      { $match: revenueOrderMatch },
       { $unwind: '$items' },
       {
         $group: {
@@ -226,7 +267,7 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
       { $sort: { quantity: -1, revenue: -1 } },
     ]),
     Order.aggregate([
-      { $match: completedOrderMatch },
+      { $match: revenueOrderMatch },
       {
         $project: {
           customer: 1,
@@ -248,31 +289,35 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
       { $sort: { totalSpent: -1, orderCount: -1 } },
       { $limit: 5 },
     ]),
-    ContactMessage.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
+    ContactMessage.aggregate([{ $match: contactCreatedAtMatch }, { $group: { _id: '$status', count: { $sum: 1 } } }]),
     Product.countDocuments(),
     User.countDocuments(),
     User.countDocuments({ role: 'admin' }),
     Product.find().sort({ name: 1 }),
-    Product.find({ stock: { $lte: 10 } }).sort({ stock: 1 }).limit(8),
-    ContactMessage.countDocuments({ status: 'new' }),
-    Order.find().sort({ createdAt: -1 }).limit(5),
-    ContactMessage.find().sort({ createdAt: -1 }).limit(5),
+    Product.find({ stock: { $gt: 0, $lte: 10 } }).sort({ stock: 1 }).limit(8),
+    Product.countDocuments({ stock: { $gt: 0, $lte: 10 } }),
+    Product.countDocuments({ stock: 0 }),
+    ContactMessage.countDocuments({ status: 'new', ...contactCreatedAtMatch }),
+    Order.find(orderCreatedAtMatch).sort({ createdAt: -1 }).limit(5),
+    ContactMessage.find(contactCreatedAtMatch).sort({ createdAt: -1 }).limit(5),
   ])
 
   const pendingOrderCount = statusStats
-    .filter((item) => ['confirmed', 'paid', 'shipping'].includes(item._id))
+    .filter((item) => PENDING_ORDER_STATUSES.includes(item._id))
     .reduce((sum, item) => sum + item.count, 0)
 
   res.json({
     summary: {
-      revenue: orderStats[0]?.revenue || 0,
-      orderCount: orderStats[0]?.orderCount || 0,
-      averageOrder: Math.round(orderStats[0]?.averageOrder || 0),
+      revenue: revenueStats[0]?.revenue || 0,
+      revenueOrderCount: revenueStats[0]?.orderCount || 0,
+      orderCount,
+      averageOrder: Math.round(revenueStats[0]?.averageOrder || 0),
       pendingOrderCount,
       productCount,
       userCount,
       adminCount,
-      lowStockCount: lowStockProducts.length,
+      lowStockCount,
+      outOfStockCount,
       newContactCount,
       statusStats: statusStats.map((item) => ({
         status: item._id,
@@ -284,7 +329,7 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
     },
     period: {
       label: period.label,
-      hasFilter: Object.keys(period.dateFilter).length > 0,
+      hasFilter: Boolean(period.dateRange),
     },
     monthlyRevenue: monthlyRevenue.reverse().map((item) => ({ month: item._id, revenue: item.revenue, count: item.count })),
     topProducts: salesByProduct.slice(0, 5).map((item) => ({
@@ -310,9 +355,142 @@ export const getAdminSummary = asyncHandler(async (req, res) => {
   })
 })
 
-export const listAdminOrders = asyncHandler(async (_req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 })
-  res.json({ orders: orders.map(serializeOrder) })
+export const listAdminCustomers = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || '').trim()
+  const pagination = readPagination(req.query, 12)
+  const period = readSummaryPeriod(req.query)
+  const orderMatch = { status: { $in: REVENUE_ORDER_STATUSES }, ...createDateMatch('updatedAt', period.dateRange) }
+  const searchRegex = query ? new RegExp(escapeRegex(query), 'i') : null
+  const skip = pagination.shouldPaginate ? (pagination.page - 1) * pagination.limit : 0
+  const limit = pagination.shouldPaginate ? pagination.limit : 100000
+
+  const pipeline = [
+    { $match: orderMatch },
+    { $sort: { updatedAt: -1 } },
+    {
+      $project: {
+        customer: 1,
+        total: 1,
+        updatedAt: 1,
+        itemCount: { $sum: '$items.quantity' },
+      },
+    },
+    {
+      $group: {
+        _id: '$customer.email',
+        name: { $first: '$customer.name' },
+        email: { $first: '$customer.email' },
+        phone: { $first: '$customer.phone' },
+        address: { $first: '$customer.address' },
+        orderCount: { $sum: 1 },
+        itemCount: { $sum: '$itemCount' },
+        totalSpent: { $sum: '$total' },
+        latestOrderAt: { $max: '$updatedAt' },
+      },
+    },
+    ...(searchRegex
+      ? [{
+          $match: {
+            $or: [
+              { name: searchRegex },
+              { email: searchRegex },
+              { phone: searchRegex },
+              { address: searchRegex },
+            ],
+          },
+        }]
+      : []),
+    { $sort: { totalSpent: -1, orderCount: -1, itemCount: -1, latestOrderAt: -1 } },
+    {
+      $facet: {
+        customers: [
+          ...(pagination.shouldPaginate ? [{ $skip: skip }, { $limit: limit }] : []),
+        ],
+        total: [{ $count: 'count' }],
+      },
+    },
+  ]
+
+  const [result] = await Order.aggregate(pipeline)
+  const customers = result?.customers || []
+  const total = result?.total?.[0]?.count || 0
+  const emails = customers.map((customer) => customer.email).filter(Boolean)
+  const users = await User.find({ email: { $in: emails } })
+  const usersByEmail = new Map(users.map((user) => [user.email, user]))
+
+  res.json({
+    customers: customers.map((customer) => serializeCustomerStat(customer, usersByEmail.get(customer.email))),
+    pagination: createPagination(total, pagination),
+    period: {
+      label: period.label,
+      hasFilter: Boolean(period.dateRange),
+    },
+  })
+})
+
+export const listAdminOrders = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || '').trim()
+  const customerEmail = String(req.query.customerEmail || '').trim().toLowerCase()
+  const status = String(req.query.status || 'all').trim()
+  const payment = String(req.query.payment || 'all').trim()
+  const dateField = String(req.query.dateField || 'createdAt').trim()
+  const pagination = readPagination(req.query)
+  const match = {}
+
+  if (query) {
+    const searchRegex = new RegExp(escapeRegex(query), 'i')
+    match.$or = [
+      { orderCode: searchRegex },
+      { payment: searchRegex },
+      { 'customer.name': searchRegex },
+      { 'customer.email': searchRegex },
+      { 'customer.phone': searchRegex },
+      { 'customer.address': searchRegex },
+      { 'items.name': searchRegex },
+    ]
+  }
+
+  if (customerEmail) {
+    match['customer.email'] = customerEmail
+  }
+
+  if (status === 'pending') {
+    match.status = { $in: PENDING_ORDER_STATUSES }
+  } else if (status === 'revenue') {
+    match.status = { $in: REVENUE_ORDER_STATUSES }
+  } else if (status !== 'all') {
+    if (!Object.keys(ORDER_STATUS_LABELS).includes(status)) {
+      throw httpError(400, 'Trạng thái đơn hàng không hợp lệ.')
+    }
+    match.status = status
+  }
+
+  if (payment !== 'all') {
+    match.payment = payment
+  }
+
+  if (!['createdAt', 'updatedAt'].includes(dateField)) {
+    throw httpError(400, 'Trường ngày lọc đơn hàng không hợp lệ.')
+  }
+
+  const createdAtRange = readDateRangeFilter(req.query)
+  if (createdAtRange) {
+    match[dateField] = createdAtRange
+  }
+
+  const orderQuery = applyPagination(Order.find(match).sort({ createdAt: -1 }), pagination)
+
+  const [orders, total, paymentOptions] = await Promise.all([
+    orderQuery,
+    Order.countDocuments(match),
+    Order.distinct('payment'),
+  ])
+
+  res.json({
+    orders: orders.map(serializeOrder),
+    pagination: createPagination(total, pagination),
+    paymentOptions: paymentOptions.filter(Boolean).sort(),
+  })
 })
 
 export const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -344,6 +522,15 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         status,
       },
     })
+
+    emitAdminEvent({
+      type: 'order-updated',
+      order: serializeOrder(order),
+      orderCode: order.orderCode,
+      previousStatus,
+      status,
+      createdAt: new Date().toISOString(),
+    })
   }
 
   res.json({
@@ -352,9 +539,47 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   })
 })
 
-export const listAdminContacts = asyncHandler(async (_req, res) => {
-  const contacts = await ContactMessage.find().sort({ createdAt: -1 })
-  res.json({ contacts: contacts.map(serializeContact) })
+export const listAdminContacts = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || '').trim()
+  const status = String(req.query.status || 'all').trim()
+  const pagination = readPagination(req.query)
+  const match = {}
+
+  if (query) {
+    const searchRegex = new RegExp(escapeRegex(query), 'i')
+    match.$or = [
+      { name: searchRegex },
+      { email: searchRegex },
+      { phone: searchRegex },
+      { topic: searchRegex },
+      { message: searchRegex },
+    ]
+  }
+
+  if (status === 'pending') {
+    match.status = { $in: PENDING_CONTACT_STATUSES }
+  } else if (status !== 'all') {
+    if (!Object.keys(CONTACT_STATUS_LABELS).includes(status)) {
+      throw httpError(400, 'Trạng thái liên hệ không hợp lệ.')
+    }
+    match.status = status
+  }
+
+  const createdAtRange = readDateRangeFilter(req.query)
+  if (createdAtRange) {
+    match.createdAt = createdAtRange
+  }
+
+  const contactQuery = applyPagination(ContactMessage.find(match).sort({ createdAt: -1 }), pagination)
+  const [contacts, total] = await Promise.all([
+    contactQuery,
+    ContactMessage.countDocuments(match),
+  ])
+
+  res.json({
+    contacts: contacts.map(serializeContact),
+    pagination: createPagination(total, pagination),
+  })
 })
 
 export const updateContactStatus = asyncHandler(async (req, res) => {
@@ -395,14 +620,56 @@ export const updateContactStatus = asyncHandler(async (req, res) => {
   })
 })
 
-export const listAdminReviews = asyncHandler(async (_req, res) => {
-  const reviews = await Review.find().populate('user', 'email').sort({ createdAt: -1 })
+export const listAdminReviews = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || '').trim()
+  const rating = String(req.query.rating || 'all').trim()
+  const pagination = readPagination(req.query)
+  const match = {}
+
+  if (rating !== 'all') {
+    const parsedRating = Number(rating)
+    if (!Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      throw httpError(400, 'Điểm đánh giá không hợp lệ.')
+    }
+    match.rating = parsedRating
+  }
+
+  const createdAtRange = readDateRangeFilter(req.query)
+  if (createdAtRange) {
+    match.createdAt = createdAtRange
+  }
+
+  if (query) {
+    const searchRegex = new RegExp(escapeRegex(query), 'i')
+    const [matchedProducts, matchedUsers] = await Promise.all([
+      Product.find({ $or: [{ name: searchRegex }, { category: searchRegex }] }).select('legacyId'),
+      User.find({ email: searchRegex }).select('_id'),
+    ])
+    const productIds = matchedProducts.map((product) => product.legacyId)
+    const userIds = matchedUsers.map((user) => user._id)
+    const queryMatch = [
+      { name: searchRegex },
+      { comment: searchRegex },
+      ...(Number.isFinite(Number(query)) ? [{ productId: Number(query) }] : []),
+      ...(productIds.length ? [{ productId: { $in: productIds } }] : []),
+      ...(userIds.length ? [{ user: { $in: userIds } }] : []),
+    ]
+
+    match.$or = queryMatch
+  }
+
+  const reviewQuery = applyPagination(Review.find(match).populate('user', 'email').sort({ createdAt: -1 }), pagination)
+  const [reviews, total] = await Promise.all([
+    reviewQuery,
+    Review.countDocuments(match),
+  ])
   const productIds = [...new Set(reviews.map((review) => review.productId))]
   const products = await Product.find({ legacyId: { $in: productIds } })
   const productsByLegacyId = new Map(products.map((product) => [product.legacyId, product]))
 
   res.json({
     reviews: reviews.map((review) => serializeAdminReview(review, productsByLegacyId.get(review.productId))),
+    pagination: createPagination(total, pagination),
   })
 })
 
@@ -428,9 +695,42 @@ export const deleteAdminReview = asyncHandler(async (req, res) => {
   })
 })
 
-export const listAdminUsers = asyncHandler(async (_req, res) => {
-  const users = await User.find().sort({ createdAt: -1 })
-  res.json({ users: users.map(serializeUser) })
+export const listAdminUsers = asyncHandler(async (req, res) => {
+  const query = String(req.query.query || '').trim()
+  const role = String(req.query.role || 'all').trim()
+  const pagination = readPagination(req.query)
+  const match = {}
+
+  if (query) {
+    const searchRegex = new RegExp(escapeRegex(query), 'i')
+    match.$or = [
+      { name: searchRegex },
+      { email: searchRegex },
+      { phone: searchRegex },
+      { address: searchRegex },
+      { 'shippingAddresses.address': searchRegex },
+      { 'shippingAddresses.phone': searchRegex },
+      { 'shippingAddresses.recipient': searchRegex },
+    ]
+  }
+
+  if (role !== 'all') {
+    if (!['customer', 'admin'].includes(role)) {
+      throw httpError(400, 'Quyền người dùng không hợp lệ.')
+    }
+    match.role = role
+  }
+
+  const userQuery = applyPagination(User.find(match).sort({ createdAt: -1 }), pagination)
+  const [users, total] = await Promise.all([
+    userQuery,
+    User.countDocuments(match),
+  ])
+
+  res.json({
+    users: users.map(serializeUser),
+    pagination: createPagination(total, pagination),
+  })
 })
 
 export const updateUserRole = asyncHandler(async (req, res) => {
@@ -458,123 +758,5 @@ export const updateUserRole = asyncHandler(async (req, res) => {
   res.json({
     message: 'Đã cập nhật quyền người dùng.',
     user: serializeUser(user),
-  })
-})
-
-export const listAdminProducts = asyncHandler(async (_req, res) => {
-  const products = await Product.find().sort({ legacyId: 1 })
-  res.json({ products: products.map(serializeProduct) })
-})
-
-function readProductPayload(body, isCreate = false) {
-  const payload = {}
-  const requiredFields = ['name', 'category', 'price', 'stock', 'image', 'description']
-
-  requiredFields.forEach((field) => {
-    if (body[field] !== undefined) {
-      payload[field] = typeof body[field] === 'string' ? body[field].trim() : body[field]
-    }
-  })
-
-  if (body.price !== undefined) payload.price = Number(body.price)
-  if (body.stock !== undefined) payload.stock = Number(body.stock)
-  if (body.rating !== undefined) payload.rating = Number(body.rating)
-
-  if (isCreate && requiredFields.some((field) => payload[field] === undefined || payload[field] === '')) {
-    throw httpError(400, 'Vui lòng nhập đầy đủ thông tin sản phẩm.')
-  }
-
-  if (payload.price !== undefined && (!Number.isFinite(payload.price) || payload.price < 0)) {
-    throw httpError(400, 'Giá sản phẩm không hợp lệ.')
-  }
-
-  if (payload.stock !== undefined && (!Number.isInteger(payload.stock) || payload.stock < 0)) {
-    throw httpError(400, 'Tồn kho không hợp lệ.')
-  }
-
-  if (payload.rating !== undefined && (payload.rating < 0 || payload.rating > 5)) {
-    throw httpError(400, 'Điểm đánh giá phải từ 0 đến 5.')
-  }
-
-  return payload
-}
-
-export const createAdminProduct = asyncHandler(async (req, res) => {
-  const payload = readProductPayload(req.body, true)
-  const lastProduct = await Product.findOne().sort({ legacyId: -1 })
-  const product = await Product.create({
-    ...payload,
-    legacyId: (lastProduct?.legacyId || 0) + 1,
-    rating: payload.rating ?? 0,
-  })
-
-  res.status(201).json({
-    message: 'Đã thêm sản phẩm mới.',
-    product: serializeProduct(product),
-  })
-})
-
-export const updateAdminProduct = asyncHandler(async (req, res) => {
-  const payload = readProductPayload(req.body)
-  const product = await Product.findOneAndUpdate(
-    { legacyId: Number(req.params.productId) },
-    { $set: payload },
-    { returnDocument: 'after', runValidators: true },
-  )
-
-  if (!product) {
-    throw httpError(404, 'Không tìm thấy sản phẩm.')
-  }
-
-  res.json({
-    message: 'Đã cập nhật sản phẩm.',
-    product: serializeProduct(product),
-  })
-})
-
-export const deleteAdminProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findOneAndDelete({ legacyId: Number(req.params.productId) })
-  if (!product) {
-    throw httpError(404, 'Không tìm thấy sản phẩm.')
-  }
-
-  res.json({
-    message: 'Đã xóa sản phẩm.',
-    product: serializeProduct(product),
-  })
-})
-
-export const uploadProductImage = asyncHandler(async (req, res) => {
-  const { dataUrl, fileName = '', mimeType } = req.body
-  const imageMimeType = mimeType || String(dataUrl || '').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/)?.[1]
-  const extension = IMAGE_TYPES[imageMimeType]
-
-  if (!extension || !dataUrl) {
-    throw httpError(400, 'Ảnh sản phẩm phải là JPG, PNG, WEBP hoặc GIF.')
-  }
-
-  const base64 = String(dataUrl).replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '')
-  const buffer = Buffer.from(base64, 'base64')
-
-  if (buffer.length === 0 || buffer.length > MAX_IMAGE_BYTES) {
-    throw httpError(400, 'Ảnh sản phẩm phải nhỏ hơn 5MB.')
-  }
-
-  await fs.mkdir(PRODUCT_UPLOAD_DIR, { recursive: true })
-
-  const safeName = path
-    .basename(fileName, path.extname(fileName))
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 40)
-  const storedFileName = `${safeName || 'product'}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}.${extension}`
-  const storedPath = path.join(PRODUCT_UPLOAD_DIR, storedFileName)
-
-  await fs.writeFile(storedPath, buffer)
-
-  res.status(201).json({
-    message: 'Đã upload ảnh sản phẩm.',
-    url: `/uploads/products/${storedFileName}`,
   })
 })

@@ -516,6 +516,28 @@
   gap: 14px;
 }
 
+.order-history-toggle {
+  display: inline-flex;
+  min-height: 42px;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  gap: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  padding: 0 16px;
+  font-weight: 900;
+}
+
+.order-history-toggle:hover {
+  border-color: var(--color-primary);
+  background: #eef8f4;
+  transform: translateY(-1px);
+}
+
 .order-history-card,
 .support-history-card {
   position: relative;

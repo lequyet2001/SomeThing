@@ -17,9 +17,10 @@ function serializeContactMessage(contactMessage) {
 }
 
 export const createContactMessage = asyncHandler(async (req, res) => {
-  const name = String(req.body.name || '').trim()
-  const email = String(req.body.email || '').trim().toLowerCase()
-  const phone = String(req.body.phone || '').trim()
+  const fallbackName = req.user?.name || req.user?.email?.split('@')[0] || ''
+  const name = String(req.body.name || fallbackName).trim()
+  const email = String(req.body.email || req.user?.email || '').trim().toLowerCase()
+  const phone = String(req.body.phone || req.user?.phone || '').trim()
   const topic = String(req.body.topic || 'Tư vấn sản phẩm').trim()
   const message = String(req.body.message || '').trim()
 

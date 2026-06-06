@@ -982,6 +982,11 @@ button.admin-toast-main:hover strong {
   color: var(--color-primary-dark);
 }
 
+.admin-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .admin-actions button.danger {
   color: #b91c1c;
 }
@@ -1141,3 +1146,4 @@ button.admin-toast-main:hover strong {
   background: #b91c1c;
   color: #fff;
 }
+
