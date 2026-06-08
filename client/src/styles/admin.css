@@ -1,7 +1,29 @@
 .admin-page {
   display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
   gap: 24px;
+  align-items: start;
+  min-height: calc(100vh - 160px);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
+    rgba(232, 239, 236, 0.45);
+  padding: 2px;
   color: var(--color-ink);
+}
+
+main:has(.admin-page) {
+  width: 100%;
+  max-width: none;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(196, 123, 18, 0.16), transparent 28%),
+    radial-gradient(circle at 92% 8%, rgba(15, 95, 85, 0.14), transparent 30%),
+    linear-gradient(180deg, #eef5f1 0%, #f7faf8 42%, #eef4f0 100%);
+}
+
+.admin-page > :not(.admin-tabs):not(.admin-toast-stack):not(.admin-dialog-backdrop) {
+  grid-column: 2;
+  min-width: 0;
 }
 
 .admin-hero,
@@ -9,7 +31,7 @@
 .admin-metrics article {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 10px 28px rgba(16, 24, 21, 0.09);
 }
 
@@ -555,38 +577,128 @@ button.admin-toast-main:hover strong {
   text-align: center;
 }
 
+.admin-loading-panel {
+  min-height: 420px;
+  align-content: center;
+}
+
+.admin-loading-state {
+  display: grid;
+  width: 100%;
+  min-height: 260px;
+  align-content: center;
+  gap: 18px;
+  border: 1px solid rgba(15, 95, 85, 0.12);
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(238, 247, 242, 0.86)),
+    var(--color-surface-muted);
+  padding: 22px;
+}
+
+.admin-loading-state.is-compact {
+  min-height: 220px;
+  padding: 16px;
+}
+
+.admin-loading-title {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--color-primary-dark);
+  font-weight: 900;
+}
+
+.admin-loading-lines {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-loading-line-row {
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr 0.7fr 1fr;
+  gap: 10px;
+}
+
+.admin-loading-line-row span {
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(15, 95, 85, 0.08), rgba(255, 255, 255, 0.95), rgba(196, 123, 18, 0.1));
+  background-size: 220% 100%;
+  animation: admin-loading-shimmer 1.35s ease-in-out infinite;
+}
+
+.admin-loading-line-row:nth-child(2n) span:nth-child(2),
+.admin-loading-line-row:nth-child(3n) span:nth-child(4) {
+  opacity: 0.62;
+}
+
+.admin-table .admin-loading-table-row td {
+  padding: 0;
+}
+
+.admin-customer-grid > .admin-loading-state,
+.admin-customer-order-list > .admin-loading-state {
+  grid-column: 1 / -1;
+}
+
+@keyframes admin-loading-shimmer {
+  0% {
+    background-position: 180% 0;
+  }
+
+  100% {
+    background-position: -80% 0;
+  }
+}
+
 .admin-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  position: sticky;
+  top: 92px;
+  grid-row: 1 / span 20;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-height: calc(100vh - 116px);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
-  padding: 8px;
-  box-shadow: var(--shadow-sm);
+  background:
+    linear-gradient(180deg, rgba(15, 95, 85, 0.16), rgba(196, 123, 18, 0.08) 44%, rgba(255, 255, 255, 0.92)),
+    var(--color-surface-muted);
+  padding: 14px 10px;
+  box-shadow: 0 18px 42px rgba(16, 24, 21, 0.12);
 }
 
 .admin-tabs a {
-  display: inline-flex;
-  min-height: 40px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  min-height: 54px;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
+  gap: 9px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-muted);
-  padding: 0 13px;
+  padding: 0 15px;
   font-weight: 900;
   text-decoration: none;
   cursor: pointer;
 }
 
+.admin-tabs a span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .admin-tabs a:hover,
 .admin-tabs a.is-active {
-  border-color: var(--color-line);
-  background: var(--color-surface-muted);
+  border-color: rgba(15, 95, 85, 0.2);
+  background: #fff;
   color: var(--color-primary-dark);
+  box-shadow: 0 10px 22px rgba(15, 95, 85, 0.12);
 }
 
 .admin-report-form {
@@ -795,13 +907,17 @@ button.admin-toast-main:hover strong {
   overflow-x: auto;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 245, 0.96)),
+    var(--color-surface);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .admin-table {
   width: 100%;
   min-width: 760px;
   border-collapse: collapse;
-  background: var(--color-surface);
+  background: #fbfdfb;
 }
 
 .admin-page-orders .admin-table {
@@ -817,8 +933,8 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-table th {
-  background: var(--color-surface-muted);
-  color: var(--color-accent);
+  background: #dfece6;
+  color: #6f431f;
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
@@ -826,9 +942,18 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-table td {
+  background: rgba(255, 255, 255, 0.82);
   color: #26332f;
   font-weight: 700;
   line-height: 1.5;
+}
+
+.admin-table tbody tr:nth-child(even) td {
+  background: #f4f9f6;
+}
+
+.admin-table tbody tr:hover td {
+  background: #eef7f2;
 }
 
 .admin-table td strong {

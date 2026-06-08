@@ -470,7 +470,12 @@
   }
 
   .admin-page {
+    grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .admin-page > :not(.admin-tabs):not(.admin-toast-stack):not(.admin-dialog-backdrop) {
+    grid-column: 1;
   }
 
   .admin-page .admin-hero {
@@ -545,8 +550,12 @@
   }
 
   .admin-tabs {
+    position: static;
+    grid-row: auto;
     flex-wrap: nowrap;
+    display: flex;
     gap: 6px;
+    min-height: 0;
     overflow-x: auto;
     padding: 6px;
     scrollbar-width: none;
@@ -557,6 +566,7 @@
   }
 
   .admin-tabs a {
+    display: inline-flex;
     flex: 0 0 auto;
     min-height: 36px;
     gap: 6px;
@@ -765,7 +775,7 @@
     gap: 8px;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-sm);
-    background: var(--color-surface);
+    background: linear-gradient(180deg, #ffffff, #f4f9f6);
     padding: 10px;
     box-shadow: var(--shadow-sm);
   }
@@ -943,16 +953,28 @@
     gap: 12px;
   }
 
-  .admin-page .admin-inventory-tabs {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 1fr;
+  .admin-page .admin-inventory-main {
+    gap: 12px;
   }
 
-  .admin-page .admin-inventory-tabs button {
+  .admin-tabs .admin-tab-group-products {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  .admin-tabs .admin-tab-group-products.is-open {
+    min-width: 168px;
+  }
+
+  .admin-tabs .admin-inventory-tabs {
+    padding: 0;
+  }
+
+  .admin-tabs .admin-inventory-tabs button {
     min-width: 0;
+    min-height: 34px;
     padding: 0 8px;
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .admin-page .admin-inventory-table-panel {

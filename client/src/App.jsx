@@ -35,6 +35,7 @@ function App() {
         <LoginModal onClose={shop.actions.closeReviewLogin} onSubmit={shop.actions.handleReviewLogin} />
       )}
 
+
       <Footer onShopCategory={shop.actions.goToCategory} />
     </div>
   )

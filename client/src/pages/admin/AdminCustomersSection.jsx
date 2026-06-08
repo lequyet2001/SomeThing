@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarDays, ChevronDown, PackageSearch, Search, ShoppingBag, UserRoundCheck, X } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import AdminLoadingState from '../../components/admin/AdminLoadingState'
 import { formatCurrency } from '../../utils/currency'
 import { shopApi } from '../../services/shopApi'
 import { formatAdminDate } from './adminUtils'
@@ -60,6 +61,7 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
   const [endDate, setEndDate] = useState('')
   const [focusedEmail, setFocusedEmail] = useState('')
   const [pagination, setPagination] = useState(initialPagination)
+  const [hasLoadedCustomers, setHasLoadedCustomers] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
@@ -141,9 +143,11 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
       const nextCustomers = data.customers || []
       setCustomers((current) => (append ? mergeUniqueById(current, nextCustomers) : nextCustomers))
       setPagination(data.pagination || initialPagination)
+      setHasLoadedCustomers(true)
     } catch (error) {
       if (requestId === requestIdRef.current) {
         showAdminToast(error.message, 'error')
+        setHasLoadedCustomers(true)
       }
     } finally {
       if (requestId === requestIdRef.current) {
@@ -224,6 +228,8 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
     navigate(`/admin/inventory${params.toString() ? `?${params.toString()}` : ''}`)
   }
 
+  const showCustomerLoading = !hasLoadedCustomers || (isLoading && customers.length === 0)
+
   return (
     <section className="admin-customers-section">
       <section className="admin-panel admin-customers-hero">
@@ -281,8 +287,10 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
         )}
       </section>
 
-      <div className="admin-customer-grid" aria-busy={isLoading}>
-        {customers.map((customer, index) => {
+      <div className="admin-customer-grid" aria-busy={showCustomerLoading || isLoading}>
+        {showCustomerLoading ? (
+          <AdminLoadingState label={t('admin.loading')} rows={6} />
+        ) : customers.map((customer, index) => {
           const isFocused = focusedEmail && String(customer.email || '').toLowerCase() === focusedEmail
 
           return (
@@ -310,12 +318,12 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
           </article>
           )
         })}
-        {!isLoading && customers.length === 0 && (
+        {!showCustomerLoading && customers.length === 0 && (
           <div className="admin-empty admin-customer-empty">{t('admin.noCustomers')}</div>
         )}
       </div>
 
-      {(pagination.hasMore || isLoading || isLoadingMore) && (
+      {hasLoadedCustomers && (pagination.hasMore || isLoadingMore) && (
         <div className="admin-load-more">
           <button type="button" disabled={isLoading || isLoadingMore} onClick={loadMoreCustomers}>
             <ChevronDown size={16} />
@@ -355,7 +363,9 @@ function AdminCustomersSection({ language, reloadKey = 0, showAdminToast, t }) {
             </div>
 
             <div className="admin-customer-order-list">
-              {customerOrders.map((order) => (
+              {isLoadingCustomerOrders && customerOrders.length === 0 ? (
+                <AdminLoadingState label={t('admin.loading')} rows={4} compact />
+              ) : customerOrders.map((order) => (
                 <article key={order.id} className="admin-customer-order-card">
                   <div className="admin-customer-order-top">
                     <div>

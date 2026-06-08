@@ -24,7 +24,7 @@ services:
       CLIENT_ORIGIN: http://localhost:5173
       MONGODB_URI: mongodb://mongo:27017/marseille04_shop
       MONGODB_SERVER_SELECTION_TIMEOUT_MS: 10000
-      JWT_SECRET: change-this-secret-in-production
+      JWT_SECRET: qiwue9213jkqw0123jlalasdi023qweqwo123
       TOKEN_EXPIRES_IN_SECONDS: 604800
       ADMIN_EMAIL: test@gmail.com
     ports:

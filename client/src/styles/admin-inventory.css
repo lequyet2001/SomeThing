@@ -417,7 +417,8 @@
 }
 
 .admin-inventory-table-wrap .admin-table th {
-  background: #edf4f0;
+  background: #dfece6;
+  color: #6f431f;
 }
 
 .admin-inventory-row td:first-child {
@@ -554,49 +555,76 @@
   gap: 18px;
 }
 
-.admin-inventory-tabs {
-  display: inline-flex;
-  width: max-content;
-  gap: 6px;
-  border: 1px solid rgba(15, 95, 85, 0.16);
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.76);
-  padding: 5px;
+.admin-inventory-main {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
 }
 
-.admin-inventory-tabs button {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
+.admin-tabs .admin-tab-group {
+  display: grid;
   gap: 8px;
-  border: 0;
-  border-radius: calc(var(--radius-sm) - 2px);
-  background: transparent;
-  color: var(--color-muted);
-  padding: 0 14px;
-  font-weight: 900;
-  cursor: pointer;
 }
 
-.admin-inventory-tabs button span {
+.admin-tabs .admin-tab-group > a {
+  width: 100%;
+}
+
+.admin-tabs .admin-inventory-tabs {
+  display: grid;
+  gap: 6px;
+  padding: 0 0 3px 30px;
+}
+
+.admin-tabs .admin-inventory-tabs button {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  min-height: 38px;
+  align-items: center;
+  justify-content: stretch;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--color-muted);
+  padding: 0 9px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.admin-tabs .admin-inventory-tabs button:hover {
+  transform: translateX(2px);
+  border-color: rgba(15, 95, 85, 0.18);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--color-primary-dark);
+}
+
+.admin-tabs .admin-inventory-tabs button svg {
+  color: currentColor;
+}
+
+.admin-tabs .admin-inventory-tabs button span {
   display: inline-grid;
-  min-width: 24px;
-  height: 24px;
+  justify-self: end;
+  min-width: 21px;
+  height: 21px;
   place-items: center;
   border-radius: 999px;
   background: rgba(15, 95, 85, 0.1);
   color: var(--color-primary-dark);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.admin-inventory-tabs button.is-active {
+.admin-tabs .admin-inventory-tabs button.is-active {
   background: var(--color-primary);
   color: #fff;
   box-shadow: 0 10px 24px rgba(15, 95, 85, 0.16);
 }
 
-.admin-inventory-tabs button.is-active span {
+.admin-tabs .admin-inventory-tabs button.is-active span {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
