@@ -19,12 +19,14 @@ import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../i18n/LanguageContext'
 import AdminFilterPanel from '../components/admin/AdminFilterPanel'
+import { AdminSectionLoading, AdminTableLoadingRow } from '../components/admin/AdminLoadingState'
 import AdminCustomersSection from './admin/AdminCustomersSection'
 import AdminOrderDetailDialog from '../components/admin/AdminOrderDetailDialog'
 import AdminOverviewSection from './admin/AdminOverviewSection'
 import AdminSearchInput from '../components/admin/AdminSearchInput'
 import AdminToast from '../components/admin/AdminToast'
 import InventoryAdminSection from './admin/InventoryAdminSection'
+import InventoryTabsNav from './admin/inventory/InventoryTabsNav'
 import {
   buildSummaryParams,
   contactStatusOptions,
@@ -89,7 +91,10 @@ function StoreAdminPage({ section = 'overview' }) {
   const [toast, setToast] = useState({ message: '', title: '', type: 'success' })
   const [adminAlerts, setAdminAlerts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedAdminSections, setLoadedAdminSections] = useState({})
   const [inventoryReloadKey, setInventoryReloadKey] = useState(0)
+  const [inventoryActiveTab, setInventoryActiveTab] = useState('items')
+  const [inventoryNavStats, setInventoryNavStats] = useState({ categoryCount: 0, historyCount: 0 })
   const [customersReloadKey, setCustomersReloadKey] = useState(0)
   const [statsFilters, setStatsFilters] = useState(emptyStatsFilters)
   const [summaryParams, setSummaryParams] = useState({})
@@ -110,6 +115,11 @@ function StoreAdminPage({ section = 'overview' }) {
     () => [...new Set(lowStockProducts.map((product) => product.category).filter(Boolean))].sort(),
     [lowStockProducts],
   )
+  const isOverviewLoading = section === 'overview' && !loadedAdminSections.overview
+  const isOrdersLoading = section === 'orders' && !loadedAdminSections.orders
+  const isUsersLoading = section === 'users' && !loadedAdminSections.users
+  const isContactsLoading = section === 'contacts' && !loadedAdminSections.contacts
+  const isReviewsLoading = section === 'reviews' && !loadedAdminSections.reviews
   const paymentOptions = useMemo(
     () => [...new Set(orders.map((order) => order.payment).filter(Boolean))].sort(),
     [orders],
@@ -250,28 +260,34 @@ function StoreAdminPage({ section = 'overview' }) {
   async function loadAdminData({ refreshCustomers = false, refreshInventory = false } = {}) {
     setIsLoading(true)
     try {
+      const nextLoadedSections = { overview: true }
       const summaryResponse = await shopApi.getAdminSummary(summaryParams)
       setSummaryData(summaryResponse)
 
       if (section === 'orders') {
         const ordersResponse = await shopApi.listAdminOrders()
         setOrders(ordersResponse.orders)
+        nextLoadedSections.orders = true
       }
 
       if (section === 'users') {
         const usersResponse = await shopApi.listAdminUsers()
         setUsers(usersResponse.users)
+        nextLoadedSections.users = true
       }
 
       if (section === 'contacts') {
         const contactsResponse = await shopApi.listAdminContacts()
         setContacts(contactsResponse.contacts)
+        nextLoadedSections.contacts = true
       }
 
       if (section === 'reviews') {
         const reviewsResponse = await shopApi.listAdminReviews()
         setAdminReviews(reviewsResponse.reviews)
+        nextLoadedSections.reviews = true
       }
+      setLoadedAdminSections((current) => ({ ...current, ...nextLoadedSections }))
     } catch (error) {
       showAdminToast(error.message, 'error')
       const message = error.message.toLowerCase()
@@ -449,6 +465,7 @@ function StoreAdminPage({ section = 'overview' }) {
   }
 
   function openAdminInventory(params = {}) {
+    setInventoryActiveTab('items')
     navigateWithParams('/admin/inventory', params)
   }
 
@@ -457,6 +474,7 @@ function StoreAdminPage({ section = 'overview' }) {
     const query = productId || item?.name || item?.productName || ''
 
     setSelectedOrder(null)
+    setInventoryActiveTab('items')
     navigateWithParams('/admin/inventory', {
       focusProductId: productId,
       query,
@@ -593,20 +611,39 @@ function StoreAdminPage({ section = 'overview' }) {
       <nav className="admin-tabs" aria-label={t('admin.kicker')}>
         {adminTabs.map((tab) => {
           const Icon = tab.icon
-          return (
+          const tabLink = (
             <NavLink
               key={tab.id}
               to={tab.path || `/admin/${tab.id}`}
               className={({ isActive }) => (isActive || section === tab.id ? 'is-active' : '')}
+              onClick={tab.id === 'products' ? () => setInventoryActiveTab('items') : undefined}
             >
               <Icon size={17} />
-              {t(tab.labelKey)}
+              <span>{t(tab.labelKey)}</span>
             </NavLink>
+          )
+
+          if (tab.id !== 'products') return tabLink
+
+          return (
+            <div key={tab.id} className={`admin-tab-group admin-tab-group-products ${section === 'products' ? 'is-open' : ''}`}>
+              {tabLink}
+              <InventoryTabsNav
+                activeTab={inventoryActiveTab}
+                categoryCount={inventoryNavStats.categoryCount}
+                hidden={section !== 'products'}
+                historyCount={inventoryNavStats.historyCount}
+                onChangeTab={setInventoryActiveTab}
+                t={t}
+              />
+            </div>
           )
         })}
       </nav>
 
-      {section === 'overview' && (
+      {section === 'overview' && (isOverviewLoading ? (
+        <AdminSectionLoading label={t('admin.loading')} rows={8} />
+      ) : (
         <AdminOverviewSection
           handleStatsFilterSubmit={handleStatsFilterSubmit}
           leastProducts={leastProducts}
@@ -629,7 +666,7 @@ function StoreAdminPage({ section = 'overview' }) {
           topCustomers={topCustomers}
           topProducts={topProducts}
         />
-      )}
+      ))}
       {section === 'orders' && (
         <section className="admin-panel">
           <div className="admin-panel-heading">
@@ -734,7 +771,9 @@ function StoreAdminPage({ section = 'overview' }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
+                {isOrdersLoading ? (
+                  <AdminTableLoadingRow colSpan={7} label={t('admin.loading')} />
+                ) : filteredOrders.map((order) => (
                   <tr key={order.id} className="admin-clickable-row" onClick={() => setSelectedOrder(order)}>
                     <td data-label={t('admin.orderCode')}>
                       <button
@@ -790,7 +829,7 @@ function StoreAdminPage({ section = 'overview' }) {
                     </td>
                   </tr>
                 ))}
-                {filteredOrders.length === 0 && (
+                {!isOrdersLoading && filteredOrders.length === 0 && (
                   <tr className="admin-empty-row">
                     <td colSpan="7" data-label="">{orders.length === 0 ? t('admin.noOrders') : t('admin.noFilterResults')}</td>
                   </tr>
@@ -802,7 +841,13 @@ function StoreAdminPage({ section = 'overview' }) {
       )}
 
       {section === 'products' && (
-        <InventoryAdminSection reloadKey={inventoryReloadKey} showAdminToast={showAdminToast} />
+        <InventoryAdminSection
+          activeTab={inventoryActiveTab}
+          onNavStatsChange={setInventoryNavStats}
+          reloadKey={inventoryReloadKey}
+          setActiveTab={setInventoryActiveTab}
+          showAdminToast={showAdminToast}
+        />
       )}
 
       {section === 'customers' && (
@@ -869,7 +914,9 @@ function StoreAdminPage({ section = 'overview' }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {isUsersLoading ? (
+                  <AdminTableLoadingRow colSpan={6} label={t('admin.loading')} />
+                ) : filteredUsers.map((user) => (
                   <tr key={user.id}>
                     <td data-label={t('admin.customer')}>
                       <div className="admin-user-cell">
@@ -894,7 +941,7 @@ function StoreAdminPage({ section = 'overview' }) {
                     </td>
                   </tr>
                 ))}
-                {filteredUsers.length === 0 && (
+                {!isUsersLoading && filteredUsers.length === 0 && (
                   <tr className="admin-empty-row">
                     <td colSpan="6" data-label="">{users.length === 0 ? t('admin.noUsers') : t('admin.noFilterResults')}</td>
                   </tr>
@@ -966,7 +1013,9 @@ function StoreAdminPage({ section = 'overview' }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredContacts.map((contact) => (
+                {isContactsLoading ? (
+                  <AdminTableLoadingRow colSpan={5} label={t('admin.loading')} />
+                ) : filteredContacts.map((contact) => (
                   <tr key={contact.id}>
                     <td data-label={t('admin.customer')}>
                       <strong>{contact.name}</strong>
@@ -985,7 +1034,7 @@ function StoreAdminPage({ section = 'overview' }) {
                     </td>
                   </tr>
                 ))}
-                {filteredContacts.length === 0 && (
+                {!isContactsLoading && filteredContacts.length === 0 && (
                   <tr className="admin-empty-row">
                     <td colSpan="5" data-label="">{contacts.length === 0 ? t('admin.noContacts') : t('admin.noFilterResults')}</td>
                   </tr>
@@ -1057,7 +1106,9 @@ function StoreAdminPage({ section = 'overview' }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredReviews.map((review) => (
+                {isReviewsLoading ? (
+                  <AdminTableLoadingRow colSpan={6} label={t('admin.loading')} />
+                ) : filteredReviews.map((review) => (
                   <tr key={review.id}>
                     <td data-label={t('admin.product')}>
                       <div className="admin-product-cell">
@@ -1089,7 +1140,7 @@ function StoreAdminPage({ section = 'overview' }) {
                     </td>
                   </tr>
                 ))}
-                {filteredReviews.length === 0 && (
+                {!isReviewsLoading && filteredReviews.length === 0 && (
                   <tr className="admin-empty-row">
                     <td colSpan="6" data-label="">{adminReviews.length === 0 ? t('admin.noReviews') : t('admin.noFilterResults')}</td>
                   </tr>
@@ -1100,7 +1151,7 @@ function StoreAdminPage({ section = 'overview' }) {
         </section>
       )}
 
-      {section === 'overview' && lowStockProducts.length > 0 && (
+      {section === 'overview' && !isOverviewLoading && lowStockProducts.length > 0 && (
         <section className="admin-panel">
           <div className="admin-panel-heading">
             <div>

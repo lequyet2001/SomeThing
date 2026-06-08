@@ -1,17 +1,13 @@
-import { AlertTriangle, Boxes, CheckCircle2, History, ShoppingBag, Tags } from 'lucide-react'
+import { AlertTriangle, Boxes, CheckCircle2, ShoppingBag } from 'lucide-react'
 
 import { formatCurrency } from '../../../utils/currency'
 
 function InventoryOverviewPanel({
-  activeTab,
   filteredProducts,
   inventoryHealthPercent,
-  inventoryHistory,
   inventoryMetrics,
   inventoryRiskCount,
-  productCategories,
   products,
-  setActiveTab,
   t,
 }) {
   return (
@@ -55,41 +51,6 @@ function InventoryOverviewPanel({
           <span>{t('admin.inventoryValue')}</span>
           <strong>{formatCurrency(inventoryMetrics.value)}</strong>
         </article>
-      </div>
-
-      <div className="admin-inventory-tabs" role="tablist" aria-label={t('admin.products')}>
-        <button
-          type="button"
-          className={activeTab === 'items' ? 'is-active' : ''}
-          role="tab"
-          aria-selected={activeTab === 'items'}
-          onClick={() => setActiveTab('items')}
-        >
-          <Boxes size={16} />
-          {t('admin.inventoryTabItems')}
-        </button>
-        <button
-          type="button"
-          className={activeTab === 'categories' ? 'is-active' : ''}
-          role="tab"
-          aria-selected={activeTab === 'categories'}
-          onClick={() => setActiveTab('categories')}
-        >
-          <Tags size={16} />
-          {t('admin.inventoryTabCategories')}
-          <span>{productCategories.length}</span>
-        </button>
-        <button
-          type="button"
-          className={activeTab === 'history' ? 'is-active' : ''}
-          role="tab"
-          aria-selected={activeTab === 'history'}
-          onClick={() => setActiveTab('history')}
-        >
-          <History size={16} />
-          {t('admin.inventoryTabHistory')}
-          <span>{inventoryHistory.length}</span>
-        </button>
       </div>
     </section>
   )

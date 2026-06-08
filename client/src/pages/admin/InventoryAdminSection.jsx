@@ -7,6 +7,7 @@ import {
 import { useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../../i18n/LanguageContext'
+import AdminLoadingState from '../../components/admin/AdminLoadingState'
 import {
   isWithinDateRange,
   isWithinNumberRange,
@@ -29,14 +30,21 @@ import InventoryItemsTab from './inventory/InventoryItemsTab'
 import InventoryOverviewPanel from './inventory/InventoryOverviewPanel'
 import InventoryProductForm from './inventory/InventoryProductForm'
 
-function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
+function InventoryAdminSection({
+  activeTab = 'items',
+  onNavStatsChange,
+  reloadKey = 0,
+  setActiveTab = () => {},
+  showAdminToast,
+}) {
   const { language, t } = useLanguage()
   const [searchParams] = useSearchParams()
   const routeFilterKey = searchParams.toString()
-  const [activeTab, setActiveTab] = useState('items')
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [inventoryHistory, setInventoryHistory] = useState([])
+  const [hasLoadedInventory, setHasLoadedInventory] = useState(false)
+  const [isInventoryLoading, setIsInventoryLoading] = useState(true)
   const [filters, setFilters] = useState(emptyInventoryFilters)
   const [productForm, setProductForm] = useState(emptyProductForm)
   const [productImageFile, setProductImageFile] = useState(null)
@@ -117,6 +125,7 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
   }, [filters.history, inventoryHistory, t])
 
   async function loadInventoryData() {
+    setIsInventoryLoading(true)
     try {
       const [productsResponse, inventoryHistoryResponse, categoriesResponse] = await Promise.all([
         shopApi.listAdminProducts(),
@@ -126,14 +135,25 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
       setProducts(productsResponse.products || [])
       setInventoryHistory(inventoryHistoryResponse.history || [])
       setCategories(categoriesResponse.categories || [])
+      setHasLoadedInventory(true)
     } catch (error) {
       showAdminToast(error.message, 'error')
+      setHasLoadedInventory(true)
+    } finally {
+      setIsInventoryLoading(false)
     }
   }
 
   useEffect(() => {
     loadInventoryData()
   }, [reloadKey])
+
+  useEffect(() => {
+    onNavStatsChange?.({
+      categoryCount: productCategories.length,
+      historyCount: inventoryHistory.length,
+    })
+  }, [inventoryHistory.length, onNavStatsChange, productCategories.length])
 
   useEffect(() => {
     if (!routeFilterKey) {
@@ -483,60 +503,68 @@ function InventoryAdminSection({ reloadKey = 0, showAdminToast }) {
     })
   }
 
+  const showInventoryLoading = isInventoryLoading && !hasLoadedInventory
+
   return (
     <div className="admin-inventory-section">
-      <InventoryOverviewPanel
-        activeTab={activeTab}
-        filteredProducts={filteredProducts}
-        inventoryHealthPercent={inventoryHealthPercent}
-        inventoryHistory={inventoryHistory}
-        inventoryMetrics={inventoryMetrics}
-        inventoryRiskCount={inventoryRiskCount}
-        productCategories={productCategories}
-        products={products}
-        setActiveTab={setActiveTab}
-        t={t}
-      />
+      <div className="admin-inventory-main">
+        {showInventoryLoading ? (
+          <section className="admin-panel admin-loading-panel">
+            <AdminLoadingState label={t('admin.loading')} rows={7} />
+          </section>
+        ) : (
+          <>
+            <InventoryOverviewPanel
+              filteredProducts={filteredProducts}
+              inventoryHealthPercent={inventoryHealthPercent}
+              inventoryMetrics={inventoryMetrics}
+              inventoryRiskCount={inventoryRiskCount}
+              products={products}
+              t={t}
+            />
 
-      {activeTab === 'items' && (
-        <InventoryItemsTab
-          filters={filters}
-          filteredProducts={filteredProducts}
-          onAddProduct={openCreateProductDialog}
-          productCategories={productCategories}
-          products={products}
-          renderInventoryRows={renderInventoryRows}
-          resetFilter={resetFilter}
-          t={t}
-          updateFilter={updateFilter}
-        />
-      )}
+            {activeTab === 'items' && (
+              <InventoryItemsTab
+                filters={filters}
+                filteredProducts={filteredProducts}
+                onAddProduct={openCreateProductDialog}
+                productCategories={productCategories}
+                products={products}
+                renderInventoryRows={renderInventoryRows}
+                resetFilter={resetFilter}
+                t={t}
+                updateFilter={updateFilter}
+              />
+            )}
 
-      {activeTab === 'categories' && (
-        <InventoryCategoriesTab
-          isCategorySaving={isCategorySaving}
-          onCreateCategory={createCategory}
-          onDeleteCategory={setDeleteCategoryTarget}
-          onRenameCategory={renameCategory}
-          productCategories={productCategories}
-          products={products}
-          t={t}
-        />
-      )}
+            {activeTab === 'categories' && (
+              <InventoryCategoriesTab
+                isCategorySaving={isCategorySaving}
+                onCreateCategory={createCategory}
+                onDeleteCategory={setDeleteCategoryTarget}
+                onRenameCategory={renameCategory}
+                productCategories={productCategories}
+                products={products}
+                t={t}
+              />
+            )}
 
-      {activeTab === 'history' && (
-        <InventoryHistoryTab
-          filters={filters}
-          filteredInventoryHistory={filteredInventoryHistory}
-          handleHistoryKeyDown={handleHistoryKeyDown}
-          inventoryHistory={inventoryHistory}
-          language={language}
-          openHistoryLog={openHistoryLog}
-          resetFilter={resetFilter}
-          t={t}
-          updateFilter={updateFilter}
-        />
-      )}
+            {activeTab === 'history' && (
+              <InventoryHistoryTab
+                filters={filters}
+                filteredInventoryHistory={filteredInventoryHistory}
+                handleHistoryKeyDown={handleHistoryKeyDown}
+                inventoryHistory={inventoryHistory}
+                language={language}
+                openHistoryLog={openHistoryLog}
+                resetFilter={resetFilter}
+                t={t}
+                updateFilter={updateFilter}
+              />
+            )}
+          </>
+        )}
+      </div>
 
       <InventoryHistoryDetailDialog
         language={language}
