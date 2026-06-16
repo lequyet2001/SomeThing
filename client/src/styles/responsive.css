@@ -775,7 +775,7 @@
     gap: 8px;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-sm);
-    background: linear-gradient(180deg, #ffffff, #f4f9f6);
+    background: linear-gradient(180deg, #ffffff, #f6faff);
     padding: 10px;
     box-shadow: var(--shadow-sm);
   }
@@ -1039,7 +1039,7 @@
 
   .admin-page .admin-history-detail-dialog {
     width: 100%;
-    max-height: calc(100vh - 18px);
+    max-height: calc(100dvh - 18px);
     padding: 16px;
   }
 

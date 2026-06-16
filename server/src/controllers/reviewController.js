@@ -15,9 +15,12 @@ function serializeReview(review) {
 }
 
 export const listReviews = asyncHandler(async (req, res) => {
-  const productId = req.query.productId ? Number(req.query.productId) : null
-  const query = productId ? { productId } : {}
-  const reviews = await Review.find(query).sort({ createdAt: -1 })
+  const productId = Number(req.query.productId)
+  if (!productId) {
+    throw httpError(400, 'Cần productId để lấy đánh giá sản phẩm.')
+  }
+
+  const reviews = await Review.find({ productId }).sort({ createdAt: -1 })
 
   res.json({ reviews: reviews.map(serializeReview) })
 })

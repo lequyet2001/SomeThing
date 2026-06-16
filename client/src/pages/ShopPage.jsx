@@ -1,46 +1,33 @@
-import { useEffect, useMemo, useState } from 'react'
 import { formatCurrency } from '../utils/currency'
 import { ArrowDownUp, ChevronLeft, ChevronRight, Eye, PackageSearch, Search, ShoppingCart, SlidersHorizontal, Tag, X } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
 import { formatCategoryLabel } from '../utils/categoryLabel'
 
-const SHOP_PAGE_SIZE = 9
-
 function ShopPage({
   categories,
   category,
   filteredProducts,
+  isLoading = false,
+  pagination,
   query,
   sortOrder,
   onAddToCart,
   onCategoryChange,
   onOpenProduct,
+  onPageChange,
   onQueryChange,
   onSortChange,
 }) {
   const { t } = useLanguage()
-  const [currentPage, setCurrentPage] = useState(1)
   const getCategoryLabel = (item) => (item === 'Tat ca' ? t('shop.allCategories') : formatCategoryLabel(item))
   const sortOptions = [
     { label: t('shop.sortDefault'), value: 'default' },
     { label: t('shop.sortLow'), value: 'price-asc' },
     { label: t('shop.sortHigh'), value: 'price-desc' },
   ]
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / SHOP_PAGE_SIZE))
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * SHOP_PAGE_SIZE
-    return filteredProducts.slice(startIndex, startIndex + SHOP_PAGE_SIZE)
-  }, [currentPage, filteredProducts])
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [category, query, sortOrder])
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages)
-    }
-  }, [currentPage, totalPages])
+  const currentPage = pagination?.page || 1
+  const totalPages = pagination?.totalPages || 1
+  const totalProducts = pagination?.total ?? filteredProducts.length
 
   return (
     <section className="shop-layout">
@@ -123,7 +110,7 @@ function ShopPage({
           </div>
 
           <div className="summary-box">
-            <strong>{filteredProducts.length}</strong>
+            <strong>{totalProducts}</strong>
             <span>{t('shop.matchLabel')}</span>
           </div>
         </div>
@@ -133,12 +120,17 @@ function ShopPage({
         <div className="results-toolbar">
           <div>
             <p><PackageSearch size={15} /> {t('shop.results')}</p>
-            <h2>{t('shop.pageCount', { shown: paginatedProducts.length, total: filteredProducts.length })}</h2>
+            <h2>{t('shop.pageCount', { shown: filteredProducts.length, total: totalProducts })}</h2>
           </div>
           <span>{getCategoryLabel(category)}</span>
         </div>
 
-        {filteredProducts.length === 0 ? (
+        {isLoading ? (
+          <div className="shop-empty-state">
+            <h2>{t('shop.loading')}</h2>
+            <p>{t('shop.loadingText')}</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <div className="shop-empty-state">
             <h2>{t('shop.emptyTitle')}</h2>
             <p>{t('shop.emptyText')}</p>
@@ -153,7 +145,7 @@ function ShopPage({
         ) : (
           <>
             <section className="catalog">
-              {paginatedProducts.map((product) => (
+              {filteredProducts.map((product) => (
                 <article className="product-card" key={product.id}>
                   <button className="product-media" onClick={() => onOpenProduct(product.id)}>
                     <img src={product.image} alt={product.name} />
@@ -181,7 +173,7 @@ function ShopPage({
                 <button
                   type="button"
                   disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 >
                   <ChevronLeft size={17} />
                   {t('shop.prevPage')}
@@ -190,7 +182,7 @@ function ShopPage({
                 <button
                   type="button"
                   disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 >
                   {t('shop.nextPage')}
                   <ChevronRight size={17} />

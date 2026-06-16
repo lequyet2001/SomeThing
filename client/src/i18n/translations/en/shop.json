@@ -6,6 +6,8 @@
   "shop.emptyTitle": "No products found",
   "shop.filterText": "Enter keywords, choose a category, and sort results by price.",
   "shop.filterTitle": "Product filters",
+  "shop.loading": "Loading products",
+  "shop.loadingText": "The system is fetching products for the current filters and page.",
   "shop.matchCount": "{count} matching products",
   "shop.matchLabel": "matching products",
   "shop.nextPage": "Next",

@@ -36,8 +36,13 @@ const PENDING_ORDER_STATUSES = ['confirmed', 'paid', 'shipping']
 const PENDING_CONTACT_STATUSES = ['new', 'processing']
 
 function serializeOrder(order) {
+  const customerType = order.user ? 'registered' : 'guest'
+
   return {
     id: order.orderCode,
+    customerType,
+    customerTypeLabel: customerType === 'registered' ? 'Khách đã đăng ký' : 'Khách chưa đăng ký',
+    registeredUserId: order.user?.toString?.() || '',
     customer: order.customer,
     items: order.items,
     payment: order.payment,
@@ -435,15 +440,17 @@ export const listAdminCustomers = asyncHandler(async (req, res) => {
 export const listAdminOrders = asyncHandler(async (req, res) => {
   const query = String(req.query.query || '').trim()
   const customerEmail = String(req.query.customerEmail || '').trim().toLowerCase()
+  const customerType = String(req.query.customerType || 'all').trim()
   const status = String(req.query.status || 'all').trim()
   const payment = String(req.query.payment || 'all').trim()
   const dateField = String(req.query.dateField || 'createdAt').trim()
   const pagination = readPagination(req.query)
   const match = {}
+  const andMatch = []
 
   if (query) {
     const searchRegex = new RegExp(escapeRegex(query), 'i')
-    match.$or = [
+    andMatch.push({ $or: [
       { orderCode: searchRegex },
       { payment: searchRegex },
       { 'customer.name': searchRegex },
@@ -451,7 +458,7 @@ export const listAdminOrders = asyncHandler(async (req, res) => {
       { 'customer.phone': searchRegex },
       { 'customer.address': searchRegex },
       { 'items.name': searchRegex },
-    ]
+    ] })
   }
 
   if (customerEmail) {
@@ -473,6 +480,14 @@ export const listAdminOrders = asyncHandler(async (req, res) => {
     match.payment = payment
   }
 
+  if (customerType === 'registered') {
+    match.user = { $exists: true, $ne: null }
+  } else if (customerType === 'guest') {
+    andMatch.push({ $or: [{ user: { $exists: false } }, { user: null }] })
+  } else if (customerType !== 'all') {
+    throw httpError(400, 'Loại khách hàng không hợp lệ.')
+  }
+
   if (!['createdAt', 'updatedAt'].includes(dateField)) {
     throw httpError(400, 'Trường ngày lọc đơn hàng không hợp lệ.')
   }
@@ -480,6 +495,10 @@ export const listAdminOrders = asyncHandler(async (req, res) => {
   const createdAtRange = readDateRangeFilter(req.query)
   if (createdAtRange) {
     match[dateField] = createdAtRange
+  }
+
+  if (andMatch.length > 0) {
+    match.$and = andMatch
   }
 
   const orderQuery = applyPagination(Order.find(match).sort({ createdAt: -1 }), pagination)

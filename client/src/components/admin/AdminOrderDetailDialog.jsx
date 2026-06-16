@@ -7,8 +7,15 @@ function getItemTotal(item) {
   return Number(item.price || 0) * Number(item.quantity || 0)
 }
 
+function getOrderCustomerType(order) {
+  return order?.customerType || (order?.registeredUserId ? 'registered' : 'guest')
+}
+
 function AdminOrderDetailDialog({ language, onClose, onOpenCustomer, onOpenProduct, order, t }) {
   if (!order) return null
+
+  const customerType = getOrderCustomerType(order)
+  const customerTypeLabel = t(`admin.customerType.${customerType}`)
 
   return (
     <div className="admin-dialog-backdrop" role="presentation">
@@ -29,6 +36,9 @@ function AdminOrderDetailDialog({ language, onClose, onOpenCustomer, onOpenProdu
             <span className="admin-order-detail-icon"><UserRound size={18} /></span>
             <span>
               <strong>{order.customer?.name || t('admin.noInfo')}</strong>
+              <small className={`admin-order-customer-type-badge admin-order-customer-type-${customerType}`}>
+                {customerTypeLabel}
+              </small>
               <small>{order.customer?.email || t('admin.noInfo')}</small>
               <small>{order.customer?.phone || t('admin.noPhone')}</small>
               <small>{order.customer?.address || t('admin.noInfo')}</small>
@@ -39,6 +49,10 @@ function AdminOrderDetailDialog({ language, onClose, onOpenCustomer, onOpenProdu
             <div>
               <span>{t('admin.status')}</span>
               <strong>{order.statusLabel || order.status}</strong>
+            </div>
+            <div>
+              <span>{t('admin.customerType')}</span>
+              <strong>{customerTypeLabel}</strong>
             </div>
             <div>
               <span>{t('admin.paymentMethod')}</span>

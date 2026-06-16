@@ -9,6 +9,11 @@ export const orderStatusOptions = [
 export const pendingOrderStatuses = ['confirmed', 'paid', 'shipping']
 export const revenueOrderStatuses = ['paid', 'completed']
 
+export const orderCustomerTypeOptions = [
+  { value: 'registered', labelKey: 'admin.customerType.registered' },
+  { value: 'guest', labelKey: 'admin.customerType.guest' },
+]
+
 export const contactStatusOptions = [
   { value: 'new', labelKey: 'admin.contactStatus.new' },
   { value: 'processing', labelKey: 'admin.contactStatus.processing' },
@@ -31,6 +36,7 @@ export const emptyAdminFilters = {
     maxTotal: '',
     minTotal: '',
     payment: 'all',
+    customerType: 'all',
     query: '',
     startDate: '',
     status: 'all',

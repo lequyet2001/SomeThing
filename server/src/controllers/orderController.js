@@ -44,8 +44,12 @@ async function buildOrderItems(items) {
 }
 
 function serializeOrder(order) {
+  const customerType = order.user ? 'registered' : 'guest'
+
   return {
     id: order.orderCode,
+    customerType,
+    customerTypeLabel: customerType === 'registered' ? 'Khách đã đăng ký' : 'Khách chưa đăng ký',
     customer: order.customer,
     items: order.items,
     payment: order.payment,

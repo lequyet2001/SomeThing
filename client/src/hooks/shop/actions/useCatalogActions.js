@@ -4,7 +4,7 @@ import { createProductPath } from '../../../utils/slug'
 
 export function useCatalogActions({ catalog, dispatch, navigate }) {
   function goToProduct(productId) {
-    const product = catalog.products.find((item) => item.id === productId)
+    const product = catalog.productById[productId] || catalog.products.find((item) => item.id === productId)
     if (product) {
       navigate(createProductPath(product))
     }
@@ -36,6 +36,7 @@ export function useCatalogActions({ catalog, dispatch, navigate }) {
     goToLegacyPage,
     goToProduct,
     setCategory: (category) => dispatch(catalogActions.setCategory(category)),
+    setProductPage: (page) => dispatch(catalogActions.setPage(page)),
     setQuery: (query) => dispatch(catalogActions.setQuery(query)),
     setSortOrder: (sortOrder) => dispatch(catalogActions.setSortOrder(sortOrder)),
   }

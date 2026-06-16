@@ -1,5 +1,5 @@
 import { shopApi } from '../../../services/shopApi'
-import { cartActions } from '../../../store/shopStore'
+import { cartActions, catalogActions } from '../../../store/shopStore'
 
 function getVisibleCartTarget() {
   const targets = [...document.querySelectorAll('[data-cart-target]')]
@@ -55,6 +55,11 @@ function animateProductToCart(sourceElement) {
 }
 
 export function useCartActions({ dispatch, navigate, setNotice, user }) {
+  function applyCartResponse(data) {
+    dispatch(cartActions.setCart(data.cart))
+    dispatch(catalogActions.upsertProducts((data.cartLines || []).map((line) => line.product)))
+  }
+
   async function addToCart(productId, quantity = 1, sourceElement = null) {
     animateProductToCart(sourceElement)
     dispatch(cartActions.addCartItem({ productId, quantity }))
@@ -71,7 +76,7 @@ export function useCartActions({ dispatch, navigate, setNotice, user }) {
     if (user) {
       try {
         const data = await shopApi.addCartItem({ productId, quantity })
-        dispatch(cartActions.setCart(data.cart))
+        applyCartResponse(data)
       } catch (error) {
         setNotice(error.message)
       }
@@ -85,7 +90,7 @@ export function useCartActions({ dispatch, navigate, setNotice, user }) {
     if (user) {
       try {
         const data = await shopApi.updateCartItem(productId, quantity)
-        dispatch(cartActions.setCart(data.cart))
+        applyCartResponse(data)
       } catch (error) {
         setNotice(error.message)
       }
@@ -98,7 +103,7 @@ export function useCartActions({ dispatch, navigate, setNotice, user }) {
     if (user) {
       try {
         const data = await shopApi.removeCartItem(productId)
-        dispatch(cartActions.setCart(data.cart))
+        applyCartResponse(data)
       } catch (error) {
         setNotice(error.message)
       }
