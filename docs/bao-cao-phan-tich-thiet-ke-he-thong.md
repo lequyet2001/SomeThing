@@ -9,7 +9,7 @@
 | Tên hệ thống | Marseille04 Shop |
 | Loại hệ thống | Website thương mại điện tử kết hợp trang quản trị cửa hàng |
 | Phạm vi tài liệu | Web client, Backend API, Cơ sở dữ liệu, Docker/CI-CD |
-| Phạm vi loại trừ | Ứng dụng cài đặt riêng trên điện thoại không nằm trong báo cáo này |
+| Phạm vi loại trừ | Cổng thanh toán thật, tích hợp vận chuyển thật, kế toán/thuế |
 | Ngôn ngữ tài liệu | Tiếng Việt |
 | Cơ sở dữ liệu triển khai | MongoDB qua Mongoose |
 | Ghi chú SQL | Phần SQL là mô hình quan hệ tham chiếu phục vụ tài liệu phân tích thiết kế |
@@ -47,7 +47,6 @@ Phạm vi không bao gồm:
 - Cổng thanh toán thật với ngân hàng hoặc ví điện tử.
 - Tích hợp vận chuyển thật.
 - Hệ thống kế toán, hóa đơn điện tử và báo cáo thuế.
-- Ứng dụng cài đặt riêng trên điện thoại.
 
 ### 1.3 Tác nhân của hệ thống
 
@@ -64,10 +63,10 @@ Phạm vi không bao gồm:
 
 | Mã | Nhóm chức năng | Yêu cầu |
 |---|---|---|
-| FR-01 | Tài khoản | Đăng ký tài khoản bằng tên, email, mật khẩu |
-| FR-02 | Tài khoản | Đăng nhập, lưu token và tải hồ sơ người dùng |
+| FR-01 | Tài khoản | Đăng ký tài khoản bằng tên, email, mật khẩu; mật khẩu được mã hóa phía client trước khi gửi |
+| FR-02 | Tài khoản | Đăng nhập, lưu token và tải hồ sơ người dùng; mật khẩu gửi dạng passwordEncrypted |
 | FR-03 | Tài khoản | Quên mật khẩu và đặt lại mật khẩu bằng token |
-| FR-04 | Tài khoản | Cập nhật hồ sơ, avatar, số điện thoại, địa chỉ mặc định |
+| FR-04 | Tài khoản | Cập nhật hồ sơ, avatar, số liên hệ, địa chỉ mặc định |
 | FR-05 | Địa chỉ | Thêm, sửa, chọn địa chỉ giao hàng |
 | FR-06 | Sản phẩm | Xem danh sách sản phẩm, danh mục, sản phẩm bán chạy |
 | FR-07 | Sản phẩm | Tìm kiếm, lọc, sắp xếp sản phẩm theo giá |
@@ -76,13 +75,13 @@ Phạm vi không bao gồm:
 | FR-10 | Giỏ hàng | Thêm, tăng/giảm số lượng, xóa sản phẩm, xóa toàn bộ giỏ |
 | FR-11 | Mua hàng | Tạo đơn hàng từ giỏ hàng hoặc thông tin checkout |
 | FR-12 | Thanh toán | Chọn phương thức thanh toán, ghi nhận trạng thái đơn hàng |
-| FR-13 | Đơn hàng | Khách hàng xem lịch sử và chi tiết đơn hàng |
+| FR-13 | Đơn hàng | Khách hàng xem lịch sử và chi tiết đơn hàng; hệ thống phân biệt đơn của khách đã đăng ký và khách chưa đăng ký |
 | FR-14 | Liên hệ | Gửi yêu cầu hỗ trợ; nếu đã đăng nhập tự điền thông tin cá nhân |
 | FR-15 | Thông báo | Người dùng xem, đánh dấu đã đọc, xóa thông báo |
 | FR-16 | Realtime | Nhận thông báo ngay khi đơn hàng/liên hệ được admin cập nhật |
 | FR-17 | Admin | Xem dashboard doanh thu, đơn hàng, tồn kho, liên hệ cần xử lý |
 | FR-18 | Admin | Lọc thống kê theo tháng hoặc khoảng ngày |
-| FR-19 | Admin | Quản lý đơn hàng và cập nhật trạng thái |
+| FR-19 | Admin | Quản lý đơn hàng, lọc theo trạng thái, thanh toán, ngày và loại khách |
 | FR-20 | Admin | Quản lý kho hàng: sản phẩm, tồn kho, ảnh, danh mục |
 | FR-21 | Admin | Ghi lịch sử thêm/sửa/xóa sản phẩm, danh mục và trừ kho theo đơn hàng |
 | FR-22 | Admin | Quản lý khách hàng và xem đơn hàng của từng khách |
@@ -96,6 +95,7 @@ Phạm vi không bao gồm:
 | Nhóm | Yêu cầu | Quyết định thiết kế |
 |---|---|---|
 | Bảo mật | Mật khẩu không lưu dạng rõ | Lưu passwordHash và passwordSalt |
+| Bảo mật | Mật khẩu không gửi dạng rõ trong payload auth | Client lấy public key và mã hóa RSA-OAEP thành passwordEncrypted |
 | Bảo mật | API admin chỉ cho role admin | Middleware requireAuth và requireAdmin |
 | Bảo mật | Token reset mật khẩu không lưu dạng rõ | Lưu passwordResetTokenHash và thời gian hết hạn |
 | Bảo mật | CORS cấu hình theo môi trường | CLIENT_ORIGIN trong server env |
@@ -123,9 +123,9 @@ Ràng buộc:
 - Backend sử dụng Node.js/Express và MongoDB.
 - Frontend sử dụng React, Vite, Redux Toolkit và React Router.
 - Dữ liệu quản trị phải yêu cầu đăng nhập và role admin.
+- Đơn có trường user được phân loại là khách đã đăng ký; đơn không có user được phân loại là khách chưa đăng ký.
 - Doanh thu chỉ tính từ đơn đã thanh toán hoặc hoàn thành.
 - Khi đơn hàng ở trạng thái đang giao hoặc hoàn thành, hệ thống cập nhật tồn kho và ghi lịch sử kho.
-- Báo cáo này không phân tích ứng dụng cài đặt riêng trên điện thoại.
 
 ## 2. Phân tích yêu cầu
 
@@ -147,7 +147,7 @@ Quy trình mới:
 2. Khách hàng truy cập website, tìm kiếm/lọc/xem chi tiết sản phẩm.
 3. Khách hàng đăng ký/đăng nhập để đồng bộ giỏ hàng và địa chỉ.
 4. Khách hàng thêm sản phẩm vào giỏ, chọn địa chỉ giao hàng và phương thức thanh toán.
-5. Hệ thống tạo đơn hàng, lưu thông tin khách, sản phẩm, tổng tiền và trạng thái.
+5. Hệ thống tạo đơn hàng, lưu thông tin khách, sản phẩm, tổng tiền, trạng thái và phân loại khách đã đăng ký/chưa đăng ký.
 6. Admin xử lý đơn hàng trong trang quản lý.
 7. Khi trạng thái đơn chuyển sang đang giao hoặc hoàn thành, hệ thống trừ kho một lần và ghi InventoryLog.
 8. Khi trạng thái đơn hàng/liên hệ thay đổi, hệ thống tạo UserNotification và đẩy realtime tới người dùng nếu đang online.
@@ -180,20 +180,20 @@ Quy trình mới:
 
 | Use Case | Tiền điều kiện | Luồng chính | Ngoại lệ | Hậu điều kiện |
 |---|---|---|---|---|
-| UC-01 Đăng ký | Email chưa tồn tại | Người dùng nhập tên/email/mật khẩu; server kiểm tra; tạo User role customer; trả token | Email trùng, dữ liệu thiếu, mật khẩu yếu | Tài khoản được tạo và đăng nhập |
-| UC-02 Đăng nhập | Tài khoản tồn tại | Nhập email/mật khẩu; server kiểm tra hash; trả JWT; client lưu user/token | Sai thông tin, tài khoản không tồn tại | Người dùng vào hệ thống theo role |
+| UC-01 Đăng ký | Email chưa tồn tại | Người dùng nhập tên/email/mật khẩu; client mã hóa password; server giải mã, kiểm tra; tạo User role customer; trả token | Email trùng, dữ liệu thiếu, mật khẩu yếu | Tài khoản được tạo và đăng nhập |
+| UC-02 Đăng nhập | Tài khoản tồn tại | Nhập email/mật khẩu; client mã hóa password; server giải mã và kiểm tra hash; trả JWT; client lưu user/token | Sai thông tin, tài khoản không tồn tại | Người dùng vào hệ thống theo role |
 | UC-03 Quên mật khẩu | Email đã đăng ký | Nhập email; server tạo token hash và hạn dùng; người dùng đặt mật khẩu mới | Token hết hạn/sai, email không tồn tại | Mật khẩu được thay đổi |
 | UC-04 Hồ sơ/địa chỉ | Đã đăng nhập | Xem hồ sơ; sửa tên, phone, avatar; thêm/sửa/chọn địa chỉ giao hàng | Upload lỗi, dữ liệu địa chỉ thiếu | Hồ sơ và địa chỉ được cập nhật |
 | UC-05 Tìm kiếm/lọc | Có danh sách sản phẩm | Nhập từ khóa; chọn danh mục; sắp xếp giá; client render kết quả | Không có kết quả | Danh sách phù hợp được hiển thị |
 | UC-06 Chi tiết sản phẩm | Sản phẩm tồn tại | Mở URL slug; giải mã id; tải sản phẩm/review; hiển thị ảnh, giá, tồn kho | Slug/id sai, sản phẩm bị xóa | Người dùng thấy chi tiết sản phẩm |
 | UC-07 Đánh giá | Đã đăng nhập | Chọn sao, nhập bình luận; gửi review; server lưu và cập nhật rating | Chưa đăng nhập thì hiện popup login; rating ngoài 1-5 | Review hiển thị trong sản phẩm |
 | UC-08 Giỏ hàng | Đã đăng nhập | Thêm sản phẩm; cập nhật số lượng; xóa sản phẩm; đồng bộ server | Hết hàng, số lượng không hợp lệ | Cart lưu trong MongoDB và Redux |
-| UC-09 Đặt hàng | Có sản phẩm cần mua | Chọn địa chỉ, phương thức thanh toán; tạo order; clear cart nếu cần | Thiếu thông tin giao hàng, sản phẩm không tồn tại | Order được tạo, khách nhận mã đơn |
+| UC-09 Đặt hàng | Có sản phẩm cần mua | Chọn địa chỉ, phương thức thanh toán; tạo order; gắn user nếu đã đăng nhập; clear cart nếu cần | Thiếu thông tin giao hàng, sản phẩm không tồn tại | Order được tạo, khách nhận mã đơn và customerType |
 | UC-10 Lịch sử mua | Đã đăng nhập | Tải /orders/me; xem danh sách và chi tiết | Chưa có đơn | Người dùng theo dõi đơn hàng |
 | UC-11 Liên hệ | Có nội dung liên hệ | Nếu đăng nhập tự lấy thông tin; nhập chủ đề/nội dung; gửi contact | Thiếu message, message quá dài | ContactMessage được tạo |
 | UC-12 Thông báo | Đã đăng nhập | Tải notifications; mở SSE stream; đánh dấu đọc/xóa | Token hết hạn, stream lỗi | Thông báo được đồng bộ |
 | UC-13 Dashboard admin | Admin đăng nhập | Tải summary theo bộ lọc; hiển thị doanh thu, đơn, khách, tồn kho | Không có dữ liệu | Admin thấy tình hình kinh doanh |
-| UC-14 Quản lý đơn | Admin đăng nhập | Lọc đơn; mở chi tiết; đổi trạng thái; gửi notification | Order không tồn tại; trạng thái sai | Order cập nhật, có thông báo cho khách |
+| UC-14 Quản lý đơn | Admin đăng nhập | Lọc đơn theo status/payment/date/customerType; mở chi tiết; đổi trạng thái; gửi notification | Order không tồn tại; trạng thái sai | Order cập nhật, có thông báo cho khách |
 | UC-15 Quản lý kho | Admin đăng nhập | Thêm/sửa/xóa sản phẩm; upload ảnh; quản lý category; xem lịch sử kho | Upload quá lớn, category trùng, stock âm | Product/Category cập nhật và ghi InventoryLog |
 | UC-16 Quản lý khách hàng | Admin đăng nhập | Lọc khách theo thời gian; mở chi tiết đơn; chuyển đến sản phẩm/khách tương ứng | Không có đơn theo lọc | Admin phân tích khách hàng |
 | UC-17 Người dùng/role | Admin đăng nhập | Xem người dùng; lọc; nâng/hạ role admin | Không được tự phá admin cuối cùng nếu áp dụng rule mở rộng | Role người dùng thay đổi |
@@ -311,23 +311,24 @@ Base URL: /api/shop
 
 | Method | Endpoint | Quyền | Chức năng |
 |---|---|---|---|
-| POST | /register | Public | Đăng ký |
-| POST | /login | Public | Đăng nhập |
+| GET | /password-public-key | Public | Lấy public key RSA-OAEP để mã hóa mật khẩu |
+| POST | /register | Public | Đăng ký với passwordEncrypted |
+| POST | /login | Public | Đăng nhập với passwordEncrypted |
 | POST | /forgot-password | Public | Tạo token reset mật khẩu |
-| POST | /reset-password/:token | Public | Đặt lại mật khẩu |
+| POST | /reset-password/:token | Public | Đặt lại mật khẩu với passwordEncrypted |
 | GET | /me | User | Lấy hồ sơ |
 | PUT | /me | User | Cập nhật hồ sơ, avatar, địa chỉ |
 | GET | /categories | Public | Lấy danh mục |
-| GET | /products | Public | Lấy danh sách sản phẩm |
+| GET | /products?page&limit&category&query&sort | Public | Lấy danh sách sản phẩm phân trang, mặc định 10 sản phẩm/trang |
 | GET | /products/:productId | Public | Lấy chi tiết sản phẩm |
-| GET | /reviews | Public | Lấy review theo sản phẩm |
+| GET | /reviews?productId=:id | Public | Lấy review theo sản phẩm |
 | POST | /reviews | User | Tạo review |
 | GET | /cart | User | Lấy giỏ hàng |
 | POST | /cart/items | User | Thêm sản phẩm vào giỏ |
 | PATCH | /cart/items/:productId | User | Cập nhật số lượng |
 | DELETE | /cart/items/:productId | User | Xóa item |
 | DELETE | /cart | User | Xóa giỏ |
-| POST | /orders | Optional User | Tạo đơn hàng |
+| POST | /orders | Optional User | Tạo đơn hàng, trả customerType |
 | GET | /orders/me | User | Lịch sử đơn hàng |
 | GET | /orders/:orderCode | Optional User | Tra cứu đơn |
 | POST | /contact | Optional User | Gửi liên hệ |
@@ -339,7 +340,7 @@ Base URL: /api/shop
 | DELETE | /notifications/:id | User | Xóa thông báo |
 | GET | /admin/events/stream | Admin token | SSE sự kiện admin |
 | GET | /admin/summary | Admin | Dashboard |
-| GET | /admin/orders | Admin | Danh sách đơn |
+| GET | /admin/orders?status&payment&customerType&startDate&endDate | Admin | Danh sách đơn có lọc loại khách |
 | PATCH | /admin/orders/:orderCode/status | Admin | Cập nhật trạng thái đơn |
 | GET | /admin/customers | Admin | Thống kê khách hàng |
 | GET | /admin/users | Admin | Danh sách user |
@@ -387,12 +388,14 @@ Base URL: /api/shop
 | Category | name | Danh mục sản phẩm |
 | Cart | user, items | Giỏ hàng theo user |
 | CartItem | productId, quantity | Item trong giỏ |
-| Order | orderCode, user, customer, items, payment, status, subtotal, shipping, total | Đơn hàng |
+| Order | orderCode, user, customer, items, payment, status, subtotal, shipping, total | Đơn hàng; customerType được suy ra từ user |
 | OrderItem | productId, name, price, quantity, image | Snapshot sản phẩm khi đặt hàng |
 | Review | productId, user, name, rating, comment | Đánh giá sản phẩm |
 | ContactMessage | user, name, email, phone, topic, message, status | Liên hệ/yêu cầu hỗ trợ |
 | UserNotification | user, type, title, message, link, metadata, readAt | Thông báo người dùng |
 | InventoryLog | action, actor, entityType, productId, stock, changes, orderCode | Lịch sử kho/danh mục |
+
+Ghi chú: customerType là trường API trả về khi serialize order. Hệ thống không cần lưu riêng vì có thể suy ra: có order.user là registered, không có order.user là guest.
 
 ### 4.2 Khóa chính và khóa ngoại
 
@@ -684,11 +687,13 @@ classDiagram
   }
   class Order {
     +String orderCode
+    +ObjectId user
     +Customer customer
     +OrderItem[] items
     +String payment
     +String status
     +Number total
+    +getCustomerType()
   }
   class Review {
     +Number productId
@@ -739,7 +744,11 @@ sequenceDiagram
   participant DB as MongoDB User
 
   User->>UI: Nhập email và mật khẩu
+  UI->>API: GET /api/shop/password-public-key
+  API-->>UI: Public key RSA-OAEP
+  UI->>UI: Mã hóa mật khẩu thành passwordEncrypted
   UI->>API: POST /api/shop/login
+  API->>API: Giải mã passwordEncrypted
   API->>DB: Tìm user theo email, lấy passwordHash/Salt
   DB-->>API: User
   API->>API: So khớp mật khẩu và tạo JWT
@@ -763,9 +772,9 @@ sequenceDiagram
   Checkout->>API: POST /api/shop/orders
   API->>ProductDB: Kiểm tra sản phẩm và giá hiện tại
   ProductDB-->>API: Danh sách sản phẩm
-  API->>OrderDB: Tạo Order với snapshot items
+  API->>OrderDB: Tạo Order với snapshot items, gắn user nếu có token
   API->>CartDB: Xóa giỏ nếu order từ cart
-  API-->>Checkout: OrderCode và tổng tiền
+  API-->>Checkout: OrderCode, tổng tiền và customerType
   Checkout-->>Customer: Hiển thị trang thanh toán/kết quả
 ~~~
 
@@ -883,7 +892,7 @@ flowchart LR
 | Contact | Tất cả | Gửi yêu cầu hỗ trợ |
 | Admin Overview | Admin | Dashboard doanh thu, đơn, tồn kho, khách hàng |
 | Admin Orders | Admin | Lọc đơn, xem chi tiết, cập nhật trạng thái |
-| Admin Inventory | Admin | Quản lý sản phẩm, danh mục, lịch sử kho |
+| Admin Inventory | Admin | Quản lý mặt hàng kho, danh mục, lịch sử kho |
 | Admin Customers | Admin | Thống kê khách hàng, đơn đã mua |
 | Admin Users | Admin | Lọc user, đổi role |
 | Admin Contacts | Admin | Lọc và cập nhật trạng thái liên hệ |
@@ -999,10 +1008,10 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 
 | Mã | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi |
 |---|---|---|---|
-| TC-01 | Đăng ký | Email mới, mật khẩu hợp lệ | Tạo user, trả token |
+| TC-01 | Đăng ký | Email mới, mật khẩu hợp lệ, passwordEncrypted | Tạo user, trả token |
 | TC-02 | Đăng ký trùng email | Email đã tồn tại | API trả lỗi rõ ràng |
-| TC-03 | Đăng nhập | Email/password đúng | Lưu user/token, vào hệ thống |
-| TC-04 | Đăng nhập sai | Password sai | Không đăng nhập, hiện lỗi |
+| TC-03 | Đăng nhập | Email/password đúng, passwordEncrypted hợp lệ | Lưu user/token, vào hệ thống |
+| TC-04 | Đăng nhập sai | Password sai hoặc passwordEncrypted lỗi | Không đăng nhập, hiện lỗi |
 | TC-05 | Reset password | Token hợp lệ | Mật khẩu thay đổi |
 | TC-06 | Tìm kiếm sản phẩm | Từ khóa có kết quả | Danh sách lọc đúng |
 | TC-07 | Sắp xếp giá | Sort tăng/giảm | Thứ tự giá đúng |
@@ -1011,7 +1020,7 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | TC-10 | Review đã login | Rating 1-5, comment hợp lệ | Review được lưu |
 | TC-11 | Thêm giỏ | Product còn hàng | Cart count và server cart cập nhật |
 | TC-12 | Cập nhật giỏ | Quantity hợp lệ | Tổng tiền đúng |
-| TC-13 | Đặt hàng | Có địa chỉ/payment | Tạo orderCode, lưu order |
+| TC-13 | Đặt hàng | Có địa chỉ/payment | Tạo orderCode, lưu order, trả customerType |
 | TC-14 | Lịch sử mua | User có order | Hiển thị danh sách đơn |
 | TC-15 | Liên hệ đã login | Chỉ nhập topic/message | Tự lấy name/email/phone |
 | TC-16 | Notification read | Đánh dấu đã đọc | readAt có giá trị, badge giảm |
@@ -1026,22 +1035,24 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | TC-25 | Xóa review | Admin xóa review | Review biến mất khỏi danh sách |
 | TC-26 | Loading admin | Vào tab quản lý chưa có dữ liệu | Hiện skeleton, không lệch layout |
 | TC-27 | Đa ngôn ngữ | Chuyển VI/EN | Text đổi theo JSON |
+| TC-28 | Phân loại đơn hàng | Một đơn có user, một đơn không có user | Admin lọc đúng registered/guest |
 
 ### 8.2 Chiến lược Unit Test
 
 - Test utility: formatCurrency, slug, notificationTarget, categoryLabel.
 - Test Redux reducers: userSlice, cartSlice, catalogSlice, userNotificationSlice.
-- Test backend services: inventoryLogService, password hash/verify, token utility.
+- Test backend services: inventoryLogService, password decrypt/hash/verify, token utility.
 - Test controller validation bằng mock request/response.
 - Test quy tắc doanh thu: chỉ tính paid/completed.
 - Test quy tắc trừ kho: chỉ trừ một lần khi shipping/completed.
+- Test quy tắc phân loại khách: có order.user là registered, không có order.user là guest.
 
 ### 8.3 Chiến lược Integration Test
 
 - Auth flow: register -> login -> getProfile.
 - Cart flow: add -> update -> remove -> clear.
 - Checkout flow: create order -> get order -> list my orders.
-- Admin order flow: login admin -> list orders -> update status -> notification created.
+- Admin order flow: login admin -> list orders/filter customerType -> update status -> notification created.
 - Inventory flow: create product -> update stock -> check InventoryLog.
 - Contact flow: create contact -> admin update status -> notification stream/list.
 

@@ -1,12 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420">
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng mở chi tiết sản phẩm bằng slug mã hóa id</title>
+  <desc id="desc">ProductSlugRoute giải mã id từ slug, dùng cache productById hoặc gọi API chi tiết, sau đó chỉ tải reviews theo productId.</desc>
   <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/></marker></defs>
-  <style>.box{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#2563eb;stroke-width:3;marker-end:url(#a);fill:none}</style>
-  <text x="550" y="40" text-anchor="middle" class="h">Luồng mở trang chi tiết sản phẩm bằng slug</text>
-  <rect x="40" y="105" width="180" height="95" class="box"/><text x="130" y="140" text-anchor="middle" class="t">Product Card</text><text x="130" y="166" text-anchor="middle" class="s">click ảnh / xem</text>
-  <rect x="280" y="105" width="210" height="95" class="box"/><text x="385" y="138" text-anchor="middle" class="t">goToProduct(id)</text><text x="385" y="166" text-anchor="middle" class="s">tìm trong catalog.products</text>
-  <rect x="550" y="105" width="210" height="95" class="box"/><text x="655" y="138" text-anchor="middle" class="t">createProductPath</text><text x="655" y="166" text-anchor="middle" class="s">tạo slug + mã hóa id</text>
-  <rect x="820" y="105" width="220" height="95" class="box"/><text x="930" y="138" text-anchor="middle" class="t">React Router</text><text x="930" y="166" text-anchor="middle" class="s">navigate(slug)</text>
-  <rect x="260" y="285" width="240" height="85" class="box"/><text x="380" y="318" text-anchor="middle" class="t">ProductSlugRoute</text><text x="380" y="344" text-anchor="middle" class="s">parse id từ slug</text>
-  <rect x="600" y="285" width="240" height="85" class="box"/><text x="720" y="318" text-anchor="middle" class="t">ProductPage</text><text x="720" y="344" text-anchor="middle" class="s">render sản phẩm + reviews</text>
-  <path d="M220 152 H280" class="ar"/><path d="M490 152 H550" class="ar"/><path d="M760 152 H820" class="ar"/><path d="M930 200 C900 265 600 320 500 325" class="ar"/><path d="M500 327 H600" class="ar"/>
+  <style>
+    .bg{fill:#f8fafc}.box{fill:#eff6ff;stroke:#2563eb;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#111827}.s{font-family:Arial,sans-serif;font-size:13px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:800;fill:#0f172a}.ar{stroke:#2563eb;stroke-width:3;marker-end:url(#a);fill:none}.dash{stroke:#2563eb;stroke-width:2.4;stroke-dasharray:7 7;marker-end:url(#a);fill:none}
+  </style>
+  <rect class="bg" width="1180" height="520"/>
+  <text x="590" y="42" text-anchor="middle" class="h">Luồng chi tiết sản phẩm: slug phân biệt trùng tên + review theo productId</text>
+
+  <rect x="40" y="105" width="175" height="95" class="box"/>
+  <text x="127" y="138" text-anchor="middle" class="t">Product Card</text>
+  <text x="127" y="164" text-anchor="middle" class="s">click xem sản phẩm</text>
+
+  <rect x="270" y="105" width="205" height="95" class="box"/>
+  <text x="372" y="136" text-anchor="middle" class="t">goToProduct(id)</text>
+  <text x="372" y="162" text-anchor="middle" class="s">createProductPath()</text>
+  <text x="372" y="183" text-anchor="middle" class="s">/products-ten-sp-x...</text>
+
+  <rect x="530" y="105" width="220" height="95" class="box"/>
+  <text x="640" y="136" text-anchor="middle" class="t">ProductSlugRoute</text>
+  <text x="640" y="162" text-anchor="middle" class="s">decode id từ slug</text>
+  <text x="640" y="183" text-anchor="middle" class="s">legacy redirect nếu cần</text>
+
+  <rect x="805" y="105" width="230" height="95" class="store"/>
+  <text x="920" y="136" text-anchor="middle" class="t">Catalog cache</text>
+  <text x="920" y="162" text-anchor="middle" class="s">products/productById</text>
+  <text x="920" y="183" text-anchor="middle" class="s">summary nếu đã có</text>
+
+  <rect x="805" y="280" width="230" height="95" class="api"/>
+  <text x="920" y="313" text-anchor="middle" class="t">Product API</text>
+  <text x="920" y="339" text-anchor="middle" class="s">GET /products/:productId</text>
+  <text x="920" y="360" text-anchor="middle" class="s">khi thiếu description</text>
+
+  <rect x="530" y="280" width="220" height="95" class="api"/>
+  <text x="640" y="313" text-anchor="middle" class="t">Reviews API</text>
+  <text x="640" y="339" text-anchor="middle" class="s">GET /reviews?productId=id</text>
+  <text x="640" y="360" text-anchor="middle" class="s">chỉ tải review của SP này</text>
+
+  <rect x="270" y="280" width="205" height="95" class="box"/>
+  <text x="372" y="313" text-anchor="middle" class="t">ProductPage</text>
+  <text x="372" y="339" text-anchor="middle" class="s">ảnh, giá, tồn kho</text>
+  <text x="372" y="360" text-anchor="middle" class="s">review + Add Cart</text>
+
+  <rect x="40" y="280" width="175" height="95" class="box"/>
+  <text x="127" y="313" text-anchor="middle" class="t">Review form</text>
+  <text x="127" y="339" text-anchor="middle" class="s">chưa login mở popup</text>
+  <text x="127" y="360" text-anchor="middle" class="s">login mới POST</text>
+
+  <path d="M215 152H270" class="ar"/>
+  <path d="M475 152H530" class="ar"/>
+  <path d="M750 152H805" class="ar"/>
+  <path d="M920 200V280" class="dash"/>
+  <path d="M805 328H750" class="ar"/>
+  <path d="M640 200V280" class="ar"/>
+  <path d="M530 328H475" class="ar"/>
+  <path d="M270 328H215" class="dash"/>
 </svg>

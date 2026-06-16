@@ -1,12 +1,105 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="430" viewBox="0 0 1100 430">
-  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#9333ea"/></marker></defs>
-  <style>.box{fill:#faf5ff;stroke:#9333ea;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#9333ea;stroke-width:3;marker-end:url(#a);fill:none}</style>
-  <text x="550" y="40" text-anchor="middle" class="h">Luồng đăng nhập / đăng ký và lưu user vào Redux</text>
-  <rect x="45" y="105" width="180" height="95" class="box"/><text x="135" y="140" text-anchor="middle" class="t">AuthPage</text><text x="135" y="166" text-anchor="middle" class="s">submit form</text>
-  <rect x="285" y="105" width="205" height="95" class="box"/><text x="387" y="138" text-anchor="middle" class="t">useAuthActions</text><text x="387" y="166" text-anchor="middle" class="s">handleAuth(mode)</text>
-  <rect x="550" y="105" width="190" height="95" class="api"/><text x="645" y="138" text-anchor="middle" class="t">Auth API</text><text x="645" y="166" text-anchor="middle" class="s">/login hoặc /register</text>
-  <rect x="800" y="90" width="230" height="125" class="store"/><text x="915" y="126" text-anchor="middle" class="t">Auth storage</text><text x="915" y="154" text-anchor="middle" class="s">saveAuth(token, user)</text><text x="915" y="178" text-anchor="middle" class="s">userActions.setUser</text>
-  <rect x="330" y="300" width="210" height="85" class="box"/><text x="435" y="333" text-anchor="middle" class="t">setNotice</text><text x="435" y="358" text-anchor="middle" class="s">hiển thị thông báo</text>
-  <rect x="650" y="300" width="210" height="85" class="box"/><text x="755" y="333" text-anchor="middle" class="t">navigate('/')</text><text x="755" y="358" text-anchor="middle" class="s">về trang chủ</text>
-  <path d="M225 152 H285" class="ar"/><path d="M490 152 H550" class="ar"/><path d="M740 152 H800" class="ar"/><path d="M855 215 C780 280 610 330 540 340" class="ar"/><path d="M860 340 H650" class="ar"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="650" viewBox="0 0 1280 650" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng xác thực, mã hóa mật khẩu và reset password</title>
+  <desc id="desc">Sơ đồ tách riêng luồng đăng nhập/đăng ký và luồng quên mật khẩu để tránh đường nối chồng lên nhau.</desc>
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#6d28d9"/>
+    </marker>
+  </defs>
+  <style>
+    .bg{fill:#f8fafc}
+    .lane{fill:#ffffff;stroke:#ddd6fe;stroke-width:2;rx:18}
+    .box{fill:#faf5ff;stroke:#7c3aed;stroke-width:2;rx:12}
+    .api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}
+    .store{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}
+    .warn{fill:#fff1f2;stroke:#e11d48;stroke-width:2;rx:12}
+    .t{font-family:Arial,sans-serif;font-size:16px;font-weight:700;fill:#111827}
+    .s{font-family:Arial,sans-serif;font-size:12.5px;fill:#334155}
+    .h{font-family:Arial,sans-serif;font-size:25px;font-weight:800;fill:#0f172a}
+    .label{font-family:Arial,sans-serif;font-size:15px;font-weight:800;fill:#5b21b6}
+    .ar{stroke:#6d28d9;stroke-width:2.8;marker-end:url(#a);fill:none}
+  </style>
+
+  <rect class="bg" width="1280" height="650"/>
+  <text x="640" y="42" text-anchor="middle" class="h">Luồng auth: mã hóa mật khẩu phía client và lưu session</text>
+
+  <rect x="28" y="72" width="1224" height="230" class="lane"/>
+  <text x="55" y="102" class="label">A. Đăng nhập / đăng ký</text>
+
+  <rect x="45" y="130" width="150" height="92" class="box"/>
+  <text x="120" y="162" text-anchor="middle" class="t">AuthPage</text>
+  <text x="120" y="187" text-anchor="middle" class="s">login/register</text>
+
+  <rect x="235" y="130" width="170" height="92" class="api"/>
+  <text x="320" y="158" text-anchor="middle" class="t">Public key</text>
+  <text x="320" y="183" text-anchor="middle" class="s">GET /password-public-key</text>
+
+  <rect x="445" y="130" width="180" height="92" class="box"/>
+  <text x="535" y="158" text-anchor="middle" class="t">Web Crypto</text>
+  <text x="535" y="183" text-anchor="middle" class="s">RSA-OAEP SHA-256</text>
+  <text x="535" y="203" text-anchor="middle" class="s">passwordEncrypted</text>
+
+  <rect x="665" y="130" width="170" height="92" class="api"/>
+  <text x="750" y="158" text-anchor="middle" class="t">Auth API</text>
+  <text x="750" y="183" text-anchor="middle" class="s">POST login/register</text>
+
+  <rect x="875" y="130" width="150" height="92" class="store"/>
+  <text x="950" y="158" text-anchor="middle" class="t">MongoDB</text>
+  <text x="950" y="183" text-anchor="middle" class="s">verify/hash</text>
+  <text x="950" y="203" text-anchor="middle" class="s">passwordSalt</text>
+
+  <rect x="1065" y="130" width="150" height="92" class="store"/>
+  <text x="1140" y="158" text-anchor="middle" class="t">Session</text>
+  <text x="1140" y="183" text-anchor="middle" class="s">saveAuth</text>
+  <text x="1140" y="203" text-anchor="middle" class="s">Redux userSlice</text>
+
+  <rect x="665" y="248" width="360" height="38" class="store"/>
+  <text x="845" y="272" text-anchor="middle" class="s">Sau login: đồng bộ profile, cart, orders, contacts, notifications và mở SSE</text>
+
+  <path d="M195 176H235" class="ar"/>
+  <path d="M405 176H445" class="ar"/>
+  <path d="M625 176H665" class="ar"/>
+  <path d="M835 176H875" class="ar"/>
+  <path d="M1025 176H1065" class="ar"/>
+  <path d="M1140 222V248H1025" class="ar"/>
+
+  <rect x="28" y="338" width="1224" height="230" class="lane"/>
+  <text x="55" y="368" class="label">B. Quên mật khẩu / đặt lại mật khẩu</text>
+
+  <rect x="45" y="425" width="150" height="92" class="warn"/>
+  <text x="120" y="457" text-anchor="middle" class="t">ForgotPage</text>
+  <text x="120" y="482" text-anchor="middle" class="s">nhập email</text>
+
+  <rect x="235" y="425" width="170" height="92" class="api"/>
+  <text x="320" y="453" text-anchor="middle" class="t">Forgot API</text>
+  <text x="320" y="478" text-anchor="middle" class="s">POST /forgot-password</text>
+
+  <rect x="445" y="425" width="180" height="92" class="store"/>
+  <text x="535" y="453" text-anchor="middle" class="t">Reset token</text>
+  <text x="535" y="478" text-anchor="middle" class="s">hash trong User</text>
+  <text x="535" y="498" text-anchor="middle" class="s">hết hạn 30 phút</text>
+
+  <rect x="665" y="425" width="170" height="92" class="warn"/>
+  <text x="750" y="453" text-anchor="middle" class="t">ResetPage</text>
+  <text x="750" y="478" text-anchor="middle" class="s">token từ URL</text>
+
+  <rect x="875" y="425" width="150" height="92" class="box"/>
+  <text x="950" y="453" text-anchor="middle" class="t">Encrypt</text>
+  <text x="950" y="478" text-anchor="middle" class="s">public key</text>
+  <text x="950" y="498" text-anchor="middle" class="s">passwordEncrypted</text>
+
+  <rect x="1065" y="425" width="150" height="92" class="api"/>
+  <text x="1140" y="453" text-anchor="middle" class="t">Reset API</text>
+  <text x="1140" y="478" text-anchor="middle" class="s">POST /reset</text>
+  <text x="1140" y="498" text-anchor="middle" class="s">hash mới</text>
+
+  <rect x="445" y="585" width="390" height="38" class="store"/>
+  <text x="640" y="609" text-anchor="middle" class="s">Kết quả: xóa reset token, user đăng nhập lại bằng mật khẩu mới</text>
+
+  <path d="M195 471H235" class="ar"/>
+  <path d="M405 471H445" class="ar"/>
+  <path d="M625 471H665" class="ar"/>
+  <path d="M835 471H875" class="ar"/>
+  <path d="M1025 471H1065" class="ar"/>
+  <path d="M1140 517V604H835" class="ar"/>
 </svg>

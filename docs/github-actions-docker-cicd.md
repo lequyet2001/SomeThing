@@ -8,6 +8,14 @@ Workflow da duoc tao tai:
 .github/workflows/docker-publish.yml
 ```
 
+Workflow hien co bien moi truong:
+
+```yaml
+FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+```
+
+Bien nay cho GitHub Actions JavaScript actions chay tren Node.js 24 som, tranh canh bao Node.js 20 deprecated tren runner moi.
+
 ## 1. Images duoc build
 
 Workflow build va push 2 image:
@@ -87,8 +95,8 @@ Actions -> Build and Push Docker Images -> Run workflow
 Nhap `version`, vi du:
 
 ```txt
-2026-05-30
 v1.0.0
+v1.1.0
 ```
 
 Workflow se push them tag do cho ca client va server.
@@ -176,4 +184,3 @@ Kiem tra:
 - Push co vao branch `main` hoac `master` khong.
 - Commit co sua file trong `client/**`, `server/**`, `docker-compose*.yml` hoac workflow khong.
 - Tab `Actions` tren GitHub co bi disable khong.
-

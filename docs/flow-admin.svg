@@ -1,12 +1,69 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="480" viewBox="0 0 1100 480">
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng trang quản trị cửa hàng</title>
+  <desc id="desc">Admin route guard kiểm tra role, StoreAdminPage tải từng module, mở admin event stream và quản lý kho hàng, đơn hàng, khách hàng, user, liên hệ, đánh giá.</desc>
   <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#475569"/></marker></defs>
-  <style>.box{fill:#f8fafc;stroke:#475569;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.ok{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#475569;stroke-width:3;marker-end:url(#a);fill:none}</style>
-  <text x="550" y="40" text-anchor="middle" class="h">Luồng truy cập và thao tác trang quản lý admin</text>
-  <rect x="40" y="90" width="185" height="100" class="box"/><text x="132" y="128" text-anchor="middle" class="t">/admin/*</text><text x="132" y="156" text-anchor="middle" class="s">React Router</text>
-  <rect x="285" y="90" width="220" height="100" class="box"/><text x="395" y="126" text-anchor="middle" class="t">Kiểm tra role</text><text x="395" y="154" text-anchor="middle" class="s">shop.user?.role === admin</text>
-  <rect x="565" y="90" width="220" height="100" class="ok"/><text x="675" y="126" text-anchor="middle" class="t">StoreAdminPage</text><text x="675" y="154" text-anchor="middle" class="s">section overview/orders...</text>
-  <rect x="845" y="90" width="205" height="100" class="api"/><text x="947" y="126" text-anchor="middle" class="t">Admin API</text><text x="947" y="154" text-anchor="middle" class="s">/admin/* + token</text>
-  <rect x="270" y="300" width="230" height="100" class="box"/><text x="385" y="338" text-anchor="middle" class="t">Không đủ quyền</text><text x="385" y="366" text-anchor="middle" class="s">redirect /login hoặc /account</text>
-  <rect x="610" y="300" width="270" height="100" class="ok"/><text x="745" y="338" text-anchor="middle" class="t">Sản phẩm thay đổi</text><text x="745" y="366" text-anchor="middle" class="s">dispatch catalog-changed event</text>
-  <path d="M225 140 H285" class="ar"/><path d="M505 140 H565" class="ar"/><path d="M785 140 H845" class="ar"/><path d="M395 190 V300" class="ar"/><path d="M675 190 C660 260 700 285 745 300" class="ar"/>
+  <style>
+    .bg{fill:#f8fafc}.box{fill:#f8fafc;stroke:#475569;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.ok{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.warn{fill:#fff1f2;stroke:#e11d48;stroke-width:2;rx:12}.event{fill:#f4f0ff;stroke:#8b5cf6;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#111827}.s{font-family:Arial,sans-serif;font-size:13px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:800;fill:#0f172a}.ar{stroke:#475569;stroke-width:3;marker-end:url(#a);fill:none}.dash{stroke:#8b5cf6;stroke-width:2.4;stroke-dasharray:7 7;marker-end:url(#a);fill:none}
+  </style>
+  <rect class="bg" width="1180" height="560"/>
+  <text x="590" y="42" text-anchor="middle" class="h">Luồng admin: route guard, modules, realtime event và reload dữ liệu</text>
+
+  <rect x="40" y="95" width="170" height="92" class="box"/>
+  <text x="125" y="128" text-anchor="middle" class="t">/admin/*</text>
+  <text x="125" y="154" text-anchor="middle" class="s">React Router</text>
+
+  <rect x="260" y="95" width="190" height="92" class="box"/>
+  <text x="355" y="126" text-anchor="middle" class="t">Route guard</text>
+  <text x="355" y="152" text-anchor="middle" class="s">shop.user.role</text>
+  <text x="355" y="173" text-anchor="middle" class="s">admin?</text>
+
+  <rect x="500" y="95" width="210" height="92" class="ok"/>
+  <text x="605" y="126" text-anchor="middle" class="t">StoreAdminPage</text>
+  <text x="605" y="152" text-anchor="middle" class="s">overview/orders</text>
+  <text x="605" y="173" text-anchor="middle" class="s">inventory/customers...</text>
+
+  <rect x="760" y="95" width="185" height="92" class="api"/>
+  <text x="852" y="126" text-anchor="middle" class="t">Admin APIs</text>
+  <text x="852" y="152" text-anchor="middle" class="s">GET/PATCH/POST</text>
+  <text x="852" y="173" text-anchor="middle" class="s">/admin/*</text>
+
+  <rect x="995" y="95" width="145" height="92" class="event"/>
+  <text x="1067" y="126" text-anchor="middle" class="t">EventSource</text>
+  <text x="1067" y="152" text-anchor="middle" class="s">admin/events</text>
+  <text x="1067" y="173" text-anchor="middle" class="s">stream</text>
+
+  <rect x="250" y="300" width="220" height="92" class="warn"/>
+  <text x="360" y="333" text-anchor="middle" class="t">Không đủ quyền</text>
+  <text x="360" y="359" text-anchor="middle" class="s">redirect /login</text>
+  <text x="360" y="380" text-anchor="middle" class="s">hoặc /account</text>
+
+  <rect x="530" y="285" width="250" height="122" class="ok"/>
+  <text x="655" y="318" text-anchor="middle" class="t">Inventory module</text>
+  <text x="655" y="344" text-anchor="middle" class="s">mặt hàng, danh mục</text>
+  <text x="655" y="365" text-anchor="middle" class="s">lịch sử kho, upload ảnh</text>
+  <text x="655" y="386" text-anchor="middle" class="s">catalog-changed event</text>
+
+  <rect x="830" y="285" width="255" height="122" class="api"/>
+  <text x="957" y="318" text-anchor="middle" class="t">Orders module</text>
+  <text x="957" y="344" text-anchor="middle" class="s">lọc status/payment/date</text>
+  <text x="957" y="365" text-anchor="middle" class="s">customerType registered/guest</text>
+  <text x="957" y="386" text-anchor="middle" class="s">cập nhật trạng thái</text>
+
+  <rect x="530" y="445" width="250" height="75" class="box"/>
+  <text x="655" y="476" text-anchor="middle" class="t">Các module khác</text>
+  <text x="655" y="500" text-anchor="middle" class="s">customers, users, contacts, reviews</text>
+
+  <rect x="830" y="445" width="255" height="75" class="event"/>
+  <text x="957" y="476" text-anchor="middle" class="t">Realtime admin</text>
+  <text x="957" y="500" text-anchor="middle" class="s">order-created/order-updated → reload</text>
+
+  <path d="M210 141H260" class="ar"/>
+  <path d="M450 141H500" class="ar"/>
+  <path d="M710 141H760" class="ar"/>
+  <path d="M945 141H995" class="dash"/>
+  <path d="M355 187V300" class="ar"/>
+  <path d="M605 187C585 235 600 260 655 285" class="ar"/>
+  <path d="M852 187C845 235 895 260 957 285" class="ar"/>
+  <path d="M655 407V445" class="ar"/>
+  <path d="M1067 187C1100 300 1060 390 957 445" class="dash"/>
 </svg>

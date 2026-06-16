@@ -30,12 +30,36 @@ Các biểu đồ dưới đây mô tả đường đi của thao tác từ UI, 
 
 ![Luồng liên hệ và quản trị cửa hàng](flow-main-contact-admin.svg)
 
+## Sơ đồ chức năng bổ sung
+
+Các sơ đồ dưới đây mô tả các chức năng đã được tách chi tiết hơn sau khi hệ thống bổ sung mã hóa mật khẩu, quản lý kho, phân loại đơn hàng và realtime admin.
+
+### Luồng quên mật khẩu và đặt lại mật khẩu
+
+![Luồng quên mật khẩu và đặt lại mật khẩu](flow-password-reset.svg)
+
+### Luồng hồ sơ, avatar và địa chỉ giao hàng
+
+![Luồng hồ sơ, avatar và địa chỉ giao hàng](flow-account-address-avatar.svg)
+
+### Luồng quản lý kho hàng, danh mục và lịch sử kho
+
+![Luồng quản lý kho hàng, danh mục và lịch sử kho](flow-inventory-management.svg)
+
+### Luồng phân loại đơn hàng theo khách đã đăng ký/chưa đăng ký
+
+![Luồng phân loại đơn hàng theo khách đã đăng ký/chưa đăng ký](flow-order-customer-type.svg)
+
+### Luồng realtime dashboard admin
+
+![Luồng realtime dashboard admin](flow-admin-realtime-dashboard.svg)
+
 ## Phạm vi hệ thống
 
 Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 
 - Web khách hàng: xem sản phẩm, tìm kiếm/lọc/sắp xếp, giỏ hàng, đặt hàng, thanh toán, đánh giá, liên hệ hỗ trợ, quản lý hồ sơ và địa chỉ giao hàng.
-- Web quản trị cửa hàng: quản lý sản phẩm, đơn hàng, người dùng, đánh giá, liên hệ/yêu cầu hỗ trợ và xem thống kê.
+- Web quản trị cửa hàng: quản lý kho hàng, danh mục, lịch sử kho, đơn hàng, khách hàng, người dùng, đánh giá, liên hệ/yêu cầu hỗ trợ và xem thống kê.
 - Backend API: xác thực, lưu dữ liệu MongoDB, upload ảnh, gửi thông báo realtime qua SSE.
 
 ## Actor
@@ -44,7 +68,7 @@ Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 | --- | --- | --- |
 | Khách vãng lai | Người chưa đăng nhập | Xem sản phẩm, tìm kiếm, thêm giỏ cục bộ, gửi liên hệ, đăng ký/đăng nhập |
 | Khách hàng | Người đã đăng nhập | Đồng bộ giỏ hàng, đặt hàng, quản lý hồ sơ/avatar/địa chỉ, xem lịch sử mua hàng, đánh giá sản phẩm, nhận thông báo |
-| Admin | Tài khoản có `role = admin` | Truy cập `/admin/*`, quản lý sản phẩm/đơn hàng/user/review/liên hệ, xem thống kê |
+| Admin | Tài khoản có `role = admin` | Truy cập `/admin/*`, quản lý kho hàng/danh mục/đơn hàng/khách hàng/user/review/liên hệ, xem thống kê |
 | Hệ thống | Backend + MongoDB + SSE | Lưu dữ liệu, xác thực token, đẩy thông báo realtime, phục vụ ảnh upload |
 
 ## Danh sách use case
@@ -53,8 +77,8 @@ Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 | --- | --- | --- | --- | --- |
 | UC-01 | Đăng ký tài khoản | Khách vãng lai | `/register` | `POST /api/shop/register` |
 | UC-02 | Đăng nhập/đăng xuất | Khách vãng lai, khách hàng, admin | `/login` | `POST /api/shop/login`, `GET /api/shop/me` |
-| UC-03 | Tìm kiếm, lọc và sắp xếp sản phẩm | Khách vãng lai, khách hàng | `/shop` | `GET /api/shop/products`, `GET /api/shop/categories` |
-| UC-04 | Xem chi tiết sản phẩm | Khách vãng lai, khách hàng | `/{product-slug}` | `GET /api/shop/products/:productId`, `GET /api/shop/reviews` |
+| UC-03 | Tìm kiếm, lọc và sắp xếp sản phẩm | Khách vãng lai, khách hàng | `/shop` | `GET /api/shop/products?page&limit&category&query&sort`, `GET /api/shop/categories` |
+| UC-04 | Xem chi tiết sản phẩm | Khách vãng lai, khách hàng | `/{product-slug}` | `GET /api/shop/products/:productId`, `GET /api/shop/reviews?productId=<id>` |
 | UC-05 | Đánh giá sản phẩm | Khách hàng | `/{product-slug}` | `POST /api/shop/reviews` |
 | UC-06 | Quản lý giỏ hàng | Khách vãng lai, khách hàng | `/cart`, header cart | `GET/POST/PATCH/DELETE /api/shop/cart` |
 | UC-07 | Đặt hàng và thanh toán | Khách vãng lai, khách hàng | `/checkout`, `/payment` | `POST /api/shop/orders`, `GET /api/shop/orders/:orderCode` |
@@ -64,8 +88,8 @@ Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 | UC-11 | Nhận và quản lý thông báo | Khách hàng | Header notification | `GET/PATCH/DELETE /api/shop/notifications`, SSE stream |
 | UC-12 | Truy cập trang quản trị | Admin | `/admin/*` | Các API `/api/shop/admin/*` |
 | UC-13 | Xem thống kê quản trị | Admin | `/admin/overview` | `GET /api/shop/admin/summary` |
-| UC-14 | Quản lý sản phẩm | Admin | `/admin/products` | `GET/POST/PATCH/DELETE /api/shop/admin/products`, upload ảnh |
-| UC-15 | Quản lý đơn hàng | Admin | `/admin/orders` | `GET /api/shop/admin/orders`, `PATCH /status` |
+| UC-14 | Quản lý kho hàng, danh mục và lịch sử kho | Admin | `/admin/inventory` | `GET/POST/PATCH/DELETE /api/shop/admin/products`, `/admin/categories`, `/admin/inventory-history`, upload ảnh |
+| UC-15 | Quản lý đơn hàng | Admin | `/admin/orders` | `GET /api/shop/admin/orders?customerType=all|registered|guest`, `PATCH /status` |
 | UC-16 | Quản lý người dùng | Admin | `/admin/users` | `GET /api/shop/admin/users`, `PATCH /role` |
 | UC-17 | Quản lý đánh giá | Admin | `/admin/reviews` | `GET /api/shop/admin/reviews`, `DELETE /reviews/:reviewId` |
 | UC-18 | Quản lý liên hệ/yêu cầu hỗ trợ | Admin | `/admin/contacts` | `GET /api/shop/admin/contacts`, `PATCH /status` |
@@ -83,11 +107,12 @@ Luồng chính:
 
 1. Người dùng mở `/register`.
 2. Nhập tên, email, mật khẩu và gửi form.
-3. Client gọi `POST /api/shop/register`.
-4. Server validate dữ liệu, hash mật khẩu và tạo user.
-5. Server trả về user và token.
-6. Client lưu token, cập nhật Redux user, tải lại giỏ hàng/thông báo nếu cần.
-7. Người dùng được chuyển sang trải nghiệm đã đăng nhập.
+3. Client lấy public key từ `GET /api/shop/password-public-key`, mã hóa mật khẩu thành `passwordEncrypted`.
+4. Client gọi `POST /api/shop/register`.
+5. Server giải mã mật khẩu, validate dữ liệu, hash mật khẩu và tạo user.
+6. Server trả về user và token.
+7. Client lưu token, cập nhật Redux user, tải lại giỏ hàng/thông báo nếu cần.
+8. Người dùng được chuyển sang trải nghiệm đã đăng nhập.
 
 Luồng ngoại lệ:
 
@@ -107,10 +132,11 @@ Luồng đăng nhập:
 
 1. Người dùng mở `/login`.
 2. Nhập email, mật khẩu.
-3. Client gọi `POST /api/shop/login`.
-4. Server kiểm tra mật khẩu và role.
-5. Client lưu token, gọi/tự đồng bộ profile, cart, orders, notifications.
-6. Nếu user có `role = admin`, route admin cho phép vào trang quản trị.
+3. Client mã hóa mật khẩu bằng RSA-OAEP public key của server.
+4. Client gọi `POST /api/shop/login`.
+5. Server giải mã mật khẩu, kiểm tra hash và role.
+6. Client lưu token, gọi/tự đồng bộ profile, cart, orders, notifications.
+7. Nếu user có `role = admin`, route admin cho phép vào trang quản trị.
 
 Luồng đăng xuất:
 
@@ -136,16 +162,17 @@ Luồng ngoại lệ:
 Luồng chính:
 
 1. Người dùng vào `/shop`.
-2. Client tải sản phẩm bằng `GET /api/shop/products` và danh mục bằng `GET /api/shop/categories`.
+2. Client tải sản phẩm bằng `GET /api/shop/products?page=1&limit=10...` và danh mục bằng response catalog/API danh mục.
 3. Người dùng nhập từ khóa, chọn danh mục hoặc chọn sắp xếp giá.
-4. Redux cập nhật `query`, `category`, `sortOrder`.
-5. `filteredProducts` được tính lại và UI render danh sách mới.
-6. Ở màn điện thoại, filter/search được bố trí gọn để thao tác dễ hơn.
+4. Redux cập nhật `query`, `category`, `sortOrder`, `page`.
+5. Khi đang ở `/shop`, client gọi lại API với `page/limit/category/query/sort` để lấy đúng trang dữ liệu.
+6. UI render danh sách mới theo `products` và `pagination` từ server.
+7. Ở màn hình nhỏ, filter/search được bố trí gọn để thao tác dễ hơn.
 
 Luồng ngoại lệ:
 
 - Không có sản phẩm phù hợp: hiển thị trạng thái rỗng.
-- Server lỗi: giữ UI ổn định và hiển thị thông báo lỗi.
+- Server lỗi: giữ UI ổn định, dừng loading và hiển thị thông báo lỗi.
 
 ## UC-04: Xem chi tiết sản phẩm
 
@@ -160,9 +187,10 @@ Luồng chính:
 
 1. Người dùng chọn sản phẩm từ Home/Shop.
 2. Client điều hướng tới link slug dạng `/{product-name}-{encoded-id}` để phân biệt sản phẩm trùng tên.
-3. Route `ProductSlugRoute` giải mã id, tìm sản phẩm trong Redux catalog.
-4. Client hiển thị ảnh, tên, giá, danh mục, mô tả, review và khu vực chọn sao.
-5. Người dùng có thể bấm Add Cart để thêm vào giỏ bằng animation bay vào cart.
+3. Route sản phẩm giải mã id, dùng dữ liệu catalog nếu có hoặc gọi `GET /api/shop/products/:productId`.
+4. Client chỉ gọi `GET /api/shop/reviews?productId=<id>` cho sản phẩm đang xem.
+5. Client hiển thị ảnh, tên, giá, danh mục, mô tả, review và khu vực chọn sao.
+6. Người dùng có thể bấm Add Cart để thêm vào giỏ bằng animation bay vào cart.
 
 Luồng ngoại lệ:
 
@@ -232,9 +260,10 @@ Luồng chính:
 2. Nếu đã đăng nhập và có địa chỉ giao hàng được chọn, form tự điền thông tin.
 3. Người dùng kiểm tra thông tin nhận hàng, phương thức thanh toán và tổng tiền.
 4. Client gọi `POST /api/shop/orders`.
-5. Server tạo đơn hàng, sinh `orderCode`, lưu items, thông tin giao hàng và phương thức thanh toán.
-6. Client lưu `order` hiện tại, xóa giỏ sau khi đặt thành công.
-7. Người dùng được chuyển tới `/payment`.
+5. Server tạo đơn hàng, sinh `orderCode`, lưu items, thông tin giao hàng, phương thức thanh toán và liên kết `user` nếu khách đã đăng nhập.
+6. Response đơn hàng có `customerType`: `registered` nếu có `order.user`, `guest` nếu không có.
+7. Client lưu `order` hiện tại, xóa giỏ sau khi đặt thành công.
+8. Người dùng được chuyển tới `/payment`.
 
 Luồng ngoại lệ:
 
@@ -329,7 +358,8 @@ Luồng chính:
 5. Server gửi SSE event `notification` tới user đang online.
 6. Client cập nhật `userNotificationSlice`, badge chuông và toast.
 7. Người dùng mở notification: client gọi `PATCH /api/shop/notifications/:notificationId/read`.
-8. Người dùng có thể bấm xóa: client gọi `DELETE /api/shop/notifications/:notificationId`.
+8. Client điều hướng tới link đích, ví dụ `/account?focus=order&order=<orderCode>` hoặc `/account?focus=contact&contact=<contactId>`, rồi focus đúng nội dung.
+9. Người dùng có thể bấm xóa: client gọi `DELETE /api/shop/notifications/:notificationId`.
 
 Luồng ngoại lệ:
 
@@ -373,46 +403,56 @@ Luồng chính:
 3. Admin chọn tháng hoặc khoảng thời gian.
 4. Server tổng hợp doanh thu, đơn hàng, sản phẩm bán chạy, sản phẩm bán ít, khách hàng tiêu thụ nhiều.
 5. Client hiển thị card, bảng và tùy chọn biểu đồ cột.
-6. Trên mobile, layout chuyển sang cấu trúc gọn hơn để dễ đọc.
+6. Trên màn hình nhỏ, layout chuyển sang cấu trúc gọn hơn để dễ đọc.
 
 Luồng ngoại lệ:
 
 - Không có dữ liệu trong khoảng thời gian: hiển thị số liệu bằng 0 hoặc trạng thái rỗng.
 - API lỗi: hiển thị popup quản trị.
 
-## UC-14: Quản lý sản phẩm
+## UC-14: Quản lý kho hàng, danh mục và lịch sử kho
 
 | Thuộc tính | Nội dung |
 | --- | --- |
-| Mục tiêu | Admin thêm, sửa, xóa và tìm/lọc sản phẩm. |
+| Mục tiêu | Admin quản lý mặt hàng, tồn kho, danh mục và lịch sử thay đổi kho. |
 | Actor | Admin |
 | Điều kiện trước | Admin đã đăng nhập. |
-| Điều kiện sau | Catalog được cập nhật cho cả trang khách hàng và quản trị. |
+| Điều kiện sau | Catalog/tồn kho/danh mục được cập nhật cho cả trang khách hàng và quản trị; lịch sử kho được ghi nhận. |
 
-Luồng thêm sản phẩm:
+Luồng thêm mặt hàng:
 
-1. Admin mở `/admin/products`.
+1. Admin mở `/admin/inventory`, tab danh sách kho.
 2. Chọn danh mục từ list category.
 3. Upload ảnh qua `POST /api/shop/admin/uploads/product-image`.
 4. Server lưu ảnh vào `server/uploads/products` và trả URL.
-5. Admin nhập thông tin sản phẩm và lưu.
+5. Admin nhập thông tin mặt hàng trong dialog và lưu.
 6. Client gọi `POST /api/shop/admin/products`.
-7. Server lưu product, client reload catalog.
+7. Server lưu product, ghi `InventoryLog` action `created`, client reload catalog.
 8. Admin thấy popup thông báo thao tác thành công.
 
 Luồng sửa/xóa:
 
-1. Admin lọc/tìm sản phẩm trong bảng/card quản lý.
-2. Bấm sửa; trên mobile màn hình tự cuộn xuống form sửa.
+1. Admin lọc/tìm mặt hàng trong bảng/card quản lý.
+2. Bấm sửa để mở dialog.
 3. Client gọi `PATCH /api/shop/admin/products/:productId`.
-4. Khi xóa, client mở popup xác nhận trước.
-5. Nếu xác nhận, client gọi `DELETE /api/shop/admin/products/:productId`.
-6. Catalog được tải lại để Home/Shop hiển thị ngay.
+4. Server ghi lịch sử `stock-adjusted`, `stock-updated` hoặc `details-updated` tùy thay đổi.
+5. Khi xóa, client mở popup xác nhận trước.
+6. Nếu xác nhận, client gọi `DELETE /api/shop/admin/products/:productId`.
+7. Catalog được tải lại để Home/Shop hiển thị ngay.
+
+Luồng danh mục và lịch sử:
+
+1. Admin mở tab danh mục trong `/admin/inventory`.
+2. Thêm/sửa/xóa danh mục qua `/api/shop/admin/categories`.
+3. Server chỉ cho xóa danh mục rỗng và ghi lịch sử `category-created`, `category-updated`, `category-deleted`.
+4. Admin mở tab lịch sử kho để lọc theo hành động, từ khóa và khoảng ngày.
+5. Bấm vào một bản ghi lịch sử để xem chi tiết thay đổi.
 
 Luồng ngoại lệ:
 
 - Ảnh quá lớn: server trả `413`; cần giảm ảnh hoặc cấu hình giới hạn upload.
 - Thiếu tên/giá/danh mục: form hoặc server từ chối.
+- Danh mục đang có sản phẩm: server không cho xóa để tránh mất phân loại catalog.
 
 ## UC-15: Quản lý đơn hàng
 
@@ -427,12 +467,15 @@ Luồng chính:
 
 1. Admin mở `/admin/orders`.
 2. Client gọi `GET /api/shop/admin/orders`.
-3. Admin tìm kiếm/lọc theo trạng thái, phương thức thanh toán hoặc thông tin khách.
-4. Admin đổi trạng thái đơn.
-5. Client gọi `PATCH /api/shop/admin/orders/:orderCode/status`.
-6. Server cập nhật đơn hàng.
-7. Nếu trạng thái thay đổi, server tạo notification type `order` cho khách hàng.
-8. Nếu khách hàng đang online, SSE đẩy thông báo ngay.
+3. Admin tìm kiếm/lọc theo trạng thái, phương thức thanh toán, khoảng ngày, thông tin khách hoặc `customerType`.
+4. Bảng hiển thị badge loại khách: khách đã đăng ký hoặc khách chưa đăng ký.
+5. Admin bấm vào đơn để xem chi tiết; bấm sản phẩm trong đơn để mở mặt hàng tương ứng ở kho, bấm khách hàng để mở khách hàng tương ứng.
+6. Admin đổi trạng thái đơn.
+7. Client gọi `PATCH /api/shop/admin/orders/:orderCode/status`.
+8. Server cập nhật đơn hàng.
+9. Nếu trạng thái chuyển sang `shipping` hoặc `completed`, server trừ tồn kho một lần và ghi `InventoryLog` action `order-deducted`.
+10. Nếu trạng thái thay đổi, server tạo notification type `order` cho khách hàng.
+11. Nếu khách hàng đang online, SSE đẩy thông báo ngay.
 
 Luồng ngoại lệ:
 
@@ -517,9 +560,12 @@ Luồng ngoại lệ:
 - Đánh giá sản phẩm bắt buộc đăng nhập; khách chưa đăng nhập chỉ thấy popup đăng nhập.
 - Giỏ hàng phản hồi nhanh ở client; khi user đã đăng nhập thì đồng bộ thêm với server.
 - Checkout ưu tiên địa chỉ giao hàng đang được chọn trong hồ sơ khách hàng.
+- Đơn hàng có `order.user` được xem là khách đã đăng ký; đơn không có `order.user` được xem là khách chưa đăng ký.
+- Admin có thể lọc đơn theo `customerType=registered|guest` để tách hành vi mua hàng của hai nhóm khách.
 - Ảnh sản phẩm và avatar được upload lên server, client hiển thị qua đường dẫn `/uploads/...`.
 - Notification người dùng có trạng thái `read/unread`, có thể đánh dấu đọc hoặc xóa.
 - Khi admin cập nhật đơn hàng/liên hệ, notification phải được lưu DB trước khi đẩy realtime.
+- Notification order/contact lưu link đích chi tiết để khi click có thể mở đúng đơn hoặc yêu cầu hỗ trợ trong trang tài khoản.
 - Các thao tác admin thêm/sửa/xóa/cập nhật trạng thái phải hiển thị popup kết quả; thao tác xóa cần popup xác nhận.
 
 ## Đối chiếu tài liệu kỹ thuật

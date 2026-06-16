@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500" role="img" aria-labelledby="title desc">
   <title id="title">Luồng đăng ký, đăng nhập và phân quyền</title>
-  <desc id="desc">Biểu đồ cột dọc cho luồng đăng ký, đăng nhập, lưu token, tải dữ liệu và kiểm tra quyền admin.</desc>
+  <desc id="desc">Biểu đồ cột dọc cho luồng đăng ký, đăng nhập, mã hóa mật khẩu, lưu token, tải dữ liệu và kiểm tra quyền admin.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
       <path d="M2 2 L10 6 L2 10 Z" fill="#475569"/>
@@ -25,7 +25,7 @@
   </defs>
 
   <rect class="bg" width="1200" height="1500"/>
-  <text class="title" x="600" y="54">Luồng chính: Đăng ký, đăng nhập và phân quyền</text>
+  <text class="title" x="600" y="54">Luồng chính: Đăng ký, đăng nhập, mã hóa mật khẩu và phân quyền</text>
   <text class="subtitle" x="600" y="82">Bố cục cột dọc: UI → Client/Redux → Backend/MongoDB</text>
 
   <rect class="col" x="60" y="115" width="300" height="1305" rx="22"/>
@@ -48,8 +48,8 @@
   <text class="meta" x="210" y="518">gọi action auth</text>
 
   <rect class="client" x="485" y="465" width="230" height="78" rx="15"/>
-  <text class="text" x="600" y="494">Chuẩn bị request</text>
-  <text class="meta" x="600" y="518">handleAuth()</text>
+  <text class="text" x="600" y="494">Mã hóa mật khẩu</text>
+  <text class="meta" x="600" y="518">public key + passwordEncrypted</text>
 
   <rect class="server" x="875" y="465" width="230" height="78" rx="15"/>
   <text class="text" x="990" y="494">Auth API</text>
@@ -57,7 +57,7 @@
 
   <rect class="server" x="875" y="610" width="230" height="78" rx="15"/>
   <text class="text" x="990" y="639">Kiểm tra dữ liệu</text>
-  <text class="meta" x="990" y="663">user, password, role</text>
+  <text class="meta" x="990" y="663">giải mã, verify hash, role</text>
 
   <polygon class="decision" points="990,755 1105,825 990,895 875,825"/>
   <text class="text" x="990" y="815">Hợp lệ?</text>

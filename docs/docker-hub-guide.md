@@ -94,11 +94,11 @@ docker tag something-client:latest lequyet/marseille04-client:latest
 docker tag something-server:latest lequyet/marseille04-server:latest
 ```
 
-Nen tao them tag theo ngay/phien ban de de rollback:
+Nen tao them tag theo ngay/phien ban de de rollback. Thay `v1.0.0` bang version that khi release:
 
 ```powershell
-docker tag something-client:latest lequyet/marseille04-client:2026-05-30
-docker tag something-server:latest lequyet/marseille04-server:2026-05-30
+docker tag something-client:latest lequyet/marseille04-client:v1.0.0
+docker tag something-server:latest lequyet/marseille04-server:v1.0.0
 ```
 
 ## 5. Push len Docker Hub
@@ -106,8 +106,8 @@ docker tag something-server:latest lequyet/marseille04-server:2026-05-30
 ```powershell
 docker push lequyet/marseille04-client:latest
 docker push lequyet/marseille04-server:latest
-docker push lequyet/marseille04-client:2026-05-30
-docker push lequyet/marseille04-server:2026-05-30
+docker push lequyet/marseille04-client:v1.0.0
+docker push lequyet/marseille04-server:v1.0.0
 ```
 
 Sau khi push thanh cong, kiem tra tren Docker Hub:
@@ -164,7 +164,7 @@ server-uploads:/app/uploads
 
 Khong xoa volume nay neu muon giu anh da upload.
 
-Realtime notification dung SSE qua route `/api/shop/notifications/stream`. Client Docker chay Nginx va da cau hinh:
+Realtime notification dung SSE qua route user `/api/shop/notifications/stream` va route admin `/api/shop/admin/events/stream`. Client Docker chay Nginx va da cau hinh:
 
 ```nginx
 proxy_buffering off;
@@ -173,6 +173,8 @@ proxy_read_timeout 1h;
 ```
 
 Neu deploy sau reverse proxy khac, can tat buffering cho SSE de thong bao khong bi tre.
+
+Quan ly kho hang, danh muc, lich su kho, anh san pham va avatar deu nam sau backend API. Khi update image server, nen giu volume `server-uploads` va `mongo-data` neu khong muon mat du lieu nghiep vu.
 
 ## 9. Lenh huu ich
 

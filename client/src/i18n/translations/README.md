@@ -8,4 +8,12 @@ Examples:
 - English account text: `en/account.json`
 - Shared export: `index.js`
 
-Keys stay flat, such as `admin.addProduct` or `account.profile`, so existing `t('...')` calls do not change.
+Common namespaces:
+
+- `admin.json`: admin dashboard, orders, inventory, categories, users, contacts, reviews.
+- `auth.json`: login, register, forgot password, reset password.
+- `account.json`: customer profile, avatar, addresses, order/contact history.
+- `shop.json`, `product.json`, `cart.json`, `checkout.json`: shopping flow.
+- `home.json`, `footer.json`, `common.json`: shared public UI.
+
+Keys stay flat, such as `admin.addProduct`, `admin.customerType.guest`, or `account.profile`, so existing `t('...')` calls do not change. Add a new key to both `vi` and `en`; if a key is missing, `LanguageContext` falls back to Vietnamese and then to the key name.

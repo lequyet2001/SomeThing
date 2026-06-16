@@ -1,13 +1,58 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="420" viewBox="0 0 1100 420">
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="520" viewBox="0 0 1180 520" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng tìm kiếm, lọc, sắp xếp và phân trang sản phẩm</title>
+  <desc id="desc">ShopPage cập nhật Redux filter, useShopEffects chỉ gọi API products với page, limit, category, query, sort khi đang ở route /shop.</desc>
   <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/></marker></defs>
   <style>
-    .box{fill:#f0fdfa;stroke:#0f766e;stroke-width:2;rx:12}.store{fill:#ecfeff;stroke:#0891b2;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:19px;fill:#111827}.s{font-family:Arial,sans-serif;font-size:14px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:700;fill:#0f172a}.ar{stroke:#0f766e;stroke-width:3;marker-end:url(#a);fill:none}
+    .bg{fill:#f8fafc}.box{fill:#f0fdfa;stroke:#0f766e;stroke-width:2;rx:12}.store{fill:#ecfeff;stroke:#0891b2;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.db{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#111827}.s{font-family:Arial,sans-serif;font-size:13px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:800;fill:#0f172a}.ar{stroke:#0f766e;stroke-width:3;marker-end:url(#a);fill:none}.dash{stroke:#0f766e;stroke-width:2.4;stroke-dasharray:7 7;marker-end:url(#a);fill:none}
   </style>
-  <text x="550" y="40" text-anchor="middle" class="h">Luồng tìm kiếm, lọc danh mục và sắp xếp sản phẩm</text>
-  <rect x="35" y="100" width="180" height="95" class="box"/><text x="125" y="135" text-anchor="middle" class="t">ShopPage</text><text x="125" y="162" text-anchor="middle" class="s">input / select</text>
-  <rect x="275" y="100" width="205" height="95" class="box"/><text x="377" y="132" text-anchor="middle" class="t">shop.actions</text><text x="377" y="160" text-anchor="middle" class="s">setQuery / setCategory / setSortOrder</text>
-  <rect x="540" y="85" width="215" height="125" class="store"/><text x="647" y="120" text-anchor="middle" class="t">catalogSlice</text><text x="647" y="148" text-anchor="middle" class="s">query</text><text x="647" y="172" text-anchor="middle" class="s">category</text><text x="647" y="196" text-anchor="middle" class="s">sortOrder</text>
-  <rect x="815" y="100" width="235" height="95" class="box"/><text x="932" y="132" text-anchor="middle" class="t">useShopDerivedState</text><text x="932" y="160" text-anchor="middle" class="s">tính filteredProducts</text>
-  <rect x="395" y="285" width="310" height="85" class="box"/><text x="550" y="320" text-anchor="middle" class="t">ShopPage render lại catalog</text><text x="550" y="346" text-anchor="middle" class="s">không gọi API khi filter nội bộ</text>
-  <path d="M215 147 H275" class="ar"/><path d="M480 147 H540" class="ar"/><path d="M755 147 H815" class="ar"/><path d="M932 195 C910 270 720 315 705 325" class="ar"/><path d="M395 325 C250 315 140 250 125 195" class="ar"/>
+  <rect class="bg" width="1180" height="520"/>
+  <text x="590" y="42" text-anchor="middle" class="h">Luồng shop: tìm kiếm, lọc, sắp xếp và phân trang từ API</text>
+
+  <rect x="40" y="105" width="175" height="95" class="box"/>
+  <text x="127" y="138" text-anchor="middle" class="t">ShopPage</text>
+  <text x="127" y="164" text-anchor="middle" class="s">search/select/sort/page</text>
+
+  <rect x="270" y="105" width="205" height="95" class="store"/>
+  <text x="372" y="136" text-anchor="middle" class="t">catalogSlice</text>
+  <text x="372" y="162" text-anchor="middle" class="s">query/category/sort</text>
+  <text x="372" y="183" text-anchor="middle" class="s">page reset về 1</text>
+
+  <rect x="530" y="105" width="220" height="95" class="box"/>
+  <text x="640" y="136" text-anchor="middle" class="t">useShopEffects</text>
+  <text x="640" y="162" text-anchor="middle" class="s">chỉ khi currentPath=/shop</text>
+  <text x="640" y="183" text-anchor="middle" class="s">debounce query 300ms</text>
+
+  <rect x="805" y="105" width="230" height="95" class="api"/>
+  <text x="920" y="136" text-anchor="middle" class="t">Products API</text>
+  <text x="920" y="162" text-anchor="middle" class="s">GET /products?page&amp;limit</text>
+  <text x="920" y="183" text-anchor="middle" class="s">category/query/sort</text>
+
+  <rect x="805" y="280" width="230" height="95" class="db"/>
+  <text x="920" y="313" text-anchor="middle" class="t">MongoDB Product</text>
+  <text x="920" y="339" text-anchor="middle" class="s">filter + sort + skip/limit</text>
+  <text x="920" y="360" text-anchor="middle" class="s">mặc định 10/trang</text>
+
+  <rect x="530" y="280" width="220" height="95" class="store"/>
+  <text x="640" y="313" text-anchor="middle" class="t">setCatalog(data)</text>
+  <text x="640" y="339" text-anchor="middle" class="s">products summaries</text>
+  <text x="640" y="360" text-anchor="middle" class="s">pagination + topCategories</text>
+
+  <rect x="270" y="280" width="205" height="95" class="box"/>
+  <text x="372" y="313" text-anchor="middle" class="t">Shop render</text>
+  <text x="372" y="339" text-anchor="middle" class="s">10 sản phẩm/trang</text>
+  <text x="372" y="360" text-anchor="middle" class="s">pagination controls</text>
+
+  <rect x="40" y="280" width="175" height="95" class="box"/>
+  <text x="127" y="313" text-anchor="middle" class="t">Home</text>
+  <text x="127" y="339" text-anchor="middle" class="s">topCategories</text>
+  <text x="127" y="360" text-anchor="middle" class="s">4 danh mục bán chạy</text>
+
+  <path d="M215 152H270" class="ar"/>
+  <path d="M475 152H530" class="ar"/>
+  <path d="M750 152H805" class="ar"/>
+  <path d="M920 200V280" class="ar"/>
+  <path d="M805 328H750" class="ar"/>
+  <path d="M530 328H475" class="ar"/>
+  <path d="M270 328H215" class="dash"/>
+  <path d="M372 280C365 240 370 220 372 200" class="dash"/>
 </svg>

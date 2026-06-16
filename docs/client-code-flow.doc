@@ -176,7 +176,7 @@ main.jsx
       </tr>
       <tr>
         <td><code>i18n/</code></td>
-        <td>Context đổi ngôn ngữ Việt/Anh.</td>
+        <td>LanguageContext và các file JSON namespace cho tiếng Việt/Anh.</td>
       </tr>
       <tr>
         <td><code>styles/</code></td>
@@ -209,8 +209,8 @@ main.jsx
     <tbody>
       <tr>
         <td><code>catalogSlice</code></td>
-        <td><code>products</code>, <code>categories</code>, <code>category</code>, <code>query</code>, <code>sortOrder</code></td>
-        <td>Quản lý danh sách sản phẩm, danh mục, từ khóa tìm kiếm và sắp xếp.</td>
+        <td><code>products</code>, <code>productById</code>, <code>categories</code>, <code>topCategories</code>, <code>pagination</code>, <code>category</code>, <code>query</code>, <code>sortOrder</code></td>
+        <td>Quản lý danh sách sản phẩm, danh mục, sản phẩm/danh mục nổi bật, phân trang, từ khóa tìm kiếm và sắp xếp.</td>
       </tr>
       <tr>
         <td><code>cartSlice</code></td>
@@ -230,7 +230,7 @@ main.jsx
       <tr>
         <td><code>reviewsSlice</code></td>
         <td><code>items</code></td>
-        <td>Lưu danh sách đánh giá sản phẩm.</td>
+        <td>Lưu danh sách đánh giá của sản phẩm đang mở.</td>
       </tr>
       <tr>
         <td><code>noticeSlice</code></td>
@@ -252,7 +252,7 @@ main.jsx
 
   <h3>4.1 Vai trò của Redux trong dự án</h3>
 
-  <p>Redux được dùng cho các dữ liệu cần chia sẻ giữa nhiều màn hình hoặc cần đồng bộ với API. Ví dụ: giỏ hàng được dùng ở Header, CartPage, CheckoutPage; user được dùng ở Header, AccountPage, Admin route; catalog được dùng ở HomePage, ShopPage, ProductSlugRoute và admin sau khi thay đổi sản phẩm.</p>
+  <p>Redux được dùng cho các dữ liệu cần chia sẻ giữa nhiều màn hình hoặc cần đồng bộ với API. Ví dụ: giỏ hàng được dùng ở Header, CartPage, CheckoutPage; user được dùng ở Header, AccountPage, Admin route; catalog được dùng ở HomePage, ShopPage, ProductSlugRoute và tự reload sau thao tác kho hàng của admin.</p>
 
   <table>
     <thead>
@@ -286,7 +286,7 @@ main.jsx
       <tr>
         <td>Ngôn ngữ Việt/Anh</td>
         <td>Không</td>
-        <td>Được quản lý bằng LanguageContext riêng vì đây là state UI độc lập.</td>
+        <td>Được quản lý bằng LanguageContext riêng, text nằm trong các file JSON theo namespace.</td>
       </tr>
       <tr>
         <td>Form input tạm thời</td>
@@ -332,7 +332,10 @@ User thao tác UI
   <pre>
 State:
   products: danh sách sản phẩm hiện tại
+  productById: cache sản phẩm theo id
   categories: danh sách danh mục
+  topCategories: 4 danh mục bán tốt nhất trong tháng
+  pagination: thông tin page/limit/total
   category: danh mục đang chọn
   query: từ khóa tìm kiếm
   sortOrder: kiểu sắp xếp
@@ -340,10 +343,12 @@ State:
 Actions:
   setCatalog(data)
   setCategory(category)
+  setPage(page)
   setQuery(query)
   setSortOrder(sortOrder)
+  upsertProducts(products)
   </pre>
-  <p>Slice này không trực tiếp tính danh sách đã lọc. Việc lọc/sắp xếp nằm trong <code>useShopDerivedState</code> để tránh lưu dữ liệu trùng trong store.</p>
+  <p>Khi ở trang <code>/shop</code>, query/filter/sort/page được gửi lên API để lấy đúng trang dữ liệu. <code>useShopDerivedState</code> vẫn giữ vai trò ghép dữ liệu dẫn xuất như cart lines và fallback lọc nhẹ từ state hiện có.</p>
 
   <h4>cartSlice</h4>
   <pre>
@@ -458,7 +463,7 @@ Actions:
       </tr>
       <tr>
         <td><code>useShopEffects</code></td>
-        <td>Chạy side effects: refresh profile, tải sản phẩm, tải reviews, tải orders, tải notifications, mở SSE stream và đồng bộ cart.</td>
+        <td>Chạy side effects: refresh profile, tải sản phẩm, tải reviews theo sản phẩm, tải orders/contacts, tải notifications, mở SSE stream và đồng bộ cart.</td>
       </tr>
       <tr>
         <td><code>useShopActions</code></td>
@@ -473,7 +478,9 @@ Actions:
 useShopState() returns:
   authMessage
   cart, cartLines
+  contacts
   categories, category, filteredProducts
+  productPagination, isCatalogLoading
   order, orders
   products, query, reviews
   shipping, subtotal, total
@@ -557,13 +564,18 @@ useShopState() returns:
       </tr>
       <tr>
         <td>Load products</td>
-        <td>Khi app mount và khi event <code>marseille04:catalog-changed</code> được dispatch.</td>
-        <td><code>catalogActions.setCatalog()</code>.</td>
+        <td>Khi app mount; nếu đang ở <code>/shop</code> thì gửi thêm <code>page/limit/category/query/sort</code>; reload khi có event <code>marseille04:catalog-changed</code>.</td>
+        <td><code>catalogActions.setCatalog()</code>, <code>setCatalogLoading()</code>.</td>
       </tr>
       <tr>
         <td>Load reviews</td>
-        <td>Khi app mount.</td>
+        <td>Chỉ khi current path là route sản phẩm dạng <code>/products-...</code>.</td>
         <td><code>reviewsActions.setReviews()</code>.</td>
+      </tr>
+      <tr>
+        <td>Load contacts</td>
+        <td>Khi user đăng nhập hoặc đổi email.</td>
+        <td><code>contactsActions.setContacts()</code>.</td>
       </tr>
       <tr>
         <td>Load orders</td>
@@ -760,17 +772,20 @@ useShopEffects
   <h3>9.2 Tải catalog</h3>
   <pre>
 useShopEffects
-  → shopApi.listProducts()
+  → nếu currentPath === '/shop': shopApi.listProducts({ page, limit, category, query, sort })
+  → nếu không ở /shop: shopApi.listProducts({})
   → dispatch(catalogActions.setCatalog(data))
   → lắng nghe event "marseille04:catalog-changed"
-  → khi admin thêm/sửa/xóa sản phẩm, catalog tự reload
+  → khi admin thêm/sửa/xóa kho hàng, catalog tự reload
   </pre>
 
   <h3>9.3 Tải review</h3>
   <pre>
 useShopEffects
-  → shopApi.listReviews()
+  → parse productId từ route /products-...
+  → shopApi.listReviews({ productId })
   → dispatch(reviewsActions.setReviews(data.reviews))
+  → rời khỏi ProductPage thì clear reviews
   </pre>
 
   <h3>9.4 Tải lịch sử đơn hàng</h3>
@@ -815,9 +830,10 @@ user đăng nhập
 ShopPage input/select
   → actions.setQuery / setCategory / setSortOrder
   → dispatch catalogActions
-  → Redux catalog state thay đổi
-  → useShopDerivedState tính lại filteredProducts
-  → ShopPage render lại danh sách
+  → Redux catalog state thay đổi và page reset về 1
+  → useShopEffects gọi GET /products?page&limit&category&query&sort
+  → dispatch catalogActions.setCatalog(data)
+  → ShopPage render products + pagination từ server
   </pre>
 
   <h3>10.2 Mở chi tiết sản phẩm</h3>
@@ -832,6 +848,8 @@ User click sản phẩm
   → createProductPath(product)
   → navigate(slug)
   → ProductSlugRoute parse slug
+  → nếu summary chưa đủ description: shopApi.getProduct(productId)
+  → useShopEffects tải reviews theo productId
   → ProductPage render thông tin sản phẩm
   </pre>
 
@@ -872,12 +890,20 @@ CartPage
   <pre>
 AuthPage submit
   → actions.handleAuth(event, mode)
+  → shopApi lấy /password-public-key nếu chưa có
+  → mã hóa password bằng RSA-OAEP thành passwordEncrypted
   → shopApi.login hoặc shopApi.register
   → saveAuth(data) lưu token + user vào localStorage
   → dispatch(userActions.setUser(data.user))
   → setNotice(data.message)
   → navigate('/')
   </pre>
+
+  <h3>10.5.1 Quên mật khẩu và đặt lại mật khẩu</h3>
+  <figure class="flow-diagram">
+    <img src="flow-password-reset.svg" alt="Sơ đồ luồng quên mật khẩu và đặt lại mật khẩu">
+    <figcaption>Hình 8b. Luồng tạo reset token, mã hóa mật khẩu mới và cập nhật password hash.</figcaption>
+  </figure>
 
   <h3>10.6 Đánh giá sản phẩm</h3>
   <figure class="flow-diagram">
@@ -909,6 +935,12 @@ CheckoutPage submit
   → navigate('/payment')
   </pre>
 
+  <h3>10.7.1 Phân loại đơn hàng theo loại khách</h3>
+  <figure class="flow-diagram">
+    <img src="flow-order-customer-type.svg" alt="Sơ đồ luồng phân loại đơn hàng theo khách đã đăng ký hoặc chưa đăng ký">
+    <figcaption>Hình 10b. Luồng suy ra customerType từ order.user và filter trong trang quản lý đơn.</figcaption>
+  </figure>
+
   <h3>10.8 Gửi liên hệ</h3>
   <figure class="flow-diagram">
     <img src="flow-contact.svg" alt="Sơ đồ luồng gửi liên hệ">
@@ -925,7 +957,7 @@ ContactPage submit
   <h3>10.9 Trang quản lý admin</h3>
   <figure class="flow-diagram">
     <img src="flow-admin.svg" alt="Sơ đồ luồng trang quản lý admin">
-    <figcaption>Hình 12. Luồng kiểm tra quyền admin, tải dữ liệu quản lý và đồng bộ catalog sau thao tác sản phẩm.</figcaption>
+    <figcaption>Hình 12. Luồng kiểm tra quyền admin, tải dữ liệu quản lý và đồng bộ catalog sau thao tác kho hàng.</figcaption>
   </figure>
   <pre>
 User truy cập /admin/*
@@ -935,10 +967,17 @@ User truy cập /admin/*
 
 StoreAdminPage
   → tự gọi admin APIs theo section
-  → thao tác thêm/sửa/xóa sản phẩm
+  → mở admin/events/stream để nhận event đơn hàng
+  → thao tác thêm/sửa/xóa kho hàng hoặc danh mục
   → dispatch event "marseille04:catalog-changed"
   → catalog client tự tải lại
   </pre>
+
+  <h3>10.9.1 Quản lý kho hàng, danh mục và lịch sử kho</h3>
+  <figure class="flow-diagram">
+    <img src="flow-inventory-management.svg" alt="Sơ đồ luồng quản lý kho hàng, danh mục và lịch sử kho">
+    <figcaption>Hình 12b. Luồng quản lý mặt hàng kho, danh mục, upload ảnh, InventoryLog và trừ tồn theo đơn.</figcaption>
+  </figure>
 
   <h3>10.10 Realtime notification người dùng</h3>
   <figure class="flow-diagram">
@@ -953,22 +992,41 @@ Admin cập nhật order/contact
   → EventSource trong client nhận payload
   → dispatch(userNotificationActions.receiveUserNotification)
   → Header cập nhật chuông + toast hiển thị
+  → click notification điều hướng tới /account?focus=order/contact và focus đúng nội dung
 
 User mở/xóa notification
   → useNotificationActions
   → PATCH read hoặc DELETE notification
   → Redux cập nhật trạng thái đã đọc/chưa đọc hoặc xóa khỏi danh sách
+
+Admin realtime event
+  → StoreAdminPage mở /admin/events/stream?token=...
+  → server gửi event "admin-event"
+  → client reload summary/orders khi nhận order-created/order-updated
   </pre>
+
+  <h3>10.10.1 Realtime dashboard admin</h3>
+  <figure class="flow-diagram">
+    <img src="flow-admin-realtime-dashboard.svg" alt="Sơ đồ luồng realtime dashboard admin">
+    <figcaption>Hình 13b. Luồng admin event stream giúp dashboard và danh sách đơn cập nhật khi có order-created/order-updated.</figcaption>
+  </figure>
+
+  <h3>10.11 Hồ sơ, avatar và địa chỉ giao hàng</h3>
+  <figure class="flow-diagram">
+    <img src="flow-account-address-avatar.svg" alt="Sơ đồ luồng hồ sơ, avatar và địa chỉ giao hàng">
+    <figcaption>Hình 14. Luồng AccountPage hiển thị thông tin, mở form sửa, upload avatar và chọn địa chỉ giao hàng.</figcaption>
+  </figure>
 
   <h2>11. Luồng đa ngôn ngữ</h2>
 
-  <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.jsx</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
+  <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.jsx</code>. Text được tách thành JSON theo namespace trong <code>i18n/translations/vi</code> và <code>i18n/translations/en</code>, sau đó merge qua <code>translations/index.js</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
 
   <pre>
 Header click EN/VI
   → useLanguage().toggleLanguage()
   → set localStorage "marseille04_language"
   → update document.documentElement.lang
+  → t(key) đọc dictionary JSON theo ngôn ngữ hiện tại
   → các component dùng t(key) render lại
   </pre>
 
@@ -979,7 +1037,7 @@ Header click EN/VI
     <li>Nếu thêm action nghiệp vụ, đặt vào <code>hooks/shop/actions/</code> theo domain.</li>
     <li>Page/component nên nhận props từ <code>AppRoutes</code>, hạn chế gọi API trực tiếp trong page nếu nghiệp vụ dùng chung.</li>
     <li>API call nên đi qua <code>shopApi</code>, không gọi <code>fetch</code> rải rác.</li>
-    <li>Text UI mới cần thêm key ở cả tiếng Việt và tiếng Anh trong <code>LanguageContext.jsx</code>.</li>
+    <li>Text UI mới cần thêm key ở cả tiếng Việt và tiếng Anh trong đúng file JSON namespace dưới <code>i18n/translations/</code>.</li>
     <li>Admin route mới phải kiểm tra quyền ở frontend và backend.</li>
   </ul>
 

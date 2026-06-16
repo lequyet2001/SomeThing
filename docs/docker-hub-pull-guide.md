@@ -6,8 +6,7 @@ Image da push:
 
 - `lequyet/marseille04-client:latest`
 - `lequyet/marseille04-server:latest`
-- `lequyet/marseille04-client:2026-05-30`
-- `lequyet/marseille04-server:2026-05-30`
+- Tag version cu the neu du an phat hanh theo dot, vi du `v1.0.0` hoac `git-<commit-sha>`
 
 Ung dung gom 3 container:
 
@@ -146,11 +145,11 @@ Neu ban dung file co san trong repo nay la `docker-compose.hub.yml`, chay:
 docker compose -f docker-compose.hub.yml pull
 ```
 
-Neu muon pull tag co dinh thay vi `latest`, sua image trong compose:
+Neu muon pull tag co dinh thay vi `latest`, sua image trong compose. Thay `v1.0.0` bang tag that tren Docker Hub:
 
 ```yaml
-image: lequyet/marseille04-client:2026-05-30
-image: lequyet/marseille04-server:2026-05-30
+image: lequyet/marseille04-client:v1.0.0
+image: lequyet/marseille04-server:v1.0.0
 ```
 
 Sau do chay lai:
@@ -440,6 +439,7 @@ Chuc nang thong bao realtime dung SSE:
 
 ```txt
 /api/shop/notifications/stream
+/api/shop/admin/events/stream
 ```
 
 Neu chay dung image client moi nhat thi Nginx da tat buffering cho `/api/`. Neu dat them reverse proxy khac phia truoc, hay tat buffering/cache cho route stream va tang read timeout.
@@ -450,7 +450,7 @@ Kiem tra nhanh:
 docker compose logs -f server
 ```
 
-Sau do dang nhap user, mo DevTools Network va kiem tra request `notifications/stream` co trang thai `200`.
+Sau do dang nhap user, mo DevTools Network va kiem tra request `notifications/stream` co trang thai `200`. Neu admin dashboard khong tu cap nhat khi co don moi, kiem tra them request `admin/events/stream` va token admin.
 
 ## 13. Lenh nhanh
 
