@@ -5,14 +5,17 @@ import { formatCategoryLabel } from '../../../utils/categoryLabel'
 function InventoryProductForm({
   editingProductId,
   handleProductImageChange,
+  handleProductGalleryChange,
   handleProductSubmit,
   isDialog = false,
   isProductImageUploading,
   isProductSaving,
   onClose,
+  onRemoveProductGalleryImage,
   productCategories,
   productForm,
   productFormPanelRef,
+  productGalleryPreviews,
   productImageFile,
   productImagePreview,
   resetProductForm,
@@ -110,6 +113,32 @@ function InventoryProductForm({
                 </div>
               </div>
             )}
+          </div>
+        )}
+        <label>
+          {t('admin.productGalleryImages')}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleProductGalleryChange}
+            disabled={isProductSaving}
+          />
+        </label>
+        {productGalleryPreviews?.length > 0 && (
+          <div className={`admin-gallery-preview${isProductImageUploading ? ' is-uploading' : ''}`}>
+            {productGalleryPreviews.map((image) => (
+              <figure key={image.url}>
+                <img src={image.url} alt={image.name} />
+                <figcaption>{image.name}</figcaption>
+                {image.saved && (
+                  <button type="button" onClick={() => onRemoveProductGalleryImage(image.url)}>
+                    <X size={14} />
+                    {t('admin.delete')}
+                  </button>
+                )}
+              </figure>
+            ))}
           </div>
         )}
         <label>

@@ -148,13 +148,13 @@
   </g>
   <g>
     <ellipse class="usecase admin" cx="640" cy="920" rx="122" ry="43"/>
-    <text class="usecase-title" x="640" y="914">Quản lý SP</text>
+    <text class="usecase-title" x="640" y="914">Kho hàng</text>
     <text class="usecase-meta" x="640" y="937">UC-14</text>
   </g>
   <g>
     <ellipse class="usecase admin" cx="865" cy="920" rx="132" ry="43"/>
     <text class="usecase-title" x="865" y="914">Quản lý đơn</text>
-    <text class="usecase-meta" x="865" y="937">UC-15</text>
+    <text class="usecase-meta" x="865" y="937">UC-15 + customerType</text>
   </g>
   <g>
     <ellipse class="usecase admin" cx="1110" cy="920" rx="142" ry="43"/>

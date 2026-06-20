@@ -11,10 +11,20 @@ import {
   userActions,
 } from '../../store/shopStore'
 import { buildNotificationTargetPath } from '../../utils/notificationTarget'
+import { getProductIdFromPathSlug } from '../../utils/slug'
 
 const activeOrderStatuses = ['confirmed', 'paid', 'shipping']
+const productPathPrefix = '/products-'
 
-export function useShopEffects({ cart, dispatch, setNotice, user }) {
+function getProductIdFromProductPath(pathname) {
+  if (!pathname.startsWith(productPathPrefix)) return null
+
+  return getProductIdFromPathSlug(decodeURIComponent(pathname.slice(productPathPrefix.length)))
+}
+
+export function useShopEffects({ cart, catalog, currentPath, dispatch, setNotice, user }) {
+  const productQueryKeyRef = useRef('')
+  const productRequestIdRef = useRef(0)
   const syncedUserEmailRef = useRef(null)
   const shownUserNotificationIdsRef = useRef(new Set())
 
@@ -62,31 +72,79 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
   useEffect(() => {
     let isMounted = true
 
-    async function loadProducts() {
+    async function loadProducts(loadParams, options = {}) {
+      const requestParams = loadParams.isShopPath
+        ? {
+            category: loadParams.category,
+            limit: loadParams.pageSize,
+            page: loadParams.page,
+            query: loadParams.query,
+            sort: loadParams.sortOrder,
+          }
+        : {}
+      const requestKey = loadParams.isShopPath ? JSON.stringify(requestParams) : 'default-products'
+
+      if (!options.force && productQueryKeyRef.current === requestKey) return
+
+      productQueryKeyRef.current = requestKey
+      const requestId = productRequestIdRef.current + 1
+      productRequestIdRef.current = requestId
+      dispatch(catalogActions.setCatalogLoading(true))
       try {
-        const data = await shopApi.listProducts()
-        if (!isMounted) return
+        const data = await shopApi.listProducts(requestParams)
+        if (!isMounted || requestId !== productRequestIdRef.current) return
         dispatch(catalogActions.setCatalog(data))
       } catch (error) {
-        setNotice(`Không tải được sản phẩm từ API: ${error.message}`)
+        if (isMounted && requestId === productRequestIdRef.current) {
+          if (productQueryKeyRef.current === requestKey) {
+            productQueryKeyRef.current = ''
+          }
+          dispatch(catalogActions.setCatalogLoading(false))
+          setNotice(`Không tải được sản phẩm từ API: ${error.message}`)
+        }
       }
     }
 
-    loadProducts()
-    window.addEventListener('marseille04:catalog-changed', loadProducts)
+    const loadParams = {
+      category: catalog.category,
+      isShopPath: currentPath === '/shop',
+      page: catalog.page,
+      pageSize: catalog.pageSize,
+      query: catalog.query,
+      sortOrder: catalog.sortOrder,
+    }
+    const timer = window.setTimeout(() => loadProducts(loadParams), loadParams.query ? 300 : 0)
+    const handleCatalogChanged = () => loadProducts(loadParams, { force: true })
+    window.addEventListener('marseille04:catalog-changed', handleCatalogChanged)
 
     return () => {
       isMounted = false
-      window.removeEventListener('marseille04:catalog-changed', loadProducts)
+      window.clearTimeout(timer)
+      window.removeEventListener('marseille04:catalog-changed', handleCatalogChanged)
     }
-  }, [dispatch, setNotice])
+  }, [
+    catalog.category,
+    catalog.page,
+    catalog.pageSize,
+    catalog.query,
+    catalog.sortOrder,
+    currentPath,
+    dispatch,
+    setNotice,
+  ])
 
   useEffect(() => {
+    const reviewProductId = getProductIdFromProductPath(currentPath)
+    if (!reviewProductId) {
+      dispatch(reviewsActions.setReviews([]))
+      return undefined
+    }
+
     let isMounted = true
 
     async function loadReviews() {
       try {
-        const data = await shopApi.listReviews()
+        const data = await shopApi.listReviews({ productId: reviewProductId })
         if (isMounted) {
           dispatch(reviewsActions.setReviews(data.reviews))
         }
@@ -102,7 +160,7 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
       isMounted = false
       window.removeEventListener('marseille04:reviews-changed', loadReviews)
     }
-  }, [dispatch, setNotice])
+  }, [currentPath, dispatch, setNotice])
 
   useEffect(() => {
     if (!user) {
@@ -236,6 +294,7 @@ export function useShopEffects({ cart, dispatch, setNotice, user }) {
         const data = await shopApi.getCart()
         if (isMounted) {
           dispatch(cartActions.setCart(data.cart))
+          dispatch(catalogActions.upsertProducts((data.cartLines || []).map((line) => line.product)))
         }
       } catch (error) {
         setNotice(`Không đồng bộ được giỏ hàng: ${error.message}`)

@@ -131,7 +131,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(15, 95, 85, 0.72);
+  background: rgba(37, 99, 235, 0.72);
   color: #fff;
 }
 
@@ -171,10 +171,10 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.76);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 11px;
   font-size: 14px;
   font-weight: 900;
@@ -210,9 +210,9 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 10px;
   align-items: start;
-  border: 1px solid rgba(15, 95, 85, 0.18);
+  border: 1px solid rgba(37, 99, 235, 0.18);
   border-radius: var(--radius-sm);
-  background: #eef8f4;
+  background: #eef5ff;
   color: var(--color-primary-dark);
   padding: 10px;
   animation: upload-fade-in 0.22s ease both;
@@ -279,10 +279,10 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.76);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 12px;
   font-weight: 900;
 }
@@ -350,7 +350,7 @@
 
 .account-address-preview article.is-selected {
   border-color: var(--color-primary);
-  background: #f1f8f5;
+  background: #eaf2ff;
 }
 
 .address-manager {
@@ -383,10 +383,10 @@
 .address-manager-heading button,
 .address-actions button {
   min-height: 36px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.76);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 10px;
 }
 
@@ -402,7 +402,7 @@
 
 .address-manager article.is-selected {
   border-color: var(--color-primary);
-  background: #f1f8f5;
+  background: #eaf2ff;
 }
 
 .address-manager article label:nth-of-type(4),
@@ -524,9 +524,9 @@
   justify-content: center;
   justify-self: center;
   gap: 8px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.76);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
   color: var(--color-primary-dark);
   padding: 0 16px;
   font-weight: 900;
@@ -534,7 +534,7 @@
 
 .order-history-toggle:hover {
   border-color: var(--color-primary);
-  background: #eef8f4;
+  background: #eaf2ff;
   transform: translateY(-1px);
 }
 
@@ -552,8 +552,8 @@
 .order-history-card.is-notification-target,
 .support-history-card.is-notification-target {
   border-color: var(--color-primary);
-  background: #eef8f4;
-  box-shadow: 0 0 0 4px rgba(15, 95, 85, 0.12), var(--shadow-md);
+  background: #eef5ff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12), var(--shadow-md);
   animation: notification-target-pop 0.5s ease both;
 }
 
@@ -602,8 +602,8 @@
 }
 
 .support-status {
-  border-color: rgba(15, 95, 85, 0.22);
-  background: rgba(15, 95, 85, 0.1);
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.1);
   color: var(--color-primary-dark);
 }
 

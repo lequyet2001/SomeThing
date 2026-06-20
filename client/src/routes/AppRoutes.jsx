@@ -48,11 +48,14 @@ function AppRoutes({ shop }) {
             categories={shop.categories}
             category={shop.category}
             filteredProducts={shop.filteredProducts}
+            isLoading={shop.isCatalogLoading}
+            pagination={shop.productPagination}
             query={shop.query}
             sortOrder={shop.sortOrder}
             onAddToCart={actions.addToCart}
             onCategoryChange={actions.setCategory}
             onOpenProduct={actions.goToProduct}
+            onPageChange={actions.setProductPage}
             onQueryChange={actions.setQuery}
             onSortChange={actions.setSortOrder}
           />

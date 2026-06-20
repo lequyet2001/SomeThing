@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Send, Sparkles, Star } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ImagePlus, Send, Sparkles, Star, X } from 'lucide-react'
 import { formatCurrency } from '../utils/currency'
 import { useLanguage } from '../i18n/LanguageContext'
 import { formatCategoryLabel } from '../utils/categoryLabel'
@@ -8,8 +8,33 @@ function ProductPage({ product, reviews, user, onAddToCart, onBack, onRequestRev
   const { t } = useLanguage()
   const [selectedRating, setSelectedRating] = useState(5)
   const [hoverRating, setHoverRating] = useState(0)
+  const [selectedProductImage, setSelectedProductImage] = useState(product.image)
+  const [reviewImagePreviews, setReviewImagePreviews] = useState([])
   const productReviews = reviews.filter((review) => review.productId === product.id)
+  const productImages = [product.image, ...(product.images || [])].filter(Boolean)
   const displayRating = hoverRating || selectedRating
+
+  useEffect(() => {
+    setSelectedProductImage(product.image)
+  }, [product.id, product.image])
+
+  function handleReviewImagesChange(event) {
+    const files = Array.from(event.target.files || []).slice(0, 4)
+    reviewImagePreviews.forEach((item) => URL.revokeObjectURL(item.url))
+    setReviewImagePreviews(files.map((file) => ({ name: file.name, url: URL.createObjectURL(file) })))
+  }
+
+  function clearReviewImages(form) {
+    reviewImagePreviews.forEach((item) => URL.revokeObjectURL(item.url))
+    setReviewImagePreviews([])
+    if (form?.elements.images) {
+      form.elements.images.value = ''
+    }
+  }
+
+  useEffect(() => () => {
+    reviewImagePreviews.forEach((item) => URL.revokeObjectURL(item.url))
+  }, [reviewImagePreviews])
 
   async function handleReviewSubmit(event) {
     if (!user) {
@@ -23,13 +48,29 @@ function ProductPage({ product, reviews, user, onAddToCart, onBack, onRequestRev
     if (comment) {
       setSelectedRating(5)
       setHoverRating(0)
+      clearReviewImages(event.currentTarget)
     }
   }
 
   return (
     <section className="detail-grid">
       <div className="detail-image">
-        <img src={product.image} alt={product.name} />
+        <img src={selectedProductImage || product.image} alt={product.name} />
+        {productImages.length > 1 && (
+          <div className="detail-image-thumbnails" aria-label={t('product.gallery')}>
+            {productImages.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                className={image === selectedProductImage ? 'is-active' : ''}
+                onClick={() => setSelectedProductImage(image)}
+                aria-label={t('product.galleryImage', { index: index + 1 })}
+              >
+                <img src={image} alt="" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="detail-copy">
         <button className="link-button" onClick={onBack}>{t('common.back')}</button>
@@ -72,6 +113,24 @@ function ProductPage({ product, reviews, user, onAddToCart, onBack, onRequestRev
               </div>
             </div>
             <textarea name="comment" placeholder={t('product.reviewPlaceholder', { name: user?.name || 'Khách hàng' })} />
+            <label className="review-image-picker">
+              <ImagePlus size={18} />
+              <span>{t('product.addReviewImages')}</span>
+              <input type="file" name="images" accept="image/*" multiple onChange={handleReviewImagesChange} />
+            </label>
+            {reviewImagePreviews.length > 0 && (
+              <div className="review-image-preview-grid">
+                {reviewImagePreviews.map((image) => (
+                  <figure key={image.url}>
+                    <img src={image.url} alt={image.name} />
+                  </figure>
+                ))}
+                <button type="button" className="review-image-clear" onClick={(event) => clearReviewImages(event.currentTarget.form)}>
+                  <X size={16} />
+                  {t('product.clearReviewImages')}
+                </button>
+              </div>
+            )}
             <button className="review-submit-button">
               <Send size={18} />
               {t('product.sendReview')}
@@ -88,6 +147,15 @@ function ProductPage({ product, reviews, user, onAddToCart, onBack, onRequestRev
                   {t('product.star', { count: review.rating })}
                 </span>
                 <p>{review.comment}</p>
+                {review.images?.length > 0 && (
+                  <div className="review-image-grid">
+                    {review.images.map((image, index) => (
+                      <a key={`${review.id}-${image}`} href={image} target="_blank" rel="noreferrer">
+                        <img src={image} alt={t('product.reviewImageAlt', { index: index + 1, name: review.name })} />
+                      </a>
+                    ))}
+                  </div>
+                )}
               </article>
             ))}
           </div>

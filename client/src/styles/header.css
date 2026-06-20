@@ -8,10 +8,10 @@
   gap: 18px;
   min-height: 76px;
   padding: 0 32px;
-  border-bottom: 1px solid rgba(215, 224, 220, 0.9);
+  border-bottom: 1px solid rgba(200, 215, 238, 0.9);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
-  box-shadow: 0 4px 20px rgba(23, 32, 29, 0.05);
+  box-shadow: 0 4px 20px rgba(33, 60, 114, 0.06);
 }
 
 .topbar-main,
@@ -71,7 +71,7 @@
 .nav-tabs a.active,
 .nav-tabs a:hover,
 .account-actions button:hover {
-  background: var(--color-surface-muted);
+  background: #eaf2ff;
   color: var(--color-primary-dark);
 }
 
@@ -180,10 +180,10 @@
   min-height: 32px;
   align-items: center;
   gap: 6px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.74);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 9px;
   font-size: 12px;
   font-weight: 900;
@@ -229,7 +229,7 @@
 
 .notification-item:hover {
   border-color: var(--color-line);
-  background: var(--color-surface-muted);
+  background: #eef5ff;
 }
 
 .notification-item-main > span {
@@ -242,7 +242,7 @@
 
 .notification-item.is-unread {
   color: var(--color-ink);
-  background: #eef8f0;
+  background: #eef5ff;
 }
 
 .notification-item.is-unread .notification-item-main > span {
@@ -312,9 +312,16 @@
   background: none;
   color: var(--color-muted);
   font-weight: 700;
+  box-shadow: none;
+  transform: none;
 }
 
 .user-menu-dropdown button:hover {
-  background: var(--color-surface-muted);
+  background: #eef5ff;
   color: var(--color-primary-dark);
+}
+
+.user-menu-dropdown button::before,
+.user-menu-dropdown button::after {
+  display: none;
 }

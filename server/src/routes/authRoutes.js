@@ -1,12 +1,21 @@
 import { Router } from 'express'
 
-import { forgotPassword, getProfile, login, register, resetPassword, updateProfile } from '../controllers/authController.js'
+import {
+  forgotPassword,
+  getPasswordPublicKey,
+  getProfile,
+  login,
+  register,
+  resetPassword,
+  updateProfile,
+} from '../controllers/authController.js'
 import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
 router.post('/register', register)
 router.post('/login', login)
+router.get('/password-public-key', getPasswordPublicKey)
 router.post('/forgot-password', forgotPassword)
 router.post('/reset-password/:token', resetPassword)
 router.post('/reset-password', resetPassword)

@@ -6,8 +6,8 @@
   min-height: calc(100vh - 160px);
   border-radius: var(--radius-md);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
-    rgba(232, 239, 236, 0.45);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0)),
+    rgba(230, 241, 255, 0.62);
   padding: 2px;
   color: var(--color-ink);
 }
@@ -16,9 +16,9 @@ main:has(.admin-page) {
   width: 100%;
   max-width: none;
   background:
-    radial-gradient(circle at 8% 0%, rgba(196, 123, 18, 0.16), transparent 28%),
-    radial-gradient(circle at 92% 8%, rgba(15, 95, 85, 0.14), transparent 30%),
-    linear-gradient(180deg, #eef5f1 0%, #f7faf8 42%, #eef4f0 100%);
+    radial-gradient(circle at 8% 0%, rgba(232, 93, 117, 0.16), transparent 28%),
+    radial-gradient(circle at 92% 8%, rgba(37, 99, 235, 0.14), transparent 30%),
+    linear-gradient(180deg, #f5f9ff 0%, #ffffff 42%, #eef6ff 100%);
 }
 
 .admin-page > :not(.admin-tabs):not(.admin-toast-stack):not(.admin-dialog-backdrop) {
@@ -82,10 +82,10 @@ main:has(.admin-page) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.78);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-muted);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 16px;
   font-weight: 900;
   cursor: pointer;
@@ -236,11 +236,11 @@ button.admin-toast-main:hover strong {
   width: max-content;
   justify-self: end;
   gap: 4px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.68);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.74);
   padding: 4px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84), 0 8px 18px rgba(33, 60, 114, 0.07);
 }
 
 .admin-view-toggle button {
@@ -252,12 +252,19 @@ button.admin-toast-main:hover strong {
   padding: 0 12px;
   font-size: 13px;
   font-weight: 900;
+  box-shadow: none;
+  transform: none;
 }
 
 .admin-view-toggle button.is-active {
-  border-color: var(--color-line);
-  background: var(--color-surface-muted);
+  border-color: rgba(37, 99, 235, 0.28);
+  background: #eaf2ff;
   color: var(--color-primary-dark);
+}
+
+.admin-view-toggle button::before,
+.admin-view-toggle button::after {
+  display: none;
 }
 
 .admin-overview-insights {
@@ -272,7 +279,7 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-page-overview .admin-overview-grid > .admin-panel:first-child .admin-table-wrap {
-  border-color: rgba(15, 95, 85, 0.22);
+  border-color: rgba(37, 99, 235, 0.24);
   background: var(--color-surface);
 }
 
@@ -281,19 +288,19 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-page-overview .admin-overview-grid > .admin-panel:first-child .admin-table th {
-  background: #e4eee9;
-  color: #063b36;
+  background: #eaf2ff;
+  color: #1e40af;
   font-size: 13px;
 }
 
 .admin-page-overview .admin-overview-grid > .admin-panel:first-child .admin-table td {
-  color: #24312d;
+  color: #23304a;
   font-size: 15px;
   font-weight: 700;
 }
 
 .admin-page-overview .admin-overview-grid > .admin-panel:first-child .admin-table tbody tr:nth-child(even) td {
-  background: #f7faf8;
+  background: #f6faff;
 }
 
 .admin-page-overview .admin-overview-grid > .admin-panel:first-child .admin-table td:nth-child(2) {
@@ -314,19 +321,19 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-overview-insights .admin-panel:nth-child(1) {
-  border-top: 4px solid #0f5f55;
+  border-top: 4px solid #2563eb;
 }
 
 .admin-overview-insights .admin-panel:nth-child(2) {
-  border-top: 4px solid #b86f35;
+  border-top: 4px solid #e85d75;
 }
 
 .admin-overview-insights .admin-panel:nth-child(3) {
-  border-top: 4px solid #8f5f3d;
+  border-top: 4px solid #14b8a6;
 }
 
 .admin-overview-insights .admin-panel:nth-child(4) {
-  border-top: 4px solid #415f77;
+  border-top: 4px solid #f59e0b;
 }
 
 .admin-overview-insights .admin-mini-list {
@@ -386,7 +393,7 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-bar-chart strong {
-  color: #8a4f23;
+  color: #b23a52;
   font-size: 13px;
   line-height: 1.3;
   text-align: right;
@@ -432,7 +439,7 @@ button.admin-toast-main:hover strong {
 .admin-panel-heading > span {
   border: 1px solid var(--color-line);
   border-radius: 999px;
-  background: #f7faf8;
+  background: #f4f8ff;
   color: var(--color-primary-dark);
   padding: 7px 11px;
   font-weight: 900;
@@ -444,9 +451,9 @@ button.admin-toast-main:hover strong {
   min-height: 36px;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(15, 95, 85, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   border-radius: var(--radius-sm);
-  background: #f7faf8;
+  background: #f4f8ff;
   color: var(--color-primary-dark);
   padding: 0 11px;
   font-size: 12px;
@@ -456,7 +463,7 @@ button.admin-toast-main:hover strong {
 
 .admin-panel-open:hover {
   border-color: var(--color-primary);
-  background: #e8f2ed;
+  background: #eaf2ff;
 }
 
 .admin-side,
@@ -588,10 +595,10 @@ button.admin-toast-main:hover strong {
   min-height: 260px;
   align-content: center;
   gap: 18px;
-  border: 1px solid rgba(15, 95, 85, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.14);
   border-radius: var(--radius-sm);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(238, 247, 242, 0.86)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(237, 245, 255, 0.84)),
     var(--color-surface-muted);
   padding: 22px;
 }
@@ -624,7 +631,7 @@ button.admin-toast-main:hover strong {
 .admin-loading-line-row span {
   height: 16px;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(15, 95, 85, 0.08), rgba(255, 255, 255, 0.95), rgba(196, 123, 18, 0.1));
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.08), rgba(255, 255, 255, 0.95), rgba(232, 93, 117, 0.1));
   background-size: 220% 100%;
   animation: admin-loading-shimmer 1.35s ease-in-out infinite;
 }
@@ -664,10 +671,10 @@ button.admin-toast-main:hover strong {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
   background:
-    linear-gradient(180deg, rgba(15, 95, 85, 0.16), rgba(196, 123, 18, 0.08) 44%, rgba(255, 255, 255, 0.92)),
+    linear-gradient(180deg, rgba(37, 99, 235, 0.14), rgba(232, 93, 117, 0.08) 44%, rgba(255, 255, 255, 0.96)),
     var(--color-surface-muted);
   padding: 14px 10px;
-  box-shadow: 0 18px 42px rgba(16, 24, 21, 0.12);
+  box-shadow: 0 18px 42px rgba(33, 60, 114, 0.12);
 }
 
 .admin-tabs a {
@@ -695,10 +702,10 @@ button.admin-toast-main:hover strong {
 
 .admin-tabs a:hover,
 .admin-tabs a.is-active {
-  border-color: rgba(15, 95, 85, 0.2);
+  border-color: rgba(37, 99, 235, 0.24);
   background: #fff;
   color: var(--color-primary-dark);
-  box-shadow: 0 10px 22px rgba(15, 95, 85, 0.12);
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.13);
 }
 
 .admin-report-form {
@@ -743,10 +750,10 @@ button.admin-toast-main:hover strong {
   min-height: 42px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.78);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 14px;
   font-weight: 900;
   cursor: pointer;
@@ -759,9 +766,9 @@ button.admin-toast-main:hover strong {
   align-items: end;
   gap: 12px;
   min-width: 0;
-  border: 1px solid rgba(15, 95, 85, 0.18);
+  border: 1px solid rgba(37, 99, 235, 0.18);
   border-radius: var(--radius-sm);
-  background: #f4f8f5;
+  background: #f4f8ff;
   padding: 12px;
 }
 
@@ -800,7 +807,7 @@ button.admin-toast-main:hover strong {
   width: 100%;
   min-width: 0;
   min-height: 42px;
-  border: 1px solid #9fb0aa;
+  border: 1px solid #aebfd8;
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-ink);
@@ -821,14 +828,14 @@ button.admin-toast-main:hover strong {
   align-items: center;
   gap: 8px;
   min-height: 42px;
-  border: 1px solid #9fb0aa;
+  border: 1px solid #aebfd8;
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   padding: 0 11px;
 }
 
 .admin-filter-search svg {
-  color: var(--color-accent);
+  color: var(--color-primary);
 }
 
 .admin-filter-search input {
@@ -846,10 +853,10 @@ button.admin-toast-main:hover strong {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.78);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 12px;
   font-weight: 900;
   cursor: pointer;
@@ -865,7 +872,7 @@ button.admin-toast-main:hover strong {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px 12px;
-  background: linear-gradient(180deg, #f7faf8, var(--color-surface-muted));
+  background: linear-gradient(180deg, #ffffff, var(--color-surface-muted));
   padding: 14px;
 }
 
@@ -908,7 +915,7 @@ button.admin-toast-main:hover strong {
   border: 1px solid var(--color-line);
   border-radius: var(--radius-sm);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 245, 0.96)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 247, 255, 0.96)),
     var(--color-surface);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
@@ -917,7 +924,7 @@ button.admin-toast-main:hover strong {
   width: 100%;
   min-width: 760px;
   border-collapse: collapse;
-  background: #fbfdfb;
+  background: #fbfdff;
 }
 
 .admin-page-orders .admin-table {
@@ -933,8 +940,8 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-table th {
-  background: #dfece6;
-  color: #6f431f;
+  background: #eaf2ff;
+  color: #1e40af;
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
@@ -943,17 +950,17 @@ button.admin-toast-main:hover strong {
 
 .admin-table td {
   background: rgba(255, 255, 255, 0.82);
-  color: #26332f;
+  color: #25324a;
   font-weight: 700;
   line-height: 1.5;
 }
 
 .admin-table tbody tr:nth-child(even) td {
-  background: #f4f9f6;
+  background: #f6faff;
 }
 
 .admin-table tbody tr:hover td {
-  background: #eef7f2;
+  background: #eef5ff;
 }
 
 .admin-table td strong {
@@ -963,7 +970,7 @@ button.admin-toast-main:hover strong {
 
 .admin-table td small {
   display: block;
-  color: #3f4d48;
+  color: #66738a;
   font-weight: 800;
 }
 
@@ -1082,6 +1089,54 @@ button.admin-toast-main:hover strong {
   white-space: nowrap;
 }
 
+.admin-gallery-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: 10px;
+}
+
+.admin-gallery-preview figure {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+}
+
+.admin-gallery-preview img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.admin-gallery-preview figcaption {
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-gallery-preview button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(185, 28, 28, 0.2);
+  border-radius: var(--radius-sm);
+  background: #fff1f1;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
 .image-upload-overlay {
   position: absolute;
   inset: 10px;
@@ -1090,7 +1145,7 @@ button.admin-toast-main:hover strong {
   align-content: center;
   justify-items: center;
   gap: 8px;
-  border: 1px solid rgba(15, 95, 85, 0.18);
+  border: 1px solid rgba(37, 99, 235, 0.18);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.88);
   color: var(--color-ink);
@@ -1123,7 +1178,7 @@ button.admin-toast-main:hover strong {
   height: 7px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(15, 95, 85, 0.14);
+  background: rgba(37, 99, 235, 0.14);
 }
 
 .upload-progress i {
@@ -1163,10 +1218,10 @@ button.admin-toast-main:hover strong {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.76);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(237, 245, 255, 0.72));
+  color: var(--color-primary-dark);
   padding: 0 10px;
   font-weight: 800;
   cursor: pointer;
@@ -1184,6 +1239,8 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-actions button.danger {
+  border-color: rgba(239, 68, 68, 0.24);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 241, 242, 0.82));
   color: #b91c1c;
 }
 
@@ -1196,6 +1253,121 @@ button.admin-toast-main:hover strong {
 
 .admin-rating-stars svg.is-active {
   color: #d99a24;
+}
+
+.admin-review-image-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 46px);
+  gap: 6px;
+}
+
+.admin-review-image-strip a {
+  display: block;
+  overflow: hidden;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.admin-review-image-strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-review-detail-dialog {
+  width: min(860px, 100%);
+}
+
+.admin-review-detail-product {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: 12px;
+}
+
+.admin-review-detail-product img {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.admin-review-detail-product div,
+.admin-review-detail-meta article {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.admin-review-detail-product strong,
+.admin-review-detail-meta strong {
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.admin-review-detail-product span,
+.admin-review-detail-meta span,
+.admin-review-detail-comment span {
+  color: var(--color-accent);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-review-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-review-detail-meta article,
+.admin-review-detail-comment {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+  padding: 12px;
+}
+
+.admin-review-detail-meta small,
+.admin-review-detail-comment p {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 800;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-review-detail-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.admin-review-detail-images a {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.admin-review-detail-images img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-muted-text {
+  color: var(--color-muted);
+  font-weight: 800;
 }
 
 .admin-mini-list {
@@ -1219,8 +1391,8 @@ button.admin-toast-main:hover strong {
   align-items: center;
   gap: 12px;
   min-height: 62px;
-  border-color: rgba(15, 95, 85, 0.18);
-  background: linear-gradient(90deg, rgba(15, 95, 85, 0.08), var(--color-surface-muted) 44%);
+  border-color: rgba(37, 99, 235, 0.18);
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.08), var(--color-surface-muted) 44%);
   padding: 10px 12px;
 }
 
@@ -1234,8 +1406,8 @@ button.admin-toast-main:hover strong {
 
 .admin-mini-list button.admin-rank-item:hover,
 .admin-mini-list button.admin-rank-item:focus-visible {
-  border-color: rgba(15, 95, 85, 0.36);
-  background: linear-gradient(90deg, rgba(15, 95, 85, 0.13), #f9fcfa 50%);
+  border-color: rgba(37, 99, 235, 0.36);
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.13), #f8fbff 50%);
   outline: 0;
 }
 
@@ -1248,7 +1420,7 @@ button.admin-toast-main:hover strong {
   background: var(--color-surface);
   color: var(--color-primary-dark);
   font-size: 13px;
-  box-shadow: inset 0 0 0 1px rgba(15, 95, 85, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18);
 }
 
 .admin-rank-item > div {
@@ -1258,7 +1430,7 @@ button.admin-toast-main:hover strong {
 }
 
 .admin-mini-list span {
-  color: #8a4f23;
+  color: #b23a52;
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
@@ -1282,20 +1454,26 @@ button.admin-toast-main:hover strong {
 .admin-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  z-index: 220;
   display: grid;
+  width: 100vw;
+  min-height: 100dvh;
   place-items: center;
   background: rgba(23, 32, 29, 0.48);
-  padding: 18px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
 }
 
 .admin-dialog {
   display: grid;
   width: min(440px, 100%);
+  max-height: calc(100dvh - 36px);
   gap: 16px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  overflow: auto;
   padding: 24px;
   box-shadow: var(--shadow-md);
 }
@@ -1346,10 +1524,10 @@ button.admin-toast-main:hover strong {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  border: 1px solid var(--color-line);
+  border: 1px solid rgba(143, 167, 199, 0.78);
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(237, 245, 255, 0.76));
+  color: var(--color-primary-dark);
   padding: 0 14px;
   font-weight: 900;
 }

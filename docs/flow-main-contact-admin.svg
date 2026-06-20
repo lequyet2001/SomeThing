@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1760" viewBox="0 0 1320 1760" role="img" aria-labelledby="title desc">
   <title id="title">Luồng liên hệ và quản trị cửa hàng</title>
-  <desc id="desc">Biểu đồ cột dọc cho luồng gửi liên hệ và các thao tác quản trị sản phẩm, đơn hàng, người dùng, đánh giá, liên hệ.</desc>
+  <desc id="desc">Biểu đồ cột dọc cho luồng gửi liên hệ và các thao tác quản trị kho hàng, đơn hàng, người dùng, đánh giá, liên hệ.</desc>
   <defs>
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
       <path d="M2 2 L10 6 L2 10 Z" fill="#475569"/>
@@ -88,9 +88,9 @@
 
   <rect class="admin" x="390" y="1190" width="230" height="98" rx="15"/>
   <text class="text" x="505" y="1222">Chọn module</text>
-  <text class="meta" x="505" y="1245">overview, products</text>
-  <text class="meta" x="505" y="1263">orders, users, reviews</text>
-  <text class="meta" x="505" y="1281">contacts</text>
+  <text class="meta" x="505" y="1245">overview, inventory</text>
+  <text class="meta" x="505" y="1263">orders, customers, users</text>
+  <text class="meta" x="505" y="1281">contacts, reviews</text>
 
   <rect class="admin" x="390" y="1345" width="230" height="98" rx="15"/>
   <text class="text" x="505" y="1377">Thực hiện thao tác</text>
@@ -100,7 +100,7 @@
 
   <rect class="server" x="710" y="1345" width="230" height="98" rx="15"/>
   <text class="text" x="825" y="1377">Ghi dữ liệu</text>
-  <text class="meta" x="825" y="1400">products, orders</text>
+  <text class="meta" x="825" y="1400">inventory, orders</text>
   <text class="meta" x="825" y="1418">users, reviews</text>
   <text class="meta" x="825" y="1436">contacts</text>
 

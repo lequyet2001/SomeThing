@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertTriangle,
+  MessageSquare,
   Save,
   Trash2,
 } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { useLanguage } from '../../i18n/LanguageContext'
 import AdminLoadingState from '../../components/admin/AdminLoadingState'
@@ -38,6 +39,7 @@ function InventoryAdminSection({
   showAdminToast,
 }) {
   const { language, t } = useLanguage()
+  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const routeFilterKey = searchParams.toString()
   const [categories, setCategories] = useState([])
@@ -49,6 +51,8 @@ function InventoryAdminSection({
   const [productForm, setProductForm] = useState(emptyProductForm)
   const [productImageFile, setProductImageFile] = useState(null)
   const [productImagePreview, setProductImagePreview] = useState('')
+  const [productGalleryFiles, setProductGalleryFiles] = useState([])
+  const [productGalleryPreviews, setProductGalleryPreviews] = useState([])
   const [isProductImageUploading, setIsProductImageUploading] = useState(false)
   const [isProductSaving, setIsProductSaving] = useState(false)
   const [isCategorySaving, setIsCategorySaving] = useState(false)
@@ -196,6 +200,12 @@ function InventoryAdminSection({
     }
   }, [productImagePreview])
 
+  useEffect(() => () => {
+    productGalleryPreviews.forEach((item) => {
+      if (item.url.startsWith('blob:')) URL.revokeObjectURL(item.url)
+    })
+  }, [productGalleryPreviews])
+
   function updateFilter(group, field, value) {
     setFilters((current) => ({
       ...current,
@@ -234,6 +244,11 @@ function InventoryAdminSection({
     setProductForm(emptyProductForm)
     setProductImageFile(null)
     setProductImagePreview('')
+    productGalleryPreviews.forEach((item) => {
+      if (item.url.startsWith('blob:')) URL.revokeObjectURL(item.url)
+    })
+    setProductGalleryFiles([])
+    setProductGalleryPreviews([])
     setIsProductImageUploading(false)
     if (closeDialog) {
       setIsProductDialogOpen(false)
@@ -253,18 +268,24 @@ function InventoryAdminSection({
 
   function editProduct(product) {
     setActiveTab('items')
+    productGalleryPreviews.forEach((item) => {
+      if (item.url.startsWith('blob:')) URL.revokeObjectURL(item.url)
+    })
     setEditingProductId(product.id)
     setIsProductDialogOpen(true)
     setProductForm({
       category: product.category,
       description: product.description,
       image: product.image,
+      images: product.images || [],
       name: product.name,
       price: product.price,
       stock: product.stock,
     })
     setProductImageFile(null)
     setProductImagePreview(product.image)
+    setProductGalleryFiles([])
+    setProductGalleryPreviews((product.images || []).map((url) => ({ name: t('admin.savedImage'), url, saved: true })))
   }
 
   function handleProductImageChange(event) {
@@ -283,6 +304,35 @@ function InventoryAdminSection({
     setProductImagePreview(URL.createObjectURL(file))
   }
 
+  function handleProductGalleryChange(event) {
+    if (isProductSaving) return
+
+    const files = Array.from(event.target.files || []).slice(0, 8)
+    const oversizedFile = files.find((file) => file.size > MAX_PRODUCT_IMAGE_BYTES)
+    if (oversizedFile) {
+      event.target.value = ''
+      showAdminToast(t('admin.imageTooLarge'), 'error')
+      return
+    }
+
+    productGalleryPreviews.forEach((item) => {
+      if (item.url.startsWith('blob:')) URL.revokeObjectURL(item.url)
+    })
+    setProductGalleryFiles(files)
+    setProductGalleryPreviews([
+      ...(productForm.images || []).map((url) => ({ name: t('admin.savedImage'), url, saved: true })),
+      ...files.map((file) => ({ name: file.name, url: URL.createObjectURL(file), saved: false })),
+    ].slice(0, 8))
+  }
+
+  function removeProductGalleryImage(imageUrl) {
+    setProductForm((current) => ({
+      ...current,
+      images: (current.images || []).filter((image) => image !== imageUrl),
+    }))
+    setProductGalleryPreviews((current) => current.filter((image) => image.url !== imageUrl))
+  }
+
   async function handleProductSubmit(event) {
     event.preventDefault()
     if (isProductSaving) return
@@ -297,10 +347,19 @@ function InventoryAdminSection({
         setIsProductImageUploading(false)
       }
 
+      let images = productForm.images || []
+      if (productGalleryFiles.length > 0) {
+        setIsProductImageUploading(true)
+        const uploads = await Promise.all(productGalleryFiles.map((file) => shopApi.uploadProductImage(file)))
+        images = [...images, ...uploads.map((upload) => upload.url)].slice(0, 8)
+        setIsProductImageUploading(false)
+      }
+
       const payload = {
         ...productForm,
         category: productForm.category,
         image,
+        images,
         price: Number(productForm.price),
         stock: Number(productForm.stock),
       }
@@ -432,6 +491,10 @@ function InventoryAdminSection({
     }
   }
 
+  function openProductReviews(product) {
+    navigate(`/admin/reviews?query=${encodeURIComponent(product.id)}`)
+  }
+
   function renderInventoryRows() {
     return filteredProducts.map((product) => {
       const stockStatus = getProductStockStatus(product)
@@ -490,6 +553,10 @@ function InventoryAdminSection({
                 </button>
               </div>
               <div className="admin-inventory-row-actions">
+                <button type="button" onClick={() => openProductReviews(product)}>
+                  <MessageSquare size={15} />
+                  {t('admin.viewReviews')}
+                </button>
                 <button type="button" onClick={() => editProduct(product)}><Save size={15} /> {t('admin.edit')}</button>
                 <button type="button" className="danger" onClick={() => setDeleteProductTarget(product)}>
                   <Trash2 size={15} />
@@ -519,6 +586,7 @@ function InventoryAdminSection({
               inventoryHealthPercent={inventoryHealthPercent}
               inventoryMetrics={inventoryMetrics}
               inventoryRiskCount={inventoryRiskCount}
+              onAddProduct={openCreateProductDialog}
               products={products}
               t={t}
             />
@@ -584,11 +652,14 @@ function InventoryAdminSection({
               isProductImageUploading={isProductImageUploading}
               isProductSaving={isProductSaving}
               onClose={closeProductDialog}
+              onRemoveProductGalleryImage={removeProductGalleryImage}
               productCategories={productCategories}
               productForm={productForm}
               productFormPanelRef={productFormPanelRef}
+              productGalleryPreviews={productGalleryPreviews}
               productImageFile={productImageFile}
               productImagePreview={productImagePreview}
+              handleProductGalleryChange={handleProductGalleryChange}
               resetProductForm={resetProductForm}
               setProductForm={setProductForm}
               t={t}

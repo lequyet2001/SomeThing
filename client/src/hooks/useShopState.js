@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { noticeActions } from '../store/shopStore'
 import { useShopActions } from './shop/useShopActions'
@@ -9,6 +9,7 @@ import { useShopEffects } from './shop/useShopEffects'
 
 export function useShopState() {
   const dispatch = useDispatch()
+  const location = useLocation()
   const navigate = useNavigate()
   const state = useShopDerivedState()
 
@@ -21,6 +22,8 @@ export function useShopState() {
 
   useShopEffects({
     cart: state.cart,
+    catalog: state.catalog,
+    currentPath: location.pathname,
     dispatch,
     setNotice,
     user: state.user,
@@ -48,6 +51,8 @@ export function useShopState() {
     orders: state.orders,
     notices: state.notices,
     products: state.catalog.products,
+    productPagination: state.catalog.pagination,
+    isCatalogLoading: state.catalog.isLoading,
     query: state.catalog.query,
     reviews: state.reviews,
     shipping: state.shipping,

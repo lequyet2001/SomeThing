@@ -22,20 +22,20 @@
   <rect x="320" y="70" width="220" height="130" class="box"/>
   <text x="430" y="104" text-anchor="middle" class="text">useShopEffects</text>
   <text x="430" y="132" text-anchor="middle" class="small">refresh profile</text>
-  <text x="430" y="156" text-anchor="middle" class="small">load products</text>
-  <text x="430" y="180" text-anchor="middle" class="small">load reviews/orders/cart</text>
+  <text x="430" y="156" text-anchor="middle" class="small">load products theo route</text>
+  <text x="430" y="180" text-anchor="middle" class="small">orders/contacts/notifications</text>
 
   <rect x="620" y="70" width="210" height="130" class="box"/>
   <text x="725" y="104" text-anchor="middle" class="text">shopApi</text>
   <text x="725" y="132" text-anchor="middle" class="small">GET /me</text>
-  <text x="725" y="156" text-anchor="middle" class="small">GET /products</text>
-  <text x="725" y="180" text-anchor="middle" class="small">GET /reviews</text>
+  <text x="725" y="156" text-anchor="middle" class="small">GET /products?page...</text>
+  <text x="725" y="180" text-anchor="middle" class="small">GET /reviews?productId</text>
 
   <rect x="890" y="70" width="170" height="130" class="store"/>
   <text x="975" y="112" text-anchor="middle" class="text">Redux Store</text>
   <text x="975" y="140" text-anchor="middle" class="small">setUser</text>
   <text x="975" y="164" text-anchor="middle" class="small">setCatalog</text>
-  <text x="975" y="188" text-anchor="middle" class="small">setReviews</text>
+  <text x="975" y="188" text-anchor="middle" class="small">notifications/contacts</text>
 
   <rect x="320" y="290" width="220" height="100" class="box"/>
   <text x="430" y="328" text-anchor="middle" class="text">Derived state</text>

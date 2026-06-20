@@ -1,6 +1,6 @@
 # Tài liệu chức năng realtime notification
 
-Tài liệu này mô tả chức năng thông báo realtime cho người dùng khi admin cập nhật trạng thái đơn hàng hoặc yêu cầu hỗ trợ/liên hệ.
+Tài liệu này mô tả chức năng thông báo realtime cho người dùng khi admin cập nhật trạng thái đơn hàng hoặc yêu cầu hỗ trợ/liên hệ, đồng thời mô tả event realtime cho admin khi đơn hàng có thay đổi.
 
 ## Mục tiêu
 
@@ -9,6 +9,7 @@ Tài liệu này mô tả chức năng thông báo realtime cho người dùng k
 - Người dùng phân biệt được thông báo đã đọc/chưa đọc.
 - Người dùng có thể đánh dấu đã đọc, đánh dấu tất cả đã đọc hoặc xóa từng thông báo.
 - Nếu realtime mất kết nối tạm thời, client vẫn có cơ chế tải lại thông báo khi focus tab và mỗi 60 giây.
+- Admin nhận event realtime để dashboard/list đơn cập nhật nhanh khi có đơn mới hoặc đơn được cập nhật.
 
 ## Công nghệ sử dụng
 
@@ -31,6 +32,7 @@ Backend:
 - `server/src/controllers/notificationController.js`
 - `server/src/routes/notificationRoutes.js`
 - `server/src/controllers/adminController.js`
+- `server/src/routes/adminRoutes.js`
 - `server/src/models/ContactMessage.js`
 - `server/src/routes/contactRoutes.js`
 
@@ -40,7 +42,9 @@ Frontend:
 - `client/src/store/slices/userNotificationSlice.js`
 - `client/src/hooks/shop/useShopEffects.js`
 - `client/src/hooks/shop/actions/useNotificationActions.js`
+- `client/src/utils/notificationTarget.js`
 - `client/src/components/Header.jsx`
+- `client/src/pages/StoreAdminPage.jsx`
 - `client/src/styles/header.css`
 
 Proxy:
@@ -66,6 +70,13 @@ Luồng liên hệ/yêu cầu hỗ trợ tương tự:
 3. Server tạo notification type `contact`.
 4. Notification được đẩy realtime tới user đang online.
 
+Luồng event admin:
+
+1. Admin đăng nhập và mở trang quản lý.
+2. `StoreAdminPage` mở `EventSource` tới `/api/shop/admin/events/stream?token=<jwt-token>`.
+3. Khi đơn hàng được tạo/cập nhật, server phát event `admin-event`.
+4. Client admin nhận event như `order-created` hoặc `order-updated`, sau đó tải lại dashboard/danh sách liên quan.
+
 ## Model dữ liệu
 
 Model `UserNotification`:
@@ -90,7 +101,7 @@ Model `UserNotification`:
 - `type`: loại thông báo.
 - `title`: tiêu đề hiển thị ở dropdown/toast.
 - `message`: nội dung thông báo.
-- `link`: route client mở khi click thông báo, hiện dùng `/account`.
+- `link`: route client mở khi click thông báo, ví dụ `/account?focus=order&order=<orderCode>` hoặc `/account?focus=contact&contact=<contactId>`.
 - `metadata`: dữ liệu phụ như `orderCode`, `contactId`, trạng thái cũ/mới.
 - `readAt`: `null` nghĩa là chưa đọc; có giá trị ngày giờ nghĩa là đã đọc.
 
@@ -115,9 +126,10 @@ Realtime stream:
 
 ```txt
 GET /notifications/stream?token=<jwt-token>
+GET /admin/events/stream?token=<jwt-token>
 ```
 
-`EventSource` không hỗ trợ gắn header `Authorization`, nên stream dùng token trong query string. Server vẫn verify JWT bằng `verifyToken()`.
+`EventSource` không hỗ trợ gắn header `Authorization`, nên stream dùng token trong query string. Server vẫn verify JWT bằng `verifyToken()`. Admin stream còn kiểm tra role admin trước khi giữ kết nối.
 
 Response `GET /notifications`:
 
@@ -129,7 +141,7 @@ Response `GET /notifications`:
       "type": "order",
       "title": "Cập nhật đơn hàng",
       "message": "Đơn hàng MS123456 đã chuyển sang trạng thái Đang giao.",
-      "link": "/account",
+      "link": "/account?focus=order&order=MS123456",
       "metadata": {
         "orderCode": "MS123456",
         "previousStatus": "paid",
@@ -137,7 +149,7 @@ Response `GET /notifications`:
       },
       "isRead": false,
       "readAt": null,
-      "createdAt": "2026-05-30T..."
+      "createdAt": "2026-06-16T..."
     }
   ],
   "unreadCount": 1
@@ -149,6 +161,13 @@ SSE event:
 ```txt
 event: notification
 data: {"notification":{...},"unreadCount":2}
+```
+
+Admin SSE event:
+
+```txt
+event: admin-event
+data: {"type":"order-updated","order":{...},"orderCode":"MS123456","status":"shipping"}
 ```
 
 ## Luồng frontend
@@ -169,6 +188,7 @@ Khi user click thông báo:
 2. Nếu thông báo chưa đọc, client dispatch optimistic `markNotificationRead`.
 3. Client gọi `PATCH /notifications/:id/read`.
 4. Client điều hướng tới `notification.link` hoặc `/account`.
+5. `AccountPage` đọc query `focus/order/contact`, mở đúng tab và cuộn/focus tới đúng đơn hàng hoặc yêu cầu hỗ trợ.
 
 Khi user xóa thông báo:
 
@@ -198,6 +218,13 @@ Actions chính:
 
 Slice `noticeSlice` vẫn dùng cho toast tạm thời. `userNotificationSlice` dùng cho notification có lưu trạng thái đọc/chưa đọc.
 
+## Quy tắc xác định người nhận
+
+- Đơn hàng tạo khi đã đăng nhập có `order.user`, server gửi notification trực tiếp cho user đó.
+- Đơn hàng tạo khi chưa đăng nhập không có `order.user`; khi admin cập nhật, server fallback tìm tài khoản có email trùng `order.customer.email`.
+- Liên hệ tạo khi đã đăng nhập có user liên quan; liên hệ của khách vãng lai fallback theo email nếu có tài khoản trùng.
+- Nếu không tìm được user nhận, server vẫn cập nhật order/contact nhưng không tạo notification cá nhân.
+
 ## Nginx và Docker
 
 SSE cần proxy không buffer response. `client/nginx.conf` đã cấu hình trong `location /api/`:
@@ -212,6 +239,7 @@ Nếu deploy sau một reverse proxy khác, cần cấu hình tương tự cho r
 
 ```txt
 /api/shop/notifications/stream
+/api/shop/admin/events/stream
 ```
 
 ## Bảo mật

@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Inbox,
   MessageSquare,
+  Eye,
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
@@ -14,6 +15,7 @@ import {
   Truck,
   UserCog,
   Users,
+  X,
 } from 'lucide-react'
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -39,6 +41,7 @@ import {
   matchesSearch,
   notifyCatalogChanged,
   notifyReviewsChanged,
+  orderCustomerTypeOptions,
   orderStatusOptions,
   pendingContactStatuses,
   pendingOrderStatuses,
@@ -57,6 +60,10 @@ const adminTabs = [
   { id: 'contacts', labelKey: 'admin.contacts', icon: Inbox },
   { id: 'reviews', labelKey: 'admin.reviews', icon: MessageSquare },
 ]
+
+function getOrderCustomerType(order) {
+  return order?.customerType || (order?.registeredUserId ? 'registered' : 'guest')
+}
 
 function getMonthDateRange(monthValue) {
   const match = String(monthValue || '').trim().match(/^(\d{4})-(\d{1,2})$/)
@@ -87,6 +94,7 @@ function StoreAdminPage({ section = 'overview' }) {
   const [contacts, setContacts] = useState([])
   const [adminReviews, setAdminReviews] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedReview, setSelectedReview] = useState(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState(null)
   const [toast, setToast] = useState({ message: '', title: '', type: 'success' })
   const [adminAlerts, setAdminAlerts] = useState([])
@@ -135,6 +143,8 @@ function StoreAdminPage({ section = 'overview' }) {
     const filters = adminFilters.orders
     return orders.filter((order) => {
       const orderItems = order.items?.map((item) => item.name || item.productName || item.product?.name).join(' ') || ''
+      const customerType = getOrderCustomerType(order)
+      const customerTypeLabel = t(`admin.customerType.${customerType}`)
       const matchesStatus =
         filters.status === 'all' ||
         (filters.status === 'pending' && pendingOrderStatuses.includes(order.status)) ||
@@ -150,16 +160,18 @@ function StoreAdminPage({ section = 'overview' }) {
           order.customer?.address,
           order.status,
           order.payment,
+          customerTypeLabel,
           orderItems,
           formatAdminDate(filterDate, language, ''),
         ], filters.query) &&
         matchesStatus &&
         (filters.payment === 'all' || order.payment === filters.payment) &&
+        (filters.customerType === 'all' || customerType === filters.customerType) &&
         isWithinNumberRange(order.total, filters.minTotal, filters.maxTotal) &&
         isWithinDateRange(filterDate, filters.startDate, filters.endDate)
       )
     })
-  }, [adminFilters.orders, language, orders])
+  }, [adminFilters.orders, language, orders, t])
 
   const filteredUsers = useMemo(() => {
     const filters = adminFilters.users
@@ -195,6 +207,9 @@ function StoreAdminPage({ section = 'overview' }) {
     return adminReviews.filter((review) => (
       matchesSearch([review.productId, review.productName, review.name, review.userEmail, review.comment], filters.query) &&
       (filters.rating === 'all' || Number(review.rating) === Number(filters.rating)) &&
+      (filters.hasImages === 'all' ||
+        (filters.hasImages === 'yes' && review.images?.length > 0) ||
+        (filters.hasImages === 'no' && !review.images?.length)) &&
       isWithinDateRange(review.createdAt, filters.startDate, filters.endDate)
     ))
   }, [adminFilters.reviews, adminReviews])
@@ -331,12 +346,15 @@ function StoreAdminPage({ section = 'overview' }) {
       const allowedStatuses = ['all', 'pending', 'revenue', ...orderStatusOptions.map((option) => option.value)]
       const nextStatus = allowedStatuses.includes(routeStatus) ? routeStatus : 'all'
       const routeDateField = routeParams.get('dateField')
+      const routeCustomerType = routeParams.get('customerType')
       const nextDateField = ['createdAt', 'updatedAt'].includes(routeDateField) ? routeDateField : 'createdAt'
+      const nextCustomerType = ['all', 'registered', 'guest'].includes(routeCustomerType) ? routeCustomerType : 'all'
 
       setAdminFilters((current) => ({
         ...current,
         orders: {
           ...emptyAdminFilters.orders,
+          customerType: nextCustomerType,
           dateField: nextDateField,
           endDate: routeEndDate,
           query: routeQuery,
@@ -375,6 +393,24 @@ function StoreAdminPage({ section = 'overview' }) {
           address: ['all', 'hasAddress', 'missingAddress'].includes(routeAddress) ? routeAddress : 'all',
           query: routeQuery,
           role: ['all', 'customer', 'admin'].includes(routeRole) ? routeRole : 'all',
+        },
+      }))
+      return
+    }
+
+    if (section === 'reviews') {
+      const routeRating = routeParams.get('rating')
+      const routeHasImages = routeParams.get('hasImages')
+
+      setAdminFilters((current) => ({
+        ...current,
+        reviews: {
+          ...emptyAdminFilters.reviews,
+          endDate: routeEndDate,
+          hasImages: ['all', 'yes', 'no'].includes(routeHasImages) ? routeHasImages : 'all',
+          query: routeQuery,
+          rating: ['all', '1', '2', '3', '4', '5'].includes(routeRating) ? routeRating : 'all',
+          startDate: routeStartDate,
         },
       }))
     }
@@ -628,14 +664,15 @@ function StoreAdminPage({ section = 'overview' }) {
           return (
             <div key={tab.id} className={`admin-tab-group admin-tab-group-products ${section === 'products' ? 'is-open' : ''}`}>
               {tabLink}
-              <InventoryTabsNav
-                activeTab={inventoryActiveTab}
-                categoryCount={inventoryNavStats.categoryCount}
-                hidden={section !== 'products'}
-                historyCount={inventoryNavStats.historyCount}
-                onChangeTab={setInventoryActiveTab}
-                t={t}
-              />
+              {section === 'products' && (
+                <InventoryTabsNav
+                  activeTab={inventoryActiveTab}
+                  categoryCount={inventoryNavStats.categoryCount}
+                  historyCount={inventoryNavStats.historyCount}
+                  onChangeTab={setInventoryActiveTab}
+                  t={t}
+                />
+              )}
             </div>
           )
         })}
@@ -668,7 +705,7 @@ function StoreAdminPage({ section = 'overview' }) {
         />
       ))}
       {section === 'orders' && (
-        <section className="admin-panel">
+        <section className="admin-panel admin-orders-panel">
           <div className="admin-panel-heading">
             <div>
               <p className="admin-kicker"><ClipboardList size={15} /> {t('admin.orders')}</p>
@@ -723,6 +760,18 @@ function StoreAdminPage({ section = 'overview' }) {
               </select>
             </label>
             <label>
+              {t('admin.customerType')}
+              <select
+                value={adminFilters.orders.customerType}
+                onChange={(event) => updateAdminFilter('orders', 'customerType', event.target.value)}
+              >
+                <option value="all">{t('admin.allCustomerTypes')}</option>
+                {orderCustomerTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+                ))}
+              </select>
+            </label>
+            <label>
               {t('admin.minTotal')}
               <input
                 type="number"
@@ -757,12 +806,13 @@ function StoreAdminPage({ section = 'overview' }) {
               />
             </label>
           </AdminFilterPanel>
-          <div className="admin-table-wrap">
-            <table className="admin-table">
+          <div className="admin-table-wrap admin-orders-table-wrap">
+            <table className="admin-table admin-orders-table">
               <thead>
                 <tr>
                   <th>{t('admin.orderCode')}</th>
                   <th>{t('admin.customer')}</th>
+                  <th>{t('admin.customerType')}</th>
                   <th>{t('admin.createdAt')}</th>
                   <th>{t('admin.items')}</th>
                   <th>{t('admin.paymentMethod')}</th>
@@ -772,19 +822,19 @@ function StoreAdminPage({ section = 'overview' }) {
               </thead>
               <tbody>
                 {isOrdersLoading ? (
-                  <AdminTableLoadingRow colSpan={7} label={t('admin.loading')} />
+                  <AdminTableLoadingRow colSpan={8} label={t('admin.loading')} />
                 ) : filteredOrders.map((order) => (
-                  <tr key={order.id} className="admin-clickable-row" onClick={() => setSelectedOrder(order)}>
+                  <tr key={order.id} className={`admin-clickable-row admin-order-row admin-order-row-${order.status}`} onClick={() => setSelectedOrder(order)}>
                     <td data-label={t('admin.orderCode')}>
                       <button
                         type="button"
-                        className="admin-inline-link"
+                        className="admin-inline-link admin-order-code-button"
                         onClick={(event) => {
                           event.stopPropagation()
                           setSelectedOrder(order)
                         }}
                       >
-                        {order.id}
+                        <span>{order.id}</span>
                       </button>
                     </td>
                     <td data-label={t('admin.customer')}>
@@ -801,23 +851,36 @@ function StoreAdminPage({ section = 'overview' }) {
                         <small>{order.customer.address}</small>
                       </button>
                     </td>
-                    <td data-label={t('admin.createdAt')}>{formatAdminDate(order.createdAt, language, t('admin.noInfo'))}</td>
+                    <td data-label={t('admin.customerType')}>
+                      <span className={`admin-order-customer-type-badge admin-order-customer-type-${getOrderCustomerType(order)}`}>
+                        {t(`admin.customerType.${getOrderCustomerType(order)}`)}
+                      </span>
+                    </td>
+                    <td data-label={t('admin.createdAt')} className="admin-order-date-cell">
+                      <strong>{formatAdminDate(order.createdAt, language, t('admin.noInfo'))}</strong>
+                    </td>
                     <td data-label={t('admin.items')}>
                       <button
                         type="button"
-                        className="admin-inline-link"
+                        className="admin-inline-link admin-order-products-button"
                         onClick={(event) => {
                           event.stopPropagation()
                           setSelectedOrder(order)
                         }}
                       >
-                        {t('admin.productCount', { count: order.items.length })}
+                        <span>{order.items.length}</span>
+                        {t('admin.items')}
                       </button>
                     </td>
-                    <td data-label={t('admin.paymentMethod')}><strong>{order.payment || t('admin.noInfo')}</strong></td>
-                    <td data-label={t('admin.total')}>{formatCurrency(order.total)}</td>
+                    <td data-label={t('admin.paymentMethod')}>
+                      <span className="admin-order-payment-badge">{order.payment || t('admin.noInfo')}</span>
+                    </td>
+                    <td data-label={t('admin.total')}>
+                      <strong className="admin-order-total">{formatCurrency(order.total)}</strong>
+                    </td>
                     <td data-label={t('admin.status')}>
                       <select
+                        className={`admin-order-status-select admin-order-status-${order.status}`}
                         value={order.status}
                         onClick={(event) => event.stopPropagation()}
                         onChange={(event) => handleOrderStatus(order.id, event.target.value)}
@@ -831,7 +894,7 @@ function StoreAdminPage({ section = 'overview' }) {
                 ))}
                 {!isOrdersLoading && filteredOrders.length === 0 && (
                   <tr className="admin-empty-row">
-                    <td colSpan="7" data-label="">{orders.length === 0 ? t('admin.noOrders') : t('admin.noFilterResults')}</td>
+                    <td colSpan="8" data-label="">{orders.length === 0 ? t('admin.noOrders') : t('admin.noFilterResults')}</td>
                   </tr>
                 )}
               </tbody>
@@ -1077,6 +1140,17 @@ function StoreAdminPage({ section = 'overview' }) {
               </select>
             </label>
             <label>
+              {t('admin.reviewImages')}
+              <select
+                value={adminFilters.reviews.hasImages}
+                onChange={(event) => updateAdminFilter('reviews', 'hasImages', event.target.value)}
+              >
+                <option value="all">{t('admin.allReviewImages')}</option>
+                <option value="yes">{t('admin.withReviewImages')}</option>
+                <option value="no">{t('admin.withoutReviewImages')}</option>
+              </select>
+            </label>
+            <label>
               {t('admin.startDate')}
               <input
                 type="date"
@@ -1101,13 +1175,14 @@ function StoreAdminPage({ section = 'overview' }) {
                   <th>{t('admin.customer')}</th>
                   <th>{t('admin.rating')}</th>
                   <th>{t('admin.message')}</th>
+                  <th>{t('admin.reviewImages')}</th>
                   <th>{t('admin.createdAt')}</th>
                   <th>{t('admin.tableActions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {isReviewsLoading ? (
-                  <AdminTableLoadingRow colSpan={6} label={t('admin.loading')} />
+                  <AdminTableLoadingRow colSpan={7} label={t('admin.loading')} />
                 ) : filteredReviews.map((review) => (
                   <tr key={review.id}>
                     <td data-label={t('admin.product')}>
@@ -1129,6 +1204,19 @@ function StoreAdminPage({ section = 'overview' }) {
                       </span>
                     </td>
                     <td data-label={t('admin.message')}>{review.comment}</td>
+                    <td data-label={t('admin.reviewImages')}>
+                      {review.images?.length > 0 ? (
+                        <div className="admin-review-image-strip">
+                          {review.images.map((image, index) => (
+                            <a key={`${review.id}-${image}`} href={image} target="_blank" rel="noreferrer">
+                              <img src={image} alt={t('product.reviewImageAlt', { index: index + 1, name: review.name })} />
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="admin-muted-text">{t('admin.noInfo')}</span>
+                      )}
+                    </td>
                     <td data-label={t('admin.createdAt')}>{formatAdminDate(review.createdAt, language, t('admin.noInfo'))}</td>
                     <td data-label={t('admin.tableActions')}>
                       <div className="admin-actions">
@@ -1136,19 +1224,93 @@ function StoreAdminPage({ section = 'overview' }) {
                           <Trash2 size={15} />
                           {t('admin.delete')}
                         </button>
+                        <button type="button" onClick={() => setSelectedReview(review)}>
+                          <Eye size={15} />
+                          {t('admin.detail')}
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {!isReviewsLoading && filteredReviews.length === 0 && (
                   <tr className="admin-empty-row">
-                    <td colSpan="6" data-label="">{adminReviews.length === 0 ? t('admin.noReviews') : t('admin.noFilterResults')}</td>
+                    <td colSpan="7" data-label="">{adminReviews.length === 0 ? t('admin.noReviews') : t('admin.noFilterResults')}</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
         </section>
+      )}
+
+      {selectedReview && (
+        <div className="admin-dialog-backdrop" role="presentation">
+          <section className="admin-dialog admin-review-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="review-detail-title">
+            <div className="admin-panel-heading">
+              <div>
+                <p className="admin-kicker"><MessageSquare size={15} /> {t('admin.reviews')}</p>
+                <h2 id="review-detail-title">{t('admin.reviewDetail')}</h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                aria-label={t('admin.close')}
+                onClick={() => setSelectedReview(null)}
+              >
+                <X size={17} />
+              </button>
+            </div>
+            <div className="admin-review-detail-product">
+              {selectedReview.productImage && <img src={selectedReview.productImage} alt={selectedReview.productName} />}
+              <div>
+                <strong>{selectedReview.productName}</strong>
+                <span>#{selectedReview.productId}</span>
+              </div>
+            </div>
+            <div className="admin-review-detail-meta">
+              <article>
+                <span>{t('admin.customer')}</span>
+                <strong>{selectedReview.name}</strong>
+                <small>{selectedReview.userEmail || t('admin.noInfo')}</small>
+              </article>
+              <article>
+                <span>{t('admin.rating')}</span>
+                <strong>{t('product.star', { count: selectedReview.rating })}</strong>
+              </article>
+              <article>
+                <span>{t('admin.createdAt')}</span>
+                <strong>{formatAdminDate(selectedReview.createdAt, language, t('admin.noInfo'))}</strong>
+              </article>
+            </div>
+            <div className="admin-review-detail-comment">
+              <span>{t('admin.message')}</span>
+              <p>{selectedReview.comment}</p>
+            </div>
+            {selectedReview.images?.length > 0 && (
+              <div className="admin-review-detail-images">
+                {selectedReview.images.map((image, index) => (
+                  <a key={`${selectedReview.id}-${image}`} href={image} target="_blank" rel="noreferrer">
+                    <img src={image} alt={t('product.reviewImageAlt', { index: index + 1, name: selectedReview.name })} />
+                  </a>
+                ))}
+              </div>
+            )}
+            <div className="admin-dialog-actions">
+              <button type="button" onClick={() => setSelectedReview(null)}>{t('admin.close')}</button>
+              <button
+                type="button"
+                className="danger"
+                onClick={() => {
+                  setDeleteReviewTarget(selectedReview)
+                  setSelectedReview(null)
+                }}
+              >
+                <Trash2 size={16} />
+                {t('admin.delete')}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
       {section === 'overview' && !isOverviewLoading && lowStockProducts.length > 0 && (

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng quản lý kho hàng, danh mục và lịch sử kho</title>
+  <desc id="desc">Admin quản lý mặt hàng kho, upload ảnh sản phẩm, quản lý danh mục, xem lịch sử kho và tự trừ tồn khi đơn ở trạng thái shipping hoặc completed.</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/></marker></defs>
+  <style>
+    .bg{fill:#f8fafc}.admin{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.api{fill:#eef7ff;stroke:#2563eb;stroke-width:2;rx:12}.db{fill:#ecfdf5;stroke:#059669;stroke-width:2;rx:12}.log{fill:#faf5ff;stroke:#7c3aed;stroke-width:2;rx:12}.warn{fill:#fff1f2;stroke:#e11d48;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#111827}.s{font-family:Arial,sans-serif;font-size:13px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:800;fill:#0f172a}.ar{stroke:#0f766e;stroke-width:3;marker-end:url(#a);fill:none}.dash{stroke:#7c3aed;stroke-width:2.4;stroke-dasharray:7 7;marker-end:url(#a);fill:none}
+  </style>
+  <rect class="bg" width="1280" height="640"/>
+  <text x="640" y="42" text-anchor="middle" class="h">Quản lý kho hàng: mặt hàng, danh mục, ảnh, lịch sử và trừ tồn theo đơn</text>
+
+  <rect x="45" y="95" width="200" height="100" class="admin"/>
+  <text x="145" y="129" text-anchor="middle" class="t">/admin/inventory</text>
+  <text x="145" y="155" text-anchor="middle" class="s">tabs: items</text>
+  <text x="145" y="176" text-anchor="middle" class="s">categories, history</text>
+
+  <rect x="305" y="95" width="210" height="100" class="admin"/>
+  <text x="410" y="129" text-anchor="middle" class="t">Product dialog</text>
+  <text x="410" y="155" text-anchor="middle" class="s">thêm/sửa mặt hàng</text>
+  <text x="410" y="176" text-anchor="middle" class="s">stock, price, category</text>
+
+  <rect x="575" y="95" width="210" height="100" class="api"/>
+  <text x="680" y="129" text-anchor="middle" class="t">Upload ảnh</text>
+  <text x="680" y="155" text-anchor="middle" class="s">POST /admin/uploads</text>
+  <text x="680" y="176" text-anchor="middle" class="s">server/uploads/products</text>
+
+  <rect x="845" y="95" width="210" height="100" class="api"/>
+  <text x="950" y="129" text-anchor="middle" class="t">Products API</text>
+  <text x="950" y="155" text-anchor="middle" class="s">POST/PATCH/DELETE</text>
+  <text x="950" y="176" text-anchor="middle" class="s">/admin/products</text>
+
+  <rect x="45" y="290" width="200" height="100" class="admin"/>
+  <text x="145" y="324" text-anchor="middle" class="t">Categories tab</text>
+  <text x="145" y="350" text-anchor="middle" class="s">select khi nhập SP</text>
+  <text x="145" y="371" text-anchor="middle" class="s">không xóa nếu có SP</text>
+
+  <rect x="305" y="290" width="210" height="100" class="api"/>
+  <text x="410" y="324" text-anchor="middle" class="t">Categories API</text>
+  <text x="410" y="350" text-anchor="middle" class="s">POST/PATCH/DELETE</text>
+  <text x="410" y="371" text-anchor="middle" class="s">/admin/categories</text>
+
+  <rect x="575" y="290" width="210" height="100" class="db"/>
+  <text x="680" y="324" text-anchor="middle" class="t">MongoDB</text>
+  <text x="680" y="350" text-anchor="middle" class="s">Product + Category</text>
+  <text x="680" y="371" text-anchor="middle" class="s">stock, image, category</text>
+
+  <rect x="845" y="290" width="210" height="100" class="log"/>
+  <text x="950" y="324" text-anchor="middle" class="t">InventoryLog</text>
+  <text x="950" y="350" text-anchor="middle" class="s">created, updated</text>
+  <text x="950" y="371" text-anchor="middle" class="s">category/order-deducted</text>
+
+  <rect x="1085" y="290" width="155" height="100" class="admin"/>
+  <text x="1162" y="324" text-anchor="middle" class="t">History tab</text>
+  <text x="1162" y="350" text-anchor="middle" class="s">lọc action/ngày</text>
+  <text x="1162" y="371" text-anchor="middle" class="s">click chi tiết</text>
+
+  <rect x="305" y="485" width="210" height="90" class="warn"/>
+  <text x="410" y="518" text-anchor="middle" class="t">Order status</text>
+  <text x="410" y="544" text-anchor="middle" class="s">shipping/completed</text>
+
+  <rect x="575" y="485" width="210" height="90" class="api"/>
+  <text x="680" y="518" text-anchor="middle" class="t">Inventory service</text>
+  <text x="680" y="544" text-anchor="middle" class="s">trừ kho một lần</text>
+
+  <rect x="845" y="485" width="210" height="90" class="log"/>
+  <text x="950" y="518" text-anchor="middle" class="t">Log theo đơn</text>
+  <text x="950" y="544" text-anchor="middle" class="s">action order-deducted</text>
+
+  <path d="M245 145H305" class="ar"/>
+  <path d="M515 145H575" class="ar"/>
+  <path d="M785 145H845" class="ar"/>
+  <path d="M950 195V290" class="ar"/>
+  <path d="M245 340H305" class="ar"/>
+  <path d="M515 340H575" class="ar"/>
+  <path d="M785 340H845" class="ar"/>
+  <path d="M1055 340H1085" class="ar"/>
+  <path d="M515 530H575" class="ar"/>
+  <path d="M785 530H845" class="ar"/>
+  <path d="M680 485C680 430 720 390 845 360" class="dash"/>
+</svg>

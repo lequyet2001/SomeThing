@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="560" viewBox="0 0 1180 560" role="img" aria-labelledby="title desc">
+  <title id="title">Luồng hồ sơ khách hàng, avatar và địa chỉ giao hàng</title>
+  <desc id="desc">AccountPage mặc định hiển thị thông tin đọc, khi bấm sửa mới mở form; avatar và địa chỉ giao hàng được lưu qua PUT /me, checkout tự điền địa chỉ đang chọn.</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#059669"/></marker></defs>
+  <style>
+    .bg{fill:#f8fafc}.ui{fill:#eef7ff;stroke:#2563eb;stroke-width:2;rx:12}.client{fill:#f0fdf4;stroke:#059669;stroke-width:2;rx:12}.api{fill:#fff7ed;stroke:#ea580c;stroke-width:2;rx:12}.file{fill:#faf5ff;stroke:#7c3aed;stroke-width:2;rx:12}.t{font-family:Arial,sans-serif;font-size:18px;font-weight:700;fill:#111827}.s{font-family:Arial,sans-serif;font-size:13px;fill:#334155}.h{font-family:Arial,sans-serif;font-size:24px;font-weight:800;fill:#0f172a}.ar{stroke:#059669;stroke-width:3;marker-end:url(#a);fill:none}.dash{stroke:#059669;stroke-width:2.4;stroke-dasharray:7 7;marker-end:url(#a);fill:none}
+  </style>
+  <rect class="bg" width="1180" height="560"/>
+  <text x="590" y="42" text-anchor="middle" class="h">Luồng tài khoản: hiển thị, chỉnh sửa, avatar và địa chỉ giao hàng</text>
+
+  <rect x="40" y="95" width="190" height="95" class="ui"/>
+  <text x="135" y="128" text-anchor="middle" class="t">AccountPage</text>
+  <text x="135" y="154" text-anchor="middle" class="s">read-only mặc định</text>
+
+  <rect x="290" y="95" width="205" height="95" class="ui"/>
+  <text x="392" y="128" text-anchor="middle" class="t">Bấm sửa</text>
+  <text x="392" y="154" text-anchor="middle" class="s">mở form profile</text>
+
+  <rect x="555" y="95" width="220" height="95" class="file"/>
+  <text x="665" y="128" text-anchor="middle" class="t">Avatar preview</text>
+  <text x="665" y="154" text-anchor="middle" class="s">JPG/PNG/WEBP/GIF</text>
+  <text x="665" y="175" text-anchor="middle" class="s">dưới 2MB</text>
+
+  <rect x="835" y="95" width="235" height="95" class="client"/>
+  <text x="952" y="128" text-anchor="middle" class="t">Sổ địa chỉ</text>
+  <text x="952" y="154" text-anchor="middle" class="s">shippingAddresses[]</text>
+  <text x="952" y="175" text-anchor="middle" class="s">selectedAddressId</text>
+
+  <rect x="835" y="285" width="235" height="95" class="api"/>
+  <text x="952" y="318" text-anchor="middle" class="t">PUT /me</text>
+  <text x="952" y="344" text-anchor="middle" class="s">avatar data URL</text>
+  <text x="952" y="365" text-anchor="middle" class="s">addresses + selected id</text>
+
+  <rect x="555" y="285" width="220" height="95" class="file"/>
+  <text x="665" y="318" text-anchor="middle" class="t">Server uploads</text>
+  <text x="665" y="344" text-anchor="middle" class="s">/uploads/avatars</text>
+  <text x="665" y="365" text-anchor="middle" class="s">validate type/size</text>
+
+  <rect x="290" y="285" width="205" height="95" class="client"/>
+  <text x="392" y="318" text-anchor="middle" class="t">Redux user</text>
+  <text x="392" y="344" text-anchor="middle" class="s">profile mới</text>
+  <text x="392" y="365" text-anchor="middle" class="s">avatar + address</text>
+
+  <rect x="40" y="285" width="190" height="95" class="ui"/>
+  <text x="135" y="318" text-anchor="middle" class="t">CheckoutPage</text>
+  <text x="135" y="344" text-anchor="middle" class="s">tự điền địa chỉ</text>
+  <text x="135" y="365" text-anchor="middle" class="s">đang chọn</text>
+
+  <path d="M230 142H290" class="ar"/>
+  <path d="M495 142H555" class="ar"/>
+  <path d="M775 142H835" class="ar"/>
+  <path d="M952 190V285" class="ar"/>
+  <path d="M835 333H775" class="ar"/>
+  <path d="M555 333H495" class="ar"/>
+  <path d="M290 333H230" class="dash"/>
+</svg>

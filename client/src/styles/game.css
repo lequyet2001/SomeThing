@@ -127,14 +127,14 @@
 
 .hidden-game-difficulty button.is-active {
   border-color: rgba(255, 255, 255, 0.78);
-  background: rgba(15, 95, 85, 0.86);
+  background: rgba(37, 99, 235, 0.86);
   color: #fff;
 }
 
 .hidden-game-start:hover,
 .hidden-game-controls button:hover {
   border-color: rgba(255, 255, 255, 0.78);
-  background: rgba(15, 95, 85, 0.78);
+  background: rgba(37, 99, 235, 0.78);
 }
 
 .hidden-game-controls {

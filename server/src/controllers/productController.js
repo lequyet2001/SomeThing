@@ -12,12 +12,27 @@ export function serializeProduct(product) {
     rating: product.rating,
     stock: product.stock,
     image: product.image,
+    images: product.images || [],
     description: product.description,
+  }
+}
+
+function serializeProductSummary(product) {
+  return {
+    id: product.legacyId,
+    name: product.name,
+    category: product.category,
+    price: product.price,
+    rating: product.rating,
+    stock: product.stock,
+    image: product.image,
   }
 }
 
 export const listProducts = asyncHandler(async (req, res) => {
   const { category = 'Tat ca', query = '', sort = 'default' } = req.query
+  const requestedPage = Math.max(1, Number(req.query.page) || 1)
+  const limit = Math.min(30, Math.max(1, Number(req.query.limit) || 10))
   const mongoQuery = {}
   const normalizedQuery = String(query).trim()
 
@@ -39,8 +54,13 @@ export const listProducts = asyncHandler(async (req, res) => {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
+  const total = await Product.countDocuments(mongoQuery)
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const page = Math.min(requestedPage, totalPages)
+  const skip = (page - 1) * limit
+
   const [products, categories, topCategories] = await Promise.all([
-    Product.find(mongoQuery).sort(sortBy),
+    Product.find(mongoQuery).sort(sortBy).skip(skip).limit(limit),
     Product.distinct('category'),
     Order.aggregate([
       {
@@ -73,7 +93,15 @@ export const listProducts = asyncHandler(async (req, res) => {
 
   res.json({
     categories: ['Tat ca', ...categories],
-    products: products.map(serializeProduct),
+    pagination: {
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      limit,
+      page,
+      total,
+      totalPages,
+    },
+    products: products.map(serializeProductSummary),
     topCategories: topCategories.map((item) => ({
       category: item._id,
       quantity: item.quantity,

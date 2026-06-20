@@ -1,15 +1,26 @@
 :root {
-  --color-bg: #f4f6f5;
+  --color-bg: #f8fbff;
   --color-surface: #ffffff;
-  --color-surface-muted: #e8efec;
-  --color-ink: #101815;
-  --color-muted: #3f4d48;
-  --color-line: #c5d1cc;
-  --color-primary: #0b5a51;
-  --color-primary-dark: #063b36;
-  --color-accent: #9a5728;
-  --shadow-sm: 0 8px 24px rgba(23, 32, 29, 0.08);
-  --shadow-md: 0 18px 48px rgba(23, 32, 29, 0.12);
+  --color-surface-muted: #edf5ff;
+  --color-ink: #172033;
+  --color-muted: #596476;
+  --color-line: #c8d7ee;
+  --color-line-strong: #8fa7c7;
+  --color-primary: #2563eb;
+  --color-primary-dark: #1e40af;
+  --color-accent: #e85d75;
+  --liquid-primary: rgba(37, 99, 235, 0.12);
+  --liquid-primary-strong: rgba(37, 99, 235, 0.28);
+  --liquid-accent: rgba(232, 93, 117, 0.16);
+  --liquid-highlight: rgba(255, 255, 255, 0.86);
+  --liquid-border: rgba(37, 99, 235, 0.42);
+  --liquid-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 8px 18px rgba(33, 60, 114, 0.08);
+  --liquid-button-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 12px 24px rgba(37, 99, 235, 0.13);
+  --liquid-card-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 10px 0 rgba(37, 99, 235, 0.04), 0 22px 42px rgba(33, 60, 114, 0.11);
+  --liquid-card-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 13px 0 rgba(37, 99, 235, 0.07), 0 30px 54px rgba(33, 60, 114, 0.17);
+  --ease-liquid: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --shadow-sm: 0 8px 24px rgba(33, 60, 114, 0.08);
+  --shadow-md: 0 18px 48px rgba(33, 60, 114, 0.13);
   --radius-sm: 6px;
   --radius-md: 8px;
   color: var(--color-ink);
@@ -49,12 +60,12 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #5b6964;
+  color: #6b7280;
   opacity: 1;
 }
 
 ::selection {
-  background: rgba(11, 90, 81, 0.18);
+  background: rgba(37, 99, 235, 0.18);
   color: var(--color-ink);
 }
 
@@ -72,7 +83,71 @@ b {
 
 button {
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.18s var(--ease-liquid), border-color 0.18s var(--ease-liquid), color 0.18s var(--ease-liquid), transform 0.2s var(--ease-liquid), box-shadow 0.2s var(--ease-liquid);
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close)) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(143, 167, 199, 0.72);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(237, 245, 255, 0.72));
+  color: var(--color-ink);
+  box-shadow: var(--liquid-button-shadow);
+  transform: translateY(0) translateZ(0);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close))::before {
+  content: "";
+  position: absolute;
+  inset: -38% -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 32%, rgba(255, 255, 255, 0.66) 0 10%, transparent 32%),
+    radial-gradient(circle at 44% 20%, var(--liquid-primary) 0 14%, transparent 38%),
+    radial-gradient(circle at 78% 72%, var(--liquid-accent) 0 16%, transparent 42%);
+  opacity: 0.34;
+  transform: translate3d(-4%, 5%, 0) scale(0.98);
+  transition: opacity 0.18s var(--ease-liquid), transform 0.22s var(--ease-liquid);
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close))::after {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto;
+  z-index: 0;
+  height: 36%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  opacity: 0.74;
+  transition: opacity 0.18s var(--ease-liquid);
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):hover)::before,
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):focus-visible)::before {
+  opacity: 0.72;
+  transform: translate3d(1%, -1%, 0) scale(1);
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):hover),
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):focus-visible) {
+  border-color: rgba(37, 99, 235, 0.42);
+  box-shadow: var(--liquid-button-shadow-hover);
+  transform: translate3d(0, -1px, 0);
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):hover)::after,
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):focus-visible)::after {
+  opacity: 0.88;
+}
+
+:where(button:not(.brand):not(.link-button):not(.product-media):not(.home-hero-media):not(.home-product-media):not(.star-button):not(.notification-button):not(.notification-main):not(.notification-item-main):not(.admin-toast-main):not(.admin-inline-link):not(.admin-customer-link-cell):not(.admin-bar-row):not(.admin-rank-item):not(.notification-close):not(.admin-toast-close):active:not(:disabled)) {
+  box-shadow: inset 0 2px 8px rgba(30, 64, 175, 0.12), 0 5px 14px rgba(33, 60, 114, 0.08);
+  transform: translate3d(0, 0, 0) scale(0.99);
 }
 
 button,
@@ -87,6 +162,14 @@ svg {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
+}
+
+button:disabled::before {
+  opacity: 0;
+}
+
+button:disabled::after {
+  opacity: 0.25;
 }
 
 img {
@@ -255,7 +338,8 @@ button.notification-main:hover span {
 .primary-action:hover {
   border-color: var(--color-primary-dark);
   background: var(--color-primary-dark);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--liquid-button-shadow-hover);
+  transform: translate3d(0, -2px, 0);
 }
 
 .primary-action:disabled,
@@ -284,6 +368,216 @@ button.notification-main:hover span {
   color: var(--color-primary-dark);
 }
 
+:where(.catalog,
+  .home-product-row,
+  .category-grid,
+  .home-services,
+  .cart-list,
+  .account-summary,
+  .order-history-list,
+  .support-history-list,
+  .admin-overview-insights,
+  .admin-mini-list,
+  .admin-customer-grid,
+  .admin-category-grid,
+  .admin-inventory-history-grid) {
+  perspective: 1200px;
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .home-empty,
+  .home-hero-copy,
+  .filter-panel,
+  .results-toolbar,
+  .shop-pagination,
+  .shop-empty-state,
+  .detail-copy,
+  .review-list article,
+  .cart-item,
+  .empty-state,
+  .order-summary,
+  .account-empty,
+  .account-hero,
+  .account-form,
+  .account-profile-card,
+  .account-summary article,
+  .order-history,
+  .support-history,
+  .order-history-card,
+  .support-history-card,
+  .admin-panel,
+  .admin-metrics article,
+  .admin-mini-list article,
+  .admin-mini-list button.admin-rank-item) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: var(--color-line-strong);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(240, 246, 255, 0.9)),
+    var(--color-surface);
+  box-shadow: var(--liquid-card-shadow);
+  transform: translateY(0) rotateX(0deg) rotateY(0deg) translateZ(0);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  transition: border-color 0.18s var(--ease-liquid), box-shadow 0.22s var(--ease-liquid), transform 0.24s var(--ease-liquid);
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .home-empty,
+  .home-hero-copy,
+  .filter-panel,
+  .results-toolbar,
+  .shop-pagination,
+  .shop-empty-state,
+  .detail-copy,
+  .review-list article,
+  .cart-item,
+  .empty-state,
+  .order-summary,
+  .account-empty,
+  .account-hero,
+  .account-form,
+  .account-profile-card,
+  .account-summary article,
+  .order-history,
+  .support-history,
+  .order-history-card,
+  .support-history-card,
+  .admin-panel,
+  .admin-metrics article,
+  .admin-mini-list article,
+  .admin-mini-list button.admin-rank-item)::before {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.78) 0 9%, transparent 30%),
+    radial-gradient(circle at 78% 12%, var(--liquid-primary) 0 13%, transparent 36%),
+    radial-gradient(circle at 62% 86%, var(--liquid-accent) 0 15%, transparent 40%);
+  opacity: 0.58;
+  transform: translate3d(-2%, 3%, 0) rotate(0deg);
+  transition: opacity 0.2s var(--ease-liquid), transform 0.3s var(--ease-liquid);
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .home-empty,
+  .home-hero-copy,
+  .filter-panel,
+  .results-toolbar,
+  .shop-pagination,
+  .shop-empty-state,
+  .detail-copy,
+  .review-list article,
+  .cart-item,
+  .empty-state,
+  .order-summary,
+  .account-empty,
+  .account-hero,
+  .account-form,
+  .account-profile-card,
+  .account-summary article,
+  .order-history,
+  .support-history,
+  .order-history-card,
+  .support-history-card,
+  .admin-panel,
+  .admin-metrics article,
+  .admin-mini-list article,
+  .admin-mini-list button.admin-rank-item)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), transparent 34%),
+    linear-gradient(315deg, rgba(37, 99, 235, 0.07), transparent 48%);
+  pointer-events: none;
+  opacity: 0.62;
+  transition: opacity 0.18s var(--ease-liquid), transform 0.24s var(--ease-liquid);
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .home-empty,
+  .home-hero-copy,
+  .filter-panel,
+  .results-toolbar,
+  .shop-pagination,
+  .shop-empty-state,
+  .detail-copy,
+  .review-list article,
+  .cart-item,
+  .empty-state,
+  .order-summary,
+  .account-empty,
+  .account-hero,
+  .account-form,
+  .account-profile-card,
+  .account-summary article,
+  .order-history,
+  .support-history,
+  .order-history-card,
+  .support-history-card,
+  .admin-panel,
+  .admin-metrics article,
+  .admin-mini-list article,
+  .admin-mini-list button.admin-rank-item)>* {
+  position: relative;
+  z-index: 1;
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .cart-item,
+  .order-history-card,
+  .support-history-card,
+  .admin-mini-list button.admin-rank-item):hover::before {
+  opacity: 0.82;
+  transform: translate3d(3%, -3%, 0) rotate(3deg);
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .cart-item,
+  .order-history-card,
+  .support-history-card,
+  .admin-mini-list button.admin-rank-item):hover {
+  border-color: var(--liquid-border);
+  box-shadow: var(--liquid-card-shadow-hover);
+  transform: translate3d(0, -6px, 0) rotateX(2deg) rotateY(-2deg);
+}
+
+:where(.product-card,
+  .home-product-card,
+  .category-grid button,
+  .home-services article,
+  .cart-item,
+  .order-history-card,
+  .support-history-card,
+  .admin-mini-list button.admin-rank-item):hover::after {
+  opacity: 1;
+  transform: translate3d(0, -2px, 0);
+}
+
 @keyframes upload-spin {
   to {
     transform: rotate(360deg);
@@ -291,6 +585,7 @@ button.notification-main:hover span {
 }
 
 @keyframes upload-pulse {
+
   0%,
   100% {
     transform: translateY(0) scale(1);
@@ -336,7 +631,7 @@ button.notification-main:hover span {
   border: 2px solid var(--color-surface);
   border-radius: var(--radius-sm);
   background: var(--color-surface-muted);
-  box-shadow: 0 18px 44px rgba(16, 24, 21, 0.22);
+  box-shadow: 0 18px 44px rgba(33, 60, 114, 0.2);
   pointer-events: none;
   transform-origin: center;
 }
@@ -362,5 +657,16 @@ button.notification-main:hover span {
 
   100% {
     transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

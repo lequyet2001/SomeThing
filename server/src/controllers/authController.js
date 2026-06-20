@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { ADMIN_EMAIL, CLIENT_ORIGIN } from '../config/env.js'
 import { User } from '../models/User.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { getClientPasswordPublicKey, readRequestPassword } from '../utils/clientPasswordCrypto.js'
 import { hashPassword, verifyPassword } from '../utils/password.js'
 import { httpError } from '../utils/httpError.js'
 import { createToken } from '../utils/token.js'
@@ -139,7 +140,7 @@ function normalizeShippingAddresses(rawValue, fallbackUser) {
 export const register = asyncHandler(async (req, res) => {
   const name = String(req.body.name || '').trim()
   const email = normalizeEmail(req.body.email)
-  const password = String(req.body.password || '')
+  const password = readRequestPassword(req.body)
 
   if (!name || !email || password.length < 6) {
     throw httpError(400, 'Vui lòng nhập tên, email và mật khẩu tối thiểu 6 ký tự.')
@@ -163,7 +164,7 @@ export const register = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
   const email = normalizeEmail(req.body.email)
-  const password = String(req.body.password || '')
+  const password = readRequestPassword(req.body)
   const user = await User.findOne({ email }).select('+passwordHash +passwordSalt')
 
   if (!user || !verifyPassword(password, user.passwordHash, user.passwordSalt)) {
@@ -205,7 +206,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
 export const resetPassword = asyncHandler(async (req, res) => {
   const token = String(req.body.token || req.params.token || '').trim()
-  const password = String(req.body.password || '')
+  const password = readRequestPassword(req.body)
 
   if (!token || password.length < 6) {
     throw httpError(400, 'Mật khẩu mới phải có tối thiểu 6 ký tự.')
@@ -228,6 +229,10 @@ export const resetPassword = asyncHandler(async (req, res) => {
   await user.save()
 
   res.json({ message: 'Đã đặt lại mật khẩu. Bạn có thể đăng nhập bằng mật khẩu mới.' })
+})
+
+export const getPasswordPublicKey = asyncHandler(async (req, res) => {
+  res.json(getClientPasswordPublicKey())
 })
 
 export const getProfile = asyncHandler(async (req, res) => {

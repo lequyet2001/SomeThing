@@ -1,4 +1,4 @@
-import { AlertTriangle, Boxes, CheckCircle2, ShoppingBag } from 'lucide-react'
+import { AlertTriangle, Boxes, CheckCircle2, PackagePlus, ShoppingBag } from 'lucide-react'
 
 import { formatCurrency } from '../../../utils/currency'
 
@@ -7,6 +7,7 @@ function InventoryOverviewPanel({
   inventoryHealthPercent,
   inventoryMetrics,
   inventoryRiskCount,
+  onAddProduct,
   products,
   t,
 }) {
@@ -20,6 +21,10 @@ function InventoryOverviewPanel({
             <span>{t('admin.filteredCount', { shown: filteredProducts.length, total: products.length })}</span>
             <span>{t('admin.inventoryUnits')}: {inventoryMetrics.units}</span>
           </div>
+          <button type="button" className="admin-panel-open admin-inventory-add-button" onClick={onAddProduct}>
+            <PackagePlus size={15} />
+            {t('admin.addInventoryItem')}
+          </button>
         </div>
         <div className="admin-inventory-health">
           <span>{t('admin.inventoryHealth')}</span>

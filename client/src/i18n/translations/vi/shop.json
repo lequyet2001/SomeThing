@@ -6,6 +6,8 @@
   "shop.emptyTitle": "Không tìm thấy sản phẩm",
   "shop.filterText": "Nhập từ khóa, chọn danh mục và sắp xếp kết quả theo giá.",
   "shop.filterTitle": "Bộ lọc sản phẩm",
+  "shop.loading": "Đang tải sản phẩm",
+  "shop.loadingText": "Hệ thống đang lấy dữ liệu theo bộ lọc và trang hiện tại.",
   "shop.matchCount": "{count} sản phẩm phù hợp",
   "shop.matchLabel": "sản phẩm phù hợp",
   "shop.nextPage": "Trang sau",

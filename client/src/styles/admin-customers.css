@@ -7,7 +7,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
   align-items: center;
   background:
-    linear-gradient(135deg, rgba(15, 95, 85, 0.1), rgba(184, 111, 53, 0.08)),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(232, 93, 117, 0.08)),
     var(--color-surface);
 }
 
@@ -28,7 +28,7 @@
   align-items: center;
   gap: 10px;
   min-height: 48px;
-  border: 1px solid rgba(15, 95, 85, 0.18);
+  border: 1px solid rgba(37, 99, 235, 0.18);
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.82);
   padding: 0 14px;
@@ -86,8 +86,8 @@
 }
 
 .admin-customer-period-tabs button.is-active {
-  border-color: rgba(15, 95, 85, 0.36);
-  background: #e7f1ec;
+  border-color: rgba(37, 99, 235, 0.36);
+  background: #eaf2ff;
   color: var(--color-primary-dark);
 }
 
@@ -139,8 +139,8 @@
 }
 
 .admin-customer-card.is-focused {
-  border-color: rgba(15, 95, 85, 0.7);
-  box-shadow: 0 0 0 3px rgba(15, 95, 85, 0.12), var(--shadow-sm);
+  border-color: rgba(37, 99, 235, 0.7);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), var(--shadow-sm);
 }
 
 .admin-customer-card-main {
@@ -182,7 +182,7 @@
   overflow: hidden;
   background: var(--color-surface-muted);
   color: var(--color-primary-dark);
-  box-shadow: inset 0 0 0 1px rgba(15, 95, 85, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.14);
 }
 
 .admin-customer-avatar img {
@@ -292,7 +292,7 @@
 
 .admin-customer-detail-dialog {
   width: min(860px, 100%);
-  max-height: min(88vh, 760px);
+  max-height: min(calc(100dvh - 36px), 760px);
   overflow: auto;
 }
 
@@ -374,7 +374,7 @@
 
 .admin-customer-order-top > span {
   border-radius: 999px;
-  background: #e7f1ec;
+  background: #eaf2ff;
   color: var(--color-primary-dark);
   padding: 6px 10px;
   font-size: 12px;
@@ -509,7 +509,7 @@
   }
 
   .admin-customer-detail-dialog {
-    max-height: calc(100vh - 18px);
+    max-height: calc(100dvh - 18px);
     padding: 16px;
   }
 
