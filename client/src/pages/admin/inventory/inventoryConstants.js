@@ -4,6 +4,7 @@ export const emptyProductForm = {
   price: '',
   stock: '',
   image: '',
+  images: [],
   description: '',
 }
 

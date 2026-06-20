@@ -1,6 +1,6 @@
 # Tài liệu dự án Marseille04 Shop
 
-Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp vụ, luồng code client, realtime notification, Docker, Docker Hub và CI/CD của dự án Marseille04 Shop.
+Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp vụ, luồng code client, realtime notification, MCP server, Docker, Docker Hub và CI/CD của dự án Marseille04 Shop.
 
 ## Tài liệu chính
 
@@ -16,6 +16,7 @@ Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp v�
 - [Docker Hub build/push](docker-hub-guide.md): build image local, tag và push lên Docker Hub.
 - [Pull từ Docker Hub](docker-hub-pull-guide.md): hướng dẫn cho người chỉ cần pull image về chạy, không cần source code.
 - [GitHub Actions CI/CD](github-actions-docker-cicd.md): cấu hình secrets và workflow tự động build/push Docker image sau khi push code lên GitHub.
+- [MCP server](mcp-server.md): cấu hình MCP server `stdio` để AI client đọc dữ liệu shop từ MongoDB.
 
 ## Sơ đồ luồng chức năng
 

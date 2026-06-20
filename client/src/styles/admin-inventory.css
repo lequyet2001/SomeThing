@@ -344,6 +344,11 @@
   font-weight: 900;
 }
 
+.admin-inventory-add-button {
+  width: max-content;
+  min-height: 42px;
+}
+
 .admin-inventory-health {
   display: grid;
   align-content: center;
@@ -1021,7 +1026,7 @@
 
 .admin-inventory-row-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 7px;
 }
 

@@ -30,7 +30,7 @@ const IMAGE_TYPES = {
   'image/gif': 'gif',
 }
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024
-const productChangeFields = ['name', 'category', 'price', 'stock', 'image', 'description', 'rating']
+const productChangeFields = ['name', 'category', 'price', 'stock', 'image', 'images', 'description', 'rating']
 
 function normalizeCategoryName(value) {
   return String(value || '').trim()
@@ -45,6 +45,7 @@ function serializeProduct(product) {
     rating: product.rating,
     stock: product.stock,
     image: product.image,
+    images: product.images || [],
     description: product.description,
   }
 }
@@ -76,12 +77,16 @@ function serializeCategory(category, stats = {}) {
 function normalizeProductChangeValue(value) {
   if (value === undefined) return null
   if (value === null) return null
+  if (Array.isArray(value)) return value.map((item) => String(item || '').trim()).filter(Boolean)
   return typeof value === 'string' ? value.trim() : value
 }
 
 function areProductChangeValuesEqual(previousValue, newValue) {
   const normalizedPreviousValue = normalizeProductChangeValue(previousValue)
   const normalizedNewValue = normalizeProductChangeValue(newValue)
+  if (Array.isArray(normalizedPreviousValue) || Array.isArray(normalizedNewValue)) {
+    return JSON.stringify(normalizedPreviousValue || []) === JSON.stringify(normalizedNewValue || [])
+  }
   return normalizedPreviousValue === normalizedNewValue
 }
 
@@ -118,6 +123,11 @@ function readProductPayload(body, isCreate = false) {
   if (body.price !== undefined) payload.price = Number(body.price)
   if (body.stock !== undefined) payload.stock = Number(body.stock)
   if (body.rating !== undefined) payload.rating = Number(body.rating)
+  if (body.images !== undefined) {
+    payload.images = Array.isArray(body.images)
+      ? body.images.map((image) => String(image || '').trim()).filter(Boolean).slice(0, 8)
+      : []
+  }
 
   if (isCreate && requiredFields.some((field) => payload[field] === undefined || payload[field] === '')) {
     throw httpError(400, 'Vui lòng nhập đầy đủ thông tin sản phẩm.')

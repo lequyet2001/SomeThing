@@ -12,6 +12,7 @@ export function serializeProduct(product) {
     rating: product.rating,
     stock: product.stock,
     image: product.image,
+    images: product.images || [],
     description: product.description,
   }
 }

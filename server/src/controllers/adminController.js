@@ -95,6 +95,7 @@ function serializeAdminReview(review, product) {
     userEmail: review.user?.email || '',
     rating: review.rating,
     comment: review.comment,
+    images: review.images || [],
     createdAt: review.createdAt,
   }
 }
@@ -649,8 +650,10 @@ export const updateContactStatus = asyncHandler(async (req, res) => {
 export const listAdminReviews = asyncHandler(async (req, res) => {
   const query = String(req.query.query || '').trim()
   const rating = String(req.query.rating || 'all').trim()
+  const hasImages = String(req.query.hasImages || 'all').trim()
   const pagination = readPagination(req.query)
   const match = {}
+  const andMatch = []
 
   if (rating !== 'all') {
     const parsedRating = Number(rating)
@@ -658,6 +661,14 @@ export const listAdminReviews = asyncHandler(async (req, res) => {
       throw httpError(400, 'Điểm đánh giá không hợp lệ.')
     }
     match.rating = parsedRating
+  }
+
+  if (hasImages === 'yes') {
+    match.images = { $exists: true, $ne: [] }
+  } else if (hasImages === 'no') {
+    andMatch.push({ $or: [{ images: { $exists: false } }, { images: { $size: 0 } }] })
+  } else if (hasImages !== 'all') {
+    throw httpError(400, 'Bộ lọc ảnh đánh giá không hợp lệ.')
   }
 
   const createdAtRange = readDateRangeFilter(req.query)
@@ -681,7 +692,11 @@ export const listAdminReviews = asyncHandler(async (req, res) => {
       ...(userIds.length ? [{ user: { $in: userIds } }] : []),
     ]
 
-    match.$or = queryMatch
+    andMatch.push({ $or: queryMatch })
+  }
+
+  if (andMatch.length > 0) {
+    match.$and = andMatch
   }
 
   const reviewQuery = applyPagination(Review.find(match).populate('user', 'email').sort({ createdAt: -1 }), pagination)

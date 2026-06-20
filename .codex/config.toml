@@ -1,0 +1,20 @@
+[mcp_servers.marseille04_shop]
+command = "node"
+args = ["D:/SomeThing/server/src/mcp/shopMcpServer.js"]
+cwd = "D:/SomeThing/server"
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+enabled = true
+enabled_tools = [
+  "shop_health",
+  "shop_list_categories",
+  "shop_list_products",
+  "shop_get_product",
+  "shop_list_orders",
+  "shop_admin_summary",
+]
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.marseille04_shop.env]
+MONGODB_URI = "mongodb://127.0.0.1:27017/marseille04_shop"
+MONGODB_SERVER_SELECTION_TIMEOUT_MS = "5000"

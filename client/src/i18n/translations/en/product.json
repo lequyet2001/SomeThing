@@ -1,10 +1,15 @@
 {
   "product.addCart": "Add to cart",
+  "product.addReviewImages": "Add review photos",
+  "product.clearReviewImages": "Remove photos",
+  "product.gallery": "Product image gallery",
+  "product.galleryImage": "View product image {index}",
   "product.inStock": "In stock: {count}",
   "product.loginReview": "Sign in to submit a review for this product.",
   "product.ratingAria": "Choose review rating",
   "product.ratingText": "{rating}/5 stars",
   "product.reviewPlaceholder": "Write a review as {name}...",
+  "product.reviewImageAlt": "Review photo {index} by {name}",
   "product.reviews": "Product reviews",
   "product.sendReview": "Submit review",
   "product.star": "{count} stars"

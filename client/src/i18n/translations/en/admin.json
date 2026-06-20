@@ -11,6 +11,7 @@
   "admin.allCustomerTypes": "All customer types",
   "admin.allPayments": "All payment methods",
   "admin.allRatings": "All ratings",
+  "admin.allReviewImages": "All photos",
   "admin.allRoles": "All roles",
   "admin.allStatuses": "All statuses",
   "admin.allStock": "All stock",
@@ -63,6 +64,7 @@
   "admin.delete": "Delete",
   "admin.deductedQuantity": "Deducted quantity",
   "admin.description": "Description",
+  "admin.detail": "Detail",
   "admin.dateField": "Date field",
   "admin.dateRange": "Date range",
   "admin.edit": "Edit",
@@ -179,6 +181,7 @@
   "admin.previousValue": "Before",
   "admin.product": "Item",
   "admin.productCount": "{count} items",
+  "admin.productGalleryImages": "Product description photos",
   "admin.productImage": "Item image",
   "admin.productName": "Item name",
   "admin.products": "Inventory",
@@ -187,6 +190,8 @@
   "admin.refresh": "Refresh",
   "admin.newValue": "After",
   "admin.reviewCount": "{count} reviews",
+  "admin.reviewDetail": "Review detail",
+  "admin.reviewImages": "Review photos",
   "admin.reviews": "Reviews",
   "admin.reviewTable": "Product review management",
   "admin.revenue": "Revenue",
@@ -239,5 +244,8 @@
   "admin.units": "units",
   "admin.userCount": "{count} accounts",
   "admin.users": "Users",
-  "admin.value": "Value"
+  "admin.value": "Value",
+  "admin.viewReviews": "Reviews",
+  "admin.withReviewImages": "With photos",
+  "admin.withoutReviewImages": "No photos"
 }

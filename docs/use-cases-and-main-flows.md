@@ -189,7 +189,7 @@ Luồng chính:
 2. Client điều hướng tới link slug dạng `/{product-name}-{encoded-id}` để phân biệt sản phẩm trùng tên.
 3. Route sản phẩm giải mã id, dùng dữ liệu catalog nếu có hoặc gọi `GET /api/shop/products/:productId`.
 4. Client chỉ gọi `GET /api/shop/reviews?productId=<id>` cho sản phẩm đang xem.
-5. Client hiển thị ảnh, tên, giá, danh mục, mô tả, review và khu vực chọn sao.
+5. Client hiển thị ảnh chính, gallery ảnh mô tả, tên, giá, danh mục, mô tả, review và khu vực chọn sao.
 6. Người dùng có thể bấm Add Cart để thêm vào giỏ bằng animation bay vào cart.
 
 Luồng ngoại lệ:
@@ -201,7 +201,7 @@ Luồng ngoại lệ:
 
 | Thuộc tính | Nội dung |
 | --- | --- |
-| Mục tiêu | Cho khách hàng gửi đánh giá sao và nội dung nhận xét. |
+| Mục tiêu | Cho khách hàng gửi đánh giá sao, nội dung nhận xét và ảnh thực tế nếu có. |
 | Actor | Khách hàng |
 | Điều kiện trước | Người dùng đã đăng nhập. |
 | Điều kiện sau | Review mới được lưu và xuất hiện trong ProductPage. |
@@ -210,15 +210,16 @@ Luồng chính:
 
 1. Người dùng mở trang chi tiết sản phẩm.
 2. Chọn số sao bằng giao diện đánh giá sao.
-3. Nhập nội dung đánh giá.
-4. Client gọi `POST /api/shop/reviews`.
-5. Server kiểm tra token, lưu review.
+3. Nhập nội dung đánh giá và có thể chọn tối đa 4 ảnh review.
+4. Client gọi `POST /api/shop/reviews` với `productId`, `rating`, `comment` và tùy chọn `images`.
+5. Server kiểm tra token, lưu ảnh vào `server/uploads/reviews`, lưu review và cập nhật rating sản phẩm.
 6. Client prepend review mới vào Redux và reset form.
 
 Luồng ngoại lệ:
 
 - Chưa đăng nhập: ProductPage mở popup đăng nhập, không gửi API review.
 - Thiếu sao/nội dung: hiển thị lỗi hoặc không cho submit.
+- Ảnh review sai định dạng, quá 2MB/ảnh hoặc quá 4 ảnh: server từ chối và client hiển thị lỗi.
 - Token hết hạn: yêu cầu đăng nhập lại.
 
 ## UC-06: Quản lý giỏ hàng
@@ -423,9 +424,9 @@ Luồng thêm mặt hàng:
 
 1. Admin mở `/admin/inventory`, tab danh sách kho.
 2. Chọn danh mục từ list category.
-3. Upload ảnh qua `POST /api/shop/admin/uploads/product-image`.
+3. Upload ảnh chính và các ảnh mô tả qua `POST /api/shop/admin/uploads/product-image`.
 4. Server lưu ảnh vào `server/uploads/products` và trả URL.
-5. Admin nhập thông tin mặt hàng trong dialog và lưu.
+5. Admin nhập thông tin mặt hàng trong dialog; ảnh chính lưu ở `image`, ảnh mô tả lưu ở `images[]`.
 6. Client gọi `POST /api/shop/admin/products`.
 7. Server lưu product, ghi `InventoryLog` action `created`, client reload catalog.
 8. Admin thấy popup thông báo thao tác thành công.
@@ -434,11 +435,12 @@ Luồng sửa/xóa:
 
 1. Admin lọc/tìm mặt hàng trong bảng/card quản lý.
 2. Bấm sửa để mở dialog.
-3. Client gọi `PATCH /api/shop/admin/products/:productId`.
-4. Server ghi lịch sử `stock-adjusted`, `stock-updated` hoặc `details-updated` tùy thay đổi.
-5. Khi xóa, client mở popup xác nhận trước.
-6. Nếu xác nhận, client gọi `DELETE /api/shop/admin/products/:productId`.
-7. Catalog được tải lại để Home/Shop hiển thị ngay.
+3. Admin có thể đổi ảnh chính, thêm/xóa ảnh mô tả sản phẩm.
+4. Client gọi `PATCH /api/shop/admin/products/:productId`.
+5. Server ghi lịch sử `stock-adjusted`, `stock-updated` hoặc `details-updated` tùy thay đổi.
+6. Khi xóa, client mở popup xác nhận trước.
+7. Nếu xác nhận, client gọi `DELETE /api/shop/admin/products/:productId`.
+8. Catalog được tải lại để Home/Shop hiển thị ngay.
 
 Luồng danh mục và lịch sử:
 
@@ -519,11 +521,12 @@ Luồng chính:
 
 1. Admin mở `/admin/reviews`.
 2. Client gọi `GET /api/shop/admin/reviews`.
-3. Admin tìm kiếm/lọc review theo sản phẩm, người dùng, số sao hoặc nội dung.
-4. Admin bấm xóa review.
-5. Client mở popup xác nhận.
-6. Nếu xác nhận, client gọi `DELETE /api/shop/admin/reviews/:reviewId`.
-7. Server xóa review, client cập nhật danh sách và hiển thị popup.
+3. Admin tìm kiếm/lọc review theo sản phẩm, người dùng, số sao, nội dung hoặc trạng thái có/không có ảnh.
+4. Admin bấm chi tiết để mở dialog xem sản phẩm, khách hàng, số sao, nội dung và toàn bộ ảnh review.
+5. Admin bấm xóa review từ bảng hoặc trong dialog chi tiết.
+6. Client mở popup xác nhận.
+7. Nếu xác nhận, client gọi `DELETE /api/shop/admin/reviews/:reviewId`.
+8. Server xóa review, tính lại rating sản phẩm, client cập nhật danh sách và hiển thị popup.
 
 Luồng ngoại lệ:
 
@@ -562,7 +565,7 @@ Luồng ngoại lệ:
 - Checkout ưu tiên địa chỉ giao hàng đang được chọn trong hồ sơ khách hàng.
 - Đơn hàng có `order.user` được xem là khách đã đăng ký; đơn không có `order.user` được xem là khách chưa đăng ký.
 - Admin có thể lọc đơn theo `customerType=registered|guest` để tách hành vi mua hàng của hai nhóm khách.
-- Ảnh sản phẩm và avatar được upload lên server, client hiển thị qua đường dẫn `/uploads/...`.
+- Ảnh sản phẩm, ảnh mô tả sản phẩm, ảnh review và avatar được upload/lưu trên server, client hiển thị qua đường dẫn `/uploads/...`.
 - Notification người dùng có trạng thái `read/unread`, có thể đánh dấu đọc hoặc xóa.
 - Khi admin cập nhật đơn hàng/liên hệ, notification phải được lưu DB trước khi đẩy realtime.
 - Notification order/contact lưu link đích chi tiết để khi click có thể mở đúng đơn hoặc yêu cầu hỗ trợ trong trang tài khoản.

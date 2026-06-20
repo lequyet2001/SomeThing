@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Inbox,
   MessageSquare,
+  Eye,
   RefreshCw,
   ShieldCheck,
   ShoppingBag,
@@ -14,6 +15,7 @@ import {
   Truck,
   UserCog,
   Users,
+  X,
 } from 'lucide-react'
 import { NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -92,6 +94,7 @@ function StoreAdminPage({ section = 'overview' }) {
   const [contacts, setContacts] = useState([])
   const [adminReviews, setAdminReviews] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedReview, setSelectedReview] = useState(null)
   const [deleteReviewTarget, setDeleteReviewTarget] = useState(null)
   const [toast, setToast] = useState({ message: '', title: '', type: 'success' })
   const [adminAlerts, setAdminAlerts] = useState([])
@@ -204,6 +207,9 @@ function StoreAdminPage({ section = 'overview' }) {
     return adminReviews.filter((review) => (
       matchesSearch([review.productId, review.productName, review.name, review.userEmail, review.comment], filters.query) &&
       (filters.rating === 'all' || Number(review.rating) === Number(filters.rating)) &&
+      (filters.hasImages === 'all' ||
+        (filters.hasImages === 'yes' && review.images?.length > 0) ||
+        (filters.hasImages === 'no' && !review.images?.length)) &&
       isWithinDateRange(review.createdAt, filters.startDate, filters.endDate)
     ))
   }, [adminFilters.reviews, adminReviews])
@@ -387,6 +393,24 @@ function StoreAdminPage({ section = 'overview' }) {
           address: ['all', 'hasAddress', 'missingAddress'].includes(routeAddress) ? routeAddress : 'all',
           query: routeQuery,
           role: ['all', 'customer', 'admin'].includes(routeRole) ? routeRole : 'all',
+        },
+      }))
+      return
+    }
+
+    if (section === 'reviews') {
+      const routeRating = routeParams.get('rating')
+      const routeHasImages = routeParams.get('hasImages')
+
+      setAdminFilters((current) => ({
+        ...current,
+        reviews: {
+          ...emptyAdminFilters.reviews,
+          endDate: routeEndDate,
+          hasImages: ['all', 'yes', 'no'].includes(routeHasImages) ? routeHasImages : 'all',
+          query: routeQuery,
+          rating: ['all', '1', '2', '3', '4', '5'].includes(routeRating) ? routeRating : 'all',
+          startDate: routeStartDate,
         },
       }))
     }
@@ -1116,6 +1140,17 @@ function StoreAdminPage({ section = 'overview' }) {
               </select>
             </label>
             <label>
+              {t('admin.reviewImages')}
+              <select
+                value={adminFilters.reviews.hasImages}
+                onChange={(event) => updateAdminFilter('reviews', 'hasImages', event.target.value)}
+              >
+                <option value="all">{t('admin.allReviewImages')}</option>
+                <option value="yes">{t('admin.withReviewImages')}</option>
+                <option value="no">{t('admin.withoutReviewImages')}</option>
+              </select>
+            </label>
+            <label>
               {t('admin.startDate')}
               <input
                 type="date"
@@ -1140,13 +1175,14 @@ function StoreAdminPage({ section = 'overview' }) {
                   <th>{t('admin.customer')}</th>
                   <th>{t('admin.rating')}</th>
                   <th>{t('admin.message')}</th>
+                  <th>{t('admin.reviewImages')}</th>
                   <th>{t('admin.createdAt')}</th>
                   <th>{t('admin.tableActions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {isReviewsLoading ? (
-                  <AdminTableLoadingRow colSpan={6} label={t('admin.loading')} />
+                  <AdminTableLoadingRow colSpan={7} label={t('admin.loading')} />
                 ) : filteredReviews.map((review) => (
                   <tr key={review.id}>
                     <td data-label={t('admin.product')}>
@@ -1168,6 +1204,19 @@ function StoreAdminPage({ section = 'overview' }) {
                       </span>
                     </td>
                     <td data-label={t('admin.message')}>{review.comment}</td>
+                    <td data-label={t('admin.reviewImages')}>
+                      {review.images?.length > 0 ? (
+                        <div className="admin-review-image-strip">
+                          {review.images.map((image, index) => (
+                            <a key={`${review.id}-${image}`} href={image} target="_blank" rel="noreferrer">
+                              <img src={image} alt={t('product.reviewImageAlt', { index: index + 1, name: review.name })} />
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="admin-muted-text">{t('admin.noInfo')}</span>
+                      )}
+                    </td>
                     <td data-label={t('admin.createdAt')}>{formatAdminDate(review.createdAt, language, t('admin.noInfo'))}</td>
                     <td data-label={t('admin.tableActions')}>
                       <div className="admin-actions">
@@ -1175,19 +1224,93 @@ function StoreAdminPage({ section = 'overview' }) {
                           <Trash2 size={15} />
                           {t('admin.delete')}
                         </button>
+                        <button type="button" onClick={() => setSelectedReview(review)}>
+                          <Eye size={15} />
+                          {t('admin.detail')}
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {!isReviewsLoading && filteredReviews.length === 0 && (
                   <tr className="admin-empty-row">
-                    <td colSpan="6" data-label="">{adminReviews.length === 0 ? t('admin.noReviews') : t('admin.noFilterResults')}</td>
+                    <td colSpan="7" data-label="">{adminReviews.length === 0 ? t('admin.noReviews') : t('admin.noFilterResults')}</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
         </section>
+      )}
+
+      {selectedReview && (
+        <div className="admin-dialog-backdrop" role="presentation">
+          <section className="admin-dialog admin-review-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="review-detail-title">
+            <div className="admin-panel-heading">
+              <div>
+                <p className="admin-kicker"><MessageSquare size={15} /> {t('admin.reviews')}</p>
+                <h2 id="review-detail-title">{t('admin.reviewDetail')}</h2>
+              </div>
+              <button
+                type="button"
+                className="admin-icon-button"
+                aria-label={t('admin.close')}
+                onClick={() => setSelectedReview(null)}
+              >
+                <X size={17} />
+              </button>
+            </div>
+            <div className="admin-review-detail-product">
+              {selectedReview.productImage && <img src={selectedReview.productImage} alt={selectedReview.productName} />}
+              <div>
+                <strong>{selectedReview.productName}</strong>
+                <span>#{selectedReview.productId}</span>
+              </div>
+            </div>
+            <div className="admin-review-detail-meta">
+              <article>
+                <span>{t('admin.customer')}</span>
+                <strong>{selectedReview.name}</strong>
+                <small>{selectedReview.userEmail || t('admin.noInfo')}</small>
+              </article>
+              <article>
+                <span>{t('admin.rating')}</span>
+                <strong>{t('product.star', { count: selectedReview.rating })}</strong>
+              </article>
+              <article>
+                <span>{t('admin.createdAt')}</span>
+                <strong>{formatAdminDate(selectedReview.createdAt, language, t('admin.noInfo'))}</strong>
+              </article>
+            </div>
+            <div className="admin-review-detail-comment">
+              <span>{t('admin.message')}</span>
+              <p>{selectedReview.comment}</p>
+            </div>
+            {selectedReview.images?.length > 0 && (
+              <div className="admin-review-detail-images">
+                {selectedReview.images.map((image, index) => (
+                  <a key={`${selectedReview.id}-${image}`} href={image} target="_blank" rel="noreferrer">
+                    <img src={image} alt={t('product.reviewImageAlt', { index: index + 1, name: selectedReview.name })} />
+                  </a>
+                ))}
+              </div>
+            )}
+            <div className="admin-dialog-actions">
+              <button type="button" onClick={() => setSelectedReview(null)}>{t('admin.close')}</button>
+              <button
+                type="button"
+                className="danger"
+                onClick={() => {
+                  setDeleteReviewTarget(selectedReview)
+                  setSelectedReview(null)
+                }}
+              >
+                <Trash2 size={16} />
+                {t('admin.delete')}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
 
       {section === 'overview' && !isOverviewLoading && lowStockProducts.length > 0 && (

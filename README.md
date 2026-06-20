@@ -1,6 +1,6 @@
 # Marseille04 Shop
 
-Marseille04 Shop là web bán hàng thời trang full-stack gồm React client, Express API và MongoDB. Dự án hỗ trợ mua hàng, quản lý giỏ hàng, đánh giá sản phẩm, lịch sử đơn hàng, sổ địa chỉ giao hàng, realtime notification, quản lý kho hàng, upload ảnh sản phẩm/avatar, đa ngôn ngữ Việt/Anh, Docker và CI/CD Docker Hub.
+Marseille04 Shop là web bán hàng thời trang full-stack gồm React client, Express API và MongoDB. Dự án hỗ trợ mua hàng, quản lý giỏ hàng, đánh giá sản phẩm kèm ảnh, lịch sử đơn hàng, sổ địa chỉ giao hàng, realtime notification, quản lý kho hàng, upload ảnh sản phẩm/review/avatar, đa ngôn ngữ Việt/Anh, Docker và CI/CD Docker Hub.
 
 ## Công nghệ
 
@@ -23,6 +23,7 @@ Server:
 - Password hash bằng PBKDF2 từ Node `crypto`
 - CORS, dotenv
 - Upload ảnh sản phẩm vào `/uploads/products`
+- Upload ảnh review vào `/uploads/reviews`
 - Upload avatar người dùng vào `/uploads/avatars`
 
 DevOps:
@@ -31,6 +32,7 @@ DevOps:
 - `docker-compose.yml` để build local
 - `docker-compose.hub.yml` để chạy từ Docker Hub
 - GitHub Actions build/push Docker images tự động
+- MCP server dạng `stdio` để AI client đọc dữ liệu shop từ MongoDB
 
 ## Tính năng chính
 
@@ -42,8 +44,8 @@ Khách hàng:
 - Tìm kiếm, lọc danh mục, sắp xếp giá
 - Trang shop hiển thị 10 sản phẩm mỗi trang, phân trang từ API
 - URL sản phẩm dạng `/products-ten-san-pham-x<id-ma-hoa>`
-- Xem chi tiết sản phẩm
-- Đánh giá sản phẩm, yêu cầu đăng nhập trước khi gửi
+- Xem chi tiết sản phẩm với ảnh chính và gallery ảnh mô tả
+- Đánh giá sản phẩm kèm nhiều ảnh review, yêu cầu đăng nhập trước khi gửi
 - Thêm vào giỏ có animation bay về cart, không chuyển trang
 - Giỏ hàng, mua hàng, thanh toán
 - Lịch sử mua hàng
@@ -66,12 +68,12 @@ Admin:
 - Lọc đơn hàng theo khách đã đăng ký/khách chưa đăng ký
 - Cập nhật trạng thái đơn hàng và gửi realtime notification cho khách hàng
 - Quản lý kho hàng: mặt hàng, tồn kho, danh mục và lịch sử cập nhật kho
-- Thêm/sửa/xóa mặt hàng trong dialog, upload ảnh lên server
+- Thêm/sửa/xóa mặt hàng trong dialog, upload ảnh chính và nhiều ảnh mô tả lên server
 - Tự trừ tồn kho và ghi lịch sử khi đơn chuyển sang đang giao hoặc hoàn thành
 - Quản lý người dùng, nâng/hạ quyền admin
 - Quản lý liên hệ
 - Cập nhật trạng thái liên hệ/yêu cầu hỗ trợ và gửi realtime notification cho khách hàng
-- Quản lý đánh giá sản phẩm
+- Quản lý đánh giá sản phẩm, lọc review có/không có ảnh và mở dialog chi tiết review
 - Tìm kiếm và lọc trong các mục quản lý
 - Popup thông báo và popup xác nhận xóa
 - Popup nhắc đơn hàng/liên hệ chưa xử lý, click để mở đúng mục quản lý và tự lọc
@@ -101,6 +103,7 @@ Admin:
 │   │   ├── controllers/
 │   │   ├── data/
 │   │   ├── middleware/
+│   │   ├── mcp/
 │   │   ├── models/
 │   │   ├── routes/
 │   │   └── utils/
@@ -311,6 +314,8 @@ POST   /reviews
 
 `POST /orders` trả thêm `customerType`/`customerTypeLabel`. Nếu order có `user` thì là `registered`, nếu không có `user` thì là `guest`.
 
+`POST /reviews` nhận `productId`, `rating`, `comment` và tùy chọn `images` là mảng data URL ảnh review. Server lưu ảnh vào `/uploads/reviews` và trả review có `images: []`.
+
 Realtime notification:
 
 - Client mở SSE stream qua `GET /api/shop/notifications/stream?token=<jwt-token>`.
@@ -344,7 +349,7 @@ PATCH  /admin/products/:productId
 DELETE /admin/products/:productId
 ```
 
-Các API danh sách admin hỗ trợ `page`, `limit`, `query` và bộ lọc theo từng mục. Riêng đơn hàng hỗ trợ `status`, `payment`, `customerType=all|registered|guest`, `dateField`, `startDate`, `endDate`.
+Các API danh sách admin hỗ trợ `page`, `limit`, `query` và bộ lọc theo từng mục. Riêng đơn hàng hỗ trợ `status`, `payment`, `customerType=all|registered|guest`, `dateField`, `startDate`, `endDate`. Riêng review hỗ trợ lọc theo `rating` và `hasImages=all|yes|no`.
 
 ## Upload ảnh sản phẩm
 
@@ -360,11 +365,34 @@ Client gửi ảnh dạng data URL JSON. Server lưu file vào:
 server/uploads/products
 ```
 
+Ảnh chính sản phẩm được lưu trong trường `image`. Các ảnh mô tả/ảnh gallery được lưu trong trường `images` dạng mảng URL và cũng dùng endpoint upload này trước khi gửi `POST/PATCH /admin/products`.
+
 Giới hạn:
 
 - File ảnh nhỏ hơn 5MB.
 - Hỗ trợ JPG, PNG, WEBP, GIF.
 - Nginx client Docker đã cấu hình `client_max_body_size 100M` để tránh lỗi 413 ở proxy.
+
+## Upload ảnh review
+
+Khách hàng gửi ảnh review trực tiếp trong payload:
+
+```txt
+POST /api/shop/reviews
+```
+
+Server lưu file vào:
+
+```txt
+server/uploads/reviews
+```
+
+Giới hạn:
+
+- Tối đa 4 ảnh cho mỗi review.
+- Mỗi ảnh nhỏ hơn 2MB.
+- Hỗ trợ JPG, PNG, WEBP, GIF.
+- API review trả về đường dẫn `/uploads/reviews/...` trong trường `images`.
 
 ## Upload avatar người dùng
 
@@ -429,6 +457,7 @@ Chi tiết: [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd
 - [docs/docker-hub-guide.md](docs/docker-hub-guide.md)
 - [docs/docker-hub-pull-guide.md](docs/docker-hub-pull-guide.md)
 - [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd.md)
+- [docs/mcp-server.md](docs/mcp-server.md)
 - Các file SVG trong `docs/` mô tả use case, luồng auth, cart, checkout, admin, review, search/filter, realtime notification và Redux.
 
 ## Kiểm tra trước khi push
@@ -497,6 +526,7 @@ Realtime notification không hiện ngay:
 
 - Không commit `.env`, token, key, certificate.
 - Không commit `server/uploads/products`.
+- Không commit `server/uploads/reviews`.
 - Không commit `server/uploads/avatars`.
 - Đổi `JWT_SECRET` khi deploy thật.
 - Dùng Docker Hub access token thay vì mật khẩu tài khoản.

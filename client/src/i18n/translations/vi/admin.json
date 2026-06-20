@@ -11,6 +11,7 @@
   "admin.allCustomerTypes": "Tất cả loại khách",
   "admin.allPayments": "Tất cả phương thức",
   "admin.allRatings": "Tất cả đánh giá",
+  "admin.allReviewImages": "Tất cả ảnh",
   "admin.allRoles": "Tất cả quyền",
   "admin.allStatuses": "Tất cả trạng thái",
   "admin.allStock": "Tất cả tồn kho",
@@ -63,6 +64,7 @@
   "admin.delete": "Xóa",
   "admin.deductedQuantity": "Số lượng trừ kho",
   "admin.description": "Mô tả",
+  "admin.detail": "Chi tiết",
   "admin.dateField": "Mốc ngày",
   "admin.dateRange": "Khoảng ngày",
   "admin.edit": "Sửa",
@@ -179,6 +181,7 @@
   "admin.previousValue": "Trước",
   "admin.product": "Mặt hàng",
   "admin.productCount": "{count} mặt hàng",
+  "admin.productGalleryImages": "Ảnh mô tả sản phẩm",
   "admin.productImage": "Ảnh mặt hàng",
   "admin.productName": "Tên mặt hàng",
   "admin.products": "Kho hàng",
@@ -187,6 +190,8 @@
   "admin.refresh": "Làm mới",
   "admin.newValue": "Sau",
   "admin.reviewCount": "{count} đánh giá",
+  "admin.reviewDetail": "Chi tiết đánh giá",
+  "admin.reviewImages": "Ảnh review",
   "admin.reviews": "Đánh giá",
   "admin.reviewTable": "Quản lý đánh giá sản phẩm",
   "admin.revenue": "Doanh thu",
@@ -239,5 +244,8 @@
   "admin.units": "đơn vị",
   "admin.userCount": "{count} tài khoản",
   "admin.users": "Người dùng",
-  "admin.value": "Giá trị"
+  "admin.value": "Giá trị",
+  "admin.viewReviews": "Đánh giá",
+  "admin.withReviewImages": "Có ảnh",
+  "admin.withoutReviewImages": "Không ảnh"
 }

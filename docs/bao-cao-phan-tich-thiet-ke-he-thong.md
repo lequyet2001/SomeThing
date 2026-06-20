@@ -38,7 +38,7 @@ Phạm vi bao gồm:
 - Backend API: xác thực, sản phẩm, giỏ hàng, đơn hàng, đánh giá, liên hệ, thông báo, quản trị.
 - Database: MongoDB lưu người dùng, sản phẩm, giỏ hàng, đơn hàng, đánh giá, liên hệ, thông báo, danh mục, lịch sử kho.
 - Realtime notification: Server-Sent Events cho người dùng và admin.
-- Upload file: ảnh sản phẩm và avatar người dùng.
+- Upload file: ảnh sản phẩm, ảnh mô tả sản phẩm, ảnh review và avatar người dùng.
 - Đa ngôn ngữ: tiếng Việt và tiếng Anh.
 - Docker, Docker Compose, Docker Hub, CI/CD GitHub Actions.
 
@@ -56,7 +56,7 @@ Phạm vi không bao gồm:
 | Khách hàng | Người đã đăng ký/đăng nhập, có thể quản lý giỏ hàng, địa chỉ, đặt hàng, đánh giá, xem lịch sử mua hàng và nhận thông báo |
 | Quản trị viên | Người có role admin, quản lý toàn bộ nghiệp vụ cửa hàng |
 | Hệ thống thông báo | Thành phần server tạo và đẩy thông báo realtime |
-| Dịch vụ lưu trữ file nội bộ | Thư mục uploads trên server dùng cho ảnh sản phẩm/avatar |
+| Dịch vụ lưu trữ file nội bộ | Thư mục uploads trên server dùng cho ảnh sản phẩm/review/avatar |
 | Docker/CI-CD | Hạ tầng build, đóng gói và triển khai hệ thống |
 
 ### 1.4 Yêu cầu chức năng
@@ -70,8 +70,8 @@ Phạm vi không bao gồm:
 | FR-05 | Địa chỉ | Thêm, sửa, chọn địa chỉ giao hàng |
 | FR-06 | Sản phẩm | Xem danh sách sản phẩm, danh mục, sản phẩm bán chạy |
 | FR-07 | Sản phẩm | Tìm kiếm, lọc, sắp xếp sản phẩm theo giá |
-| FR-08 | Sản phẩm | Xem chi tiết sản phẩm bằng slug có phân biệt sản phẩm trùng tên |
-| FR-09 | Đánh giá | Người dùng đăng nhập mới được gửi đánh giá sản phẩm |
+| FR-08 | Sản phẩm | Xem chi tiết sản phẩm bằng slug có phân biệt sản phẩm trùng tên, hỗ trợ gallery ảnh mô tả |
+| FR-09 | Đánh giá | Người dùng đăng nhập mới được gửi đánh giá sản phẩm, có thể đính kèm nhiều ảnh review |
 | FR-10 | Giỏ hàng | Thêm, tăng/giảm số lượng, xóa sản phẩm, xóa toàn bộ giỏ |
 | FR-11 | Mua hàng | Tạo đơn hàng từ giỏ hàng hoặc thông tin checkout |
 | FR-12 | Thanh toán | Chọn phương thức thanh toán, ghi nhận trạng thái đơn hàng |
@@ -82,12 +82,12 @@ Phạm vi không bao gồm:
 | FR-17 | Admin | Xem dashboard doanh thu, đơn hàng, tồn kho, liên hệ cần xử lý |
 | FR-18 | Admin | Lọc thống kê theo tháng hoặc khoảng ngày |
 | FR-19 | Admin | Quản lý đơn hàng, lọc theo trạng thái, thanh toán, ngày và loại khách |
-| FR-20 | Admin | Quản lý kho hàng: sản phẩm, tồn kho, ảnh, danh mục |
+| FR-20 | Admin | Quản lý kho hàng: sản phẩm, tồn kho, ảnh chính, ảnh mô tả, danh mục |
 | FR-21 | Admin | Ghi lịch sử thêm/sửa/xóa sản phẩm, danh mục và trừ kho theo đơn hàng |
 | FR-22 | Admin | Quản lý khách hàng và xem đơn hàng của từng khách |
 | FR-23 | Admin | Quản lý người dùng, nâng/hạ quyền admin |
 | FR-24 | Admin | Quản lý liên hệ và trạng thái xử lý |
-| FR-25 | Admin | Quản lý đánh giá sản phẩm |
+| FR-25 | Admin | Quản lý đánh giá sản phẩm, lọc review có ảnh và xem dialog chi tiết |
 | FR-26 | Quốc tế hóa | Chuyển đổi tiếng Việt/tiếng Anh bằng file JSON |
 
 ### 1.5 Yêu cầu phi chức năng
@@ -117,6 +117,7 @@ Giả định:
 - Thanh toán hiện tại ghi nhận phương thức và trạng thái, chưa tích hợp gateway thật.
 - Email reset mật khẩu trong môi trường đồ án có thể hiển thị/log token hoặc giả lập gửi email.
 - Ảnh upload lưu tại server local trong thư mục uploads; môi trường production cần cân nhắc object storage.
+- Review cho phép tối đa 4 ảnh, mỗi ảnh nhỏ hơn 2MB; ảnh sản phẩm và ảnh mô tả sản phẩm dùng giới hạn upload ảnh sản phẩm.
 
 Ràng buộc:
 
@@ -185,8 +186,8 @@ Quy trình mới:
 | UC-03 Quên mật khẩu | Email đã đăng ký | Nhập email; server tạo token hash và hạn dùng; người dùng đặt mật khẩu mới | Token hết hạn/sai, email không tồn tại | Mật khẩu được thay đổi |
 | UC-04 Hồ sơ/địa chỉ | Đã đăng nhập | Xem hồ sơ; sửa tên, phone, avatar; thêm/sửa/chọn địa chỉ giao hàng | Upload lỗi, dữ liệu địa chỉ thiếu | Hồ sơ và địa chỉ được cập nhật |
 | UC-05 Tìm kiếm/lọc | Có danh sách sản phẩm | Nhập từ khóa; chọn danh mục; sắp xếp giá; client render kết quả | Không có kết quả | Danh sách phù hợp được hiển thị |
-| UC-06 Chi tiết sản phẩm | Sản phẩm tồn tại | Mở URL slug; giải mã id; tải sản phẩm/review; hiển thị ảnh, giá, tồn kho | Slug/id sai, sản phẩm bị xóa | Người dùng thấy chi tiết sản phẩm |
-| UC-07 Đánh giá | Đã đăng nhập | Chọn sao, nhập bình luận; gửi review; server lưu và cập nhật rating | Chưa đăng nhập thì hiện popup login; rating ngoài 1-5 | Review hiển thị trong sản phẩm |
+| UC-06 Chi tiết sản phẩm | Sản phẩm tồn tại | Mở URL slug; giải mã id; tải sản phẩm/review; hiển thị ảnh chính, gallery ảnh mô tả, giá, tồn kho | Slug/id sai, sản phẩm bị xóa | Người dùng thấy chi tiết sản phẩm |
+| UC-07 Đánh giá | Đã đăng nhập | Chọn sao, nhập bình luận, chọn ảnh nếu có; gửi review; server lưu ảnh review và cập nhật rating | Chưa đăng nhập thì hiện popup login; rating ngoài 1-5; ảnh quá giới hạn | Review hiển thị trong sản phẩm |
 | UC-08 Giỏ hàng | Đã đăng nhập | Thêm sản phẩm; cập nhật số lượng; xóa sản phẩm; đồng bộ server | Hết hàng, số lượng không hợp lệ | Cart lưu trong MongoDB và Redux |
 | UC-09 Đặt hàng | Có sản phẩm cần mua | Chọn địa chỉ, phương thức thanh toán; tạo order; gắn user nếu đã đăng nhập; clear cart nếu cần | Thiếu thông tin giao hàng, sản phẩm không tồn tại | Order được tạo, khách nhận mã đơn và customerType |
 | UC-10 Lịch sử mua | Đã đăng nhập | Tải /orders/me; xem danh sách và chi tiết | Chưa có đơn | Người dùng theo dõi đơn hàng |
@@ -194,10 +195,10 @@ Quy trình mới:
 | UC-12 Thông báo | Đã đăng nhập | Tải notifications; mở SSE stream; đánh dấu đọc/xóa | Token hết hạn, stream lỗi | Thông báo được đồng bộ |
 | UC-13 Dashboard admin | Admin đăng nhập | Tải summary theo bộ lọc; hiển thị doanh thu, đơn, khách, tồn kho | Không có dữ liệu | Admin thấy tình hình kinh doanh |
 | UC-14 Quản lý đơn | Admin đăng nhập | Lọc đơn theo status/payment/date/customerType; mở chi tiết; đổi trạng thái; gửi notification | Order không tồn tại; trạng thái sai | Order cập nhật, có thông báo cho khách |
-| UC-15 Quản lý kho | Admin đăng nhập | Thêm/sửa/xóa sản phẩm; upload ảnh; quản lý category; xem lịch sử kho | Upload quá lớn, category trùng, stock âm | Product/Category cập nhật và ghi InventoryLog |
+| UC-15 Quản lý kho | Admin đăng nhập | Thêm/sửa/xóa sản phẩm; upload ảnh chính/ảnh mô tả; quản lý category; xem lịch sử kho | Upload quá lớn, category trùng, stock âm | Product/Category cập nhật và ghi InventoryLog |
 | UC-16 Quản lý khách hàng | Admin đăng nhập | Lọc khách theo thời gian; mở chi tiết đơn; chuyển đến sản phẩm/khách tương ứng | Không có đơn theo lọc | Admin phân tích khách hàng |
 | UC-17 Người dùng/role | Admin đăng nhập | Xem người dùng; lọc; nâng/hạ role admin | Không được tự phá admin cuối cùng nếu áp dụng rule mở rộng | Role người dùng thay đổi |
-| UC-18 Liên hệ/đánh giá | Admin đăng nhập | Lọc liên hệ/review; cập nhật trạng thái liên hệ; xóa review vi phạm | Contact/review không tồn tại | Dữ liệu hỗ trợ và review được quản lý |
+| UC-18 Liên hệ/đánh giá | Admin đăng nhập | Lọc liên hệ/review; lọc review có ảnh; mở dialog chi tiết review; cập nhật trạng thái liên hệ; xóa review vi phạm | Contact/review không tồn tại | Dữ liệu hỗ trợ và review được quản lý |
 
 ### 2.5 Use Case Diagram
 
@@ -286,11 +287,11 @@ Lý do chọn kiến trúc:
 | Catalog | productRoutes, Product, Category | Danh sách sản phẩm, danh mục, chi tiết |
 | Cart | cartRoutes, Cart | Đồng bộ giỏ hàng người dùng |
 | Order | orderRoutes, Order | Tạo đơn, xem đơn cá nhân, tra cứu mã đơn |
-| Review | reviewRoutes, Review | Xem và tạo đánh giá |
+| Review | reviewRoutes, Review | Xem và tạo đánh giá, lưu ảnh review |
 | Contact | contactRoutes, ContactMessage | Gửi và xem liên hệ cá nhân |
 | Notification | notificationRoutes, UserNotification, SSE | Thông báo cá nhân và realtime |
 | Admin | adminRoutes, adminController | Dashboard, đơn hàng, khách hàng, user, contact, review |
-| Inventory Admin | inventoryAdminController, InventoryLog | Quản lý kho, category, upload ảnh, lịch sử kho |
+| Inventory Admin | inventoryAdminController, InventoryLog | Quản lý kho, category, upload ảnh chính/ảnh mô tả, lịch sử kho |
 | Client Store | Redux slices | user, catalog, cart, orders, contacts, reviews, notifications, UI |
 | i18n | translations JSON | Text tiếng Việt/tiếng Anh |
 
@@ -322,7 +323,7 @@ Base URL: /api/shop
 | GET | /products?page&limit&category&query&sort | Public | Lấy danh sách sản phẩm phân trang, mặc định 10 sản phẩm/trang |
 | GET | /products/:productId | Public | Lấy chi tiết sản phẩm |
 | GET | /reviews?productId=:id | Public | Lấy review theo sản phẩm |
-| POST | /reviews | User | Tạo review |
+| POST | /reviews | User | Tạo review, tùy chọn mảng ảnh review |
 | GET | /cart | User | Lấy giỏ hàng |
 | POST | /cart/items | User | Thêm sản phẩm vào giỏ |
 | PATCH | /cart/items/:productId | User | Cập nhật số lượng |
@@ -347,7 +348,7 @@ Base URL: /api/shop
 | PATCH | /admin/users/:userId/role | Admin | Đổi role |
 | GET | /admin/contacts | Admin | Danh sách liên hệ |
 | PATCH | /admin/contacts/:contactId/status | Admin | Cập nhật trạng thái liên hệ |
-| GET | /admin/reviews | Admin | Danh sách review |
+| GET | /admin/reviews | Admin | Danh sách review, hỗ trợ lọc số sao và có/không có ảnh |
 | DELETE | /admin/reviews/:reviewId | Admin | Xóa review |
 | GET | /admin/categories | Admin | Danh sách category |
 | POST | /admin/categories | Admin | Thêm category |
@@ -384,13 +385,13 @@ Base URL: /api/shop
 |---|---|---|
 | User | name, email, passwordHash, passwordSalt, avatar, phone, address, role | Người dùng và admin |
 | ShippingAddress | id, label, recipient, phone, address | Địa chỉ giao hàng nhúng trong User |
-| Product | legacyId, name, category, price, rating, stock, image, description | Sản phẩm/kho hàng |
+| Product | legacyId, name, category, price, rating, stock, image, images, description | Sản phẩm/kho hàng |
 | Category | name | Danh mục sản phẩm |
 | Cart | user, items | Giỏ hàng theo user |
 | CartItem | productId, quantity | Item trong giỏ |
 | Order | orderCode, user, customer, items, payment, status, subtotal, shipping, total | Đơn hàng; customerType được suy ra từ user |
 | OrderItem | productId, name, price, quantity, image | Snapshot sản phẩm khi đặt hàng |
-| Review | productId, user, name, rating, comment | Đánh giá sản phẩm |
+| Review | productId, user, name, rating, comment, images | Đánh giá sản phẩm |
 | ContactMessage | user, name, email, phone, topic, message, status | Liên hệ/yêu cầu hỗ trợ |
 | UserNotification | user, type, title, message, link, metadata, readAt | Thông báo người dùng |
 | InventoryLog | action, actor, entityType, productId, stock, changes, orderCode | Lịch sử kho/danh mục |
@@ -517,6 +518,7 @@ CREATE TABLE products (
   rating DECIMAL(3,2) NOT NULL DEFAULT 0,
   stock INT NOT NULL DEFAULT 0,
   image TEXT NOT NULL,
+  images_json TEXT,
   description TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL
@@ -580,6 +582,7 @@ CREATE TABLE reviews (
   name VARCHAR(120) NOT NULL,
   rating INT NOT NULL,
   comment TEXT NOT NULL,
+  images_json TEXT,
   created_at TIMESTAMP NOT NULL,
   updated_at TIMESTAMP NOT NULL,
   FOREIGN KEY (product_legacy_id) REFERENCES products(legacy_id),
@@ -675,6 +678,7 @@ classDiagram
     +Number rating
     +Number stock
     +String image
+    +String[] images
     +String description
   }
   class Cart {
@@ -700,6 +704,7 @@ classDiagram
     +ObjectId user
     +Number rating
     +String comment
+    +String[] images
   }
   class ContactMessage {
     +ObjectId user
@@ -883,7 +888,7 @@ flowchart LR
 |---|---|---|
 | Home | Tất cả | Hiển thị sản phẩm nổi bật, danh mục bán chạy, điều hướng mua sắm |
 | Shop | Tất cả | Tìm kiếm, lọc danh mục, sắp xếp giá, phân trang sản phẩm |
-| Product Detail | Tất cả | Xem ảnh, giá, mô tả, tồn kho, review, thêm giỏ |
+| Product Detail | Tất cả | Xem ảnh chính, gallery ảnh mô tả, giá, mô tả, tồn kho, review, thêm giỏ |
 | Login/Register/Forgot/Reset | Khách | Xác thực tài khoản |
 | Cart | Khách hàng | Xem và chỉnh giỏ hàng |
 | Checkout | Khách hàng | Chọn địa chỉ, phương thức thanh toán, tạo đơn |
@@ -896,7 +901,7 @@ flowchart LR
 | Admin Customers | Admin | Thống kê khách hàng, đơn đã mua |
 | Admin Users | Admin | Lọc user, đổi role |
 | Admin Contacts | Admin | Lọc và cập nhật trạng thái liên hệ |
-| Admin Reviews | Admin | Lọc và xóa đánh giá |
+| Admin Reviews | Admin | Lọc đánh giá, lọc review có ảnh, mở dialog chi tiết, xóa đánh giá |
 
 ### 6.2 Đề xuất bố cục UI/UX
 
@@ -933,13 +938,13 @@ Nguyên tắc:
 +------------------------------------------------------------+
 | Breadcrumb / Back                                          |
 +-------------------------+----------------------------------+
-| Product Image           | Name, Rating, Price              |
+| Product Image/Gallery   | Name, Rating, Price              |
 |                         | Stock status                     |
 |                         | Quantity / Add Cart              |
 +-------------------------+----------------------------------+
 | Description                                                |
 +------------------------------------------------------------+
-| Reviews: star input, comment list                          |
+| Reviews: star input, ảnh review, comment list              |
 +------------------------------------------------------------+
 ~~~
 
@@ -1017,7 +1022,7 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | TC-07 | Sắp xếp giá | Sort tăng/giảm | Thứ tự giá đúng |
 | TC-08 | Chi tiết sản phẩm trùng tên | Slug có id mã hóa/phân biệt | Mở đúng sản phẩm |
 | TC-09 | Review chưa login | Submit review | Hiện popup đăng nhập |
-| TC-10 | Review đã login | Rating 1-5, comment hợp lệ | Review được lưu |
+| TC-10 | Review đã login | Rating 1-5, comment hợp lệ, tùy chọn ảnh review | Review và ảnh được lưu |
 | TC-11 | Thêm giỏ | Product còn hàng | Cart count và server cart cập nhật |
 | TC-12 | Cập nhật giỏ | Quantity hợp lệ | Tổng tiền đúng |
 | TC-13 | Đặt hàng | Có địa chỉ/payment | Tạo orderCode, lưu order, trả customerType |
@@ -1028,11 +1033,11 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | TC-18 | Dashboard doanh thu | Có đơn completed/paid | Doanh thu chỉ tính đơn hợp lệ |
 | TC-19 | Cập nhật đơn shipping | Order có item | Stock trừ một lần, ghi InventoryLog |
 | TC-20 | Cập nhật liên hệ | Status new -> done | Contact đổi trạng thái, user nhận notification |
-| TC-21 | Upload ảnh sản phẩm | File dưới giới hạn | Server trả URL uploads |
+| TC-21 | Upload ảnh sản phẩm | File dưới giới hạn | Server trả URL uploads, dùng được cho ảnh chính và ảnh mô tả |
 | TC-22 | Upload ảnh quá lớn | File vượt giới hạn | API/client báo lỗi |
 | TC-23 | Quản lý category | Thêm category trùng | Báo lỗi trùng tên |
 | TC-24 | Đổi role user | Admin đổi customer -> admin | Role cập nhật |
-| TC-25 | Xóa review | Admin xóa review | Review biến mất khỏi danh sách |
+| TC-25 | Xóa review | Admin xóa review từ bảng/dialog chi tiết | Review biến mất khỏi danh sách và rating được tính lại |
 | TC-26 | Loading admin | Vào tab quản lý chưa có dữ liệu | Hiện skeleton, không lệch layout |
 | TC-27 | Đa ngôn ngữ | Chuyển VI/EN | Text đổi theo JSON |
 | TC-28 | Phân loại đơn hàng | Một đơn có user, một đơn không có user | Admin lọc đúng registered/guest |
@@ -1072,12 +1077,12 @@ Kịch bản UAT cho admin:
 
 1. Đăng nhập bằng tài khoản admin.
 2. Xem dashboard theo tháng/khoảng ngày.
-3. Thêm sản phẩm và upload ảnh.
+3. Thêm sản phẩm và upload ảnh chính/ảnh mô tả.
 4. Sửa tồn kho, xem lịch sử kho.
 5. Tạo/sửa/xóa danh mục.
 6. Cập nhật trạng thái đơn hàng.
 7. Kiểm tra tồn kho bị trừ và khách nhận thông báo.
-8. Lọc khách hàng, người dùng, liên hệ, đánh giá.
+8. Lọc khách hàng, người dùng, liên hệ, đánh giá; mở dialog chi tiết review có ảnh.
 
 ## 9. Kết luận
 

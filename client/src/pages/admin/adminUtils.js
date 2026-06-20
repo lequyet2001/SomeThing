@@ -43,7 +43,7 @@ export const emptyAdminFilters = {
   },
   users: { query: '', role: 'all', address: 'all' },
   contacts: { query: '', status: 'all', startDate: '', endDate: '' },
-  reviews: { query: '', rating: 'all', startDate: '', endDate: '' },
+  reviews: { query: '', rating: 'all', hasImages: 'all', startDate: '', endDate: '' },
   lowStock: { query: '', category: 'all' },
 }
 
