@@ -1,1 +1,98 @@
-/* CSS is imported from main.jsx so Vite resolves each file from client/src. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth bg-slate-50 text-ink;
+  }
+
+  body {
+    @apply m-0 min-h-screen min-w-80 bg-slate-50 font-sans text-ink antialiased;
+  }
+
+  *,
+  ::before,
+  ::after {
+    @apply box-border;
+  }
+
+  main {
+    @apply mx-auto w-full max-w-[1380px] flex-1 px-4 py-8 md:px-8 md:py-9;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    @apply m-0;
+  }
+
+  h1 {
+    @apply text-3xl font-black leading-tight text-ink md:text-5xl;
+  }
+
+  h2 {
+    @apply text-2xl font-black text-ink;
+  }
+
+  h3 {
+    @apply text-lg font-black text-ink;
+  }
+
+  p,
+  small,
+  span {
+    @apply text-inherit;
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  img,
+  canvas {
+    @apply block max-w-full;
+  }
+
+  button {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm font-extrabold text-ink shadow-soft transition duration-200 ease-out hover:border-primary hover:bg-surfaceMuted hover:text-primaryDark disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm font-bold text-ink outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10;
+  }
+
+  textarea {
+    @apply min-h-32 resize-y;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-slate-400 opacity-100;
+  }
+
+  input[aria-invalid="true"],
+  select[aria-invalid="true"],
+  textarea[aria-invalid="true"] {
+    @apply border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-100;
+  }
+
+  label {
+    @apply grid gap-2 text-sm font-black text-muted;
+  }
+
+  table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+
+  th {
+    @apply bg-surfaceMuted px-4 py-3 text-xs font-black uppercase text-muted;
+  }
+
+  td {
+    @apply border-t border-line px-4 py-3 align-top font-semibold text-ink;
+  }
+}

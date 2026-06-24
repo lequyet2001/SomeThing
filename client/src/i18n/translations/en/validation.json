@@ -1,0 +1,18 @@
+{
+  "validation.required": "Please fill out this field.",
+  "validation.name": "Name must be at least 2 characters.",
+  "validation.email": "Email is invalid.",
+  "validation.password": "Password must be at least 6 characters.",
+  "validation.confirmPassword": "Password confirmation does not match.",
+  "validation.phone": "Phone number is invalid.",
+  "validation.address": "Address must be at least 5 characters.",
+  "validation.topic": "Please choose a topic.",
+  "validation.message": "Message must be at least 10 characters.",
+  "validation.review": "Review must be at least 3 characters.",
+  "validation.price": "Price must be greater than or equal to 0.",
+  "validation.stock": "Stock must be greater than or equal to 0.",
+  "validation.category": "Please choose a category.",
+  "validation.image": "Please choose a product image.",
+  "validation.description": "Description must be at least 10 characters.",
+  "validation.fixErrors": "Please check the highlighted fields."
+}
