@@ -87,14 +87,14 @@
 
   <p><strong>Phạm vi:</strong> Tài liệu này mô tả cách client React/Vite hoạt động, cách dữ liệu đi qua Redux, router, service API và các page/component chính.</p>
   <p><strong>Thư mục áp dụng:</strong> <code>client/src</code></p>
-  <p><strong>Công nghệ chính:</strong> React, Vite, React Router, Redux Toolkit, React Redux, Lucide React.</p>
+  <p><strong>Công nghệ chính:</strong> React, TypeScript/TSX, Vite, React Router, Redux Toolkit, React Redux, Tailwind CSS, Headless UI, TanStack Table, React Hook Form, Zod, Recharts và Lucide React.</p>
 
   <h2>1. Tổng quan kiến trúc client</h2>
 
-  <p>Client được tổ chức theo hướng SPA. Toàn bộ ứng dụng bắt đầu từ <code>main.jsx</code>, bọc các provider cần thiết rồi render <code>App</code>. State dùng chung được quản lý trong Redux store. Các page không gọi Redux trực tiếp mà nhận dữ liệu và callback thông qua object <code>shop</code> từ hook <code>useShopState</code>.</p>
+  <p>Client được tổ chức theo hướng SPA. Toàn bộ ứng dụng bắt đầu từ <code>main.tsx</code>, bọc các provider cần thiết rồi render <code>App</code>. State dùng chung được quản lý trong Redux store. Các page không gọi Redux trực tiếp mà nhận dữ liệu và callback thông qua object <code>shop</code> từ hook <code>useShopState</code>.</p>
 
   <pre>
-main.jsx
+main.tsx
   └── Provider Redux
       └── LanguageProvider
           └── BrowserRouter
@@ -119,22 +119,22 @@ main.jsx
     <tbody>
       <tr>
         <td>1</td>
-        <td><code>src/main.jsx</code></td>
-        <td>Import CSS toàn cục, tạo React root, bọc ứng dụng bằng <code>Provider</code>, <code>LanguageProvider</code> và <code>BrowserRouter</code>.</td>
+        <td><code>src/main.tsx</code></td>
+        <td>Import Tailwind entry <code>index.css</code>, tạo React root, bọc ứng dụng bằng <code>Provider</code>, <code>LanguageProvider</code> và <code>BrowserRouter</code>.</td>
       </tr>
       <tr>
         <td>2</td>
-        <td><code>src/store/shopStore.js</code></td>
+        <td><code>src/store/shopStore.ts</code></td>
         <td>Tạo Redux store, ghép các reducer: cart, catalog, notice, orders, reviews, ui, user và userNotifications.</td>
       </tr>
       <tr>
         <td>3</td>
-        <td><code>src/App.jsx</code></td>
+        <td><code>src/App.tsx</code></td>
         <td>Gọi <code>useShopState()</code> để lấy toàn bộ state và actions dùng cho UI.</td>
       </tr>
       <tr>
         <td>4</td>
-        <td><code>src/routes/AppRoutes.jsx</code></td>
+        <td><code>src/routes/AppRoutes.tsx</code></td>
         <td>Khai báo route và truyền dữ liệu/actions xuống từng page.</td>
       </tr>
     </tbody>
@@ -152,7 +152,7 @@ main.jsx
     <tbody>
       <tr>
         <td><code>components/</code></td>
-        <td>Các component dùng chung như Header, Footer, Notification, LoginModal, OrderSummary.</td>
+        <td>Các component dùng chung như Header, Footer, Notification, LoginModal, OrderSummary, ButtonLiquid, DataTable, AppDialog và các khối customer/admin nhỏ.</td>
       </tr>
       <tr>
         <td><code>pages/</code></td>
@@ -179,19 +179,19 @@ main.jsx
         <td>LanguageContext và các file JSON namespace cho tiếng Việt/Anh.</td>
       </tr>
       <tr>
-        <td><code>styles/</code></td>
-        <td>CSS tách theo khu vực giao diện.</td>
-      </tr>
-      <tr>
         <td><code>utils/</code></td>
         <td>Hàm tiện ích: định dạng tiền, slug sản phẩm, nhãn danh mục.</td>
+      </tr>
+      <tr>
+        <td><code>types/</code></td>
+        <td>TypeScript type dùng chung cho sản phẩm, đơn hàng, user, props page/component và response API.</td>
       </tr>
     </tbody>
   </table>
 
   <h2>4. Redux store và slices</h2>
 
-  <p>Redux store được cấu hình trong <code>src/store/shopStore.js</code>. File này chỉ ghép reducer và export action groups. Logic từng phần nằm trong <code>src/store/slices/</code>.</p>
+  <p>Redux store được cấu hình trong <code>src/store/shopStore.ts</code>. File này chỉ ghép reducer và export action groups. Logic từng phần nằm trong <code>src/store/slices/</code>.</p>
 
   <p style="text-align:center;">
     <img src="client-redux-overview.svg" alt="Sơ đồ tổng quan luồng Redux trong client" style="width:100%; max-width:720pt;">
@@ -291,7 +291,7 @@ main.jsx
       <tr>
         <td>Form input tạm thời</td>
         <td>Không</td>
-        <td>Form dùng DOM/FormData hoặc local component state, không cần chia sẻ toàn app.</td>
+        <td>Form dùng React Hook Form/Zod hoặc local component state, không cần chia sẻ toàn app.</td>
       </tr>
     </tbody>
   </table>
@@ -491,7 +491,7 @@ useShopState() returns:
   actions
   </pre>
 
-  <p>Object trả về được đặt tên là <code>shop</code> trong <code>App.jsx</code>. Đây là contract chính giữa state layer và UI layer.</p>
+  <p>Object trả về được đặt tên là <code>shop</code> trong <code>App.tsx</code>. Đây là contract chính giữa state layer và UI layer.</p>
 
   <h3>5.2 useShopDerivedState</h3>
 
@@ -639,31 +639,31 @@ useShopActions
     </thead>
     <tbody>
       <tr>
-        <td><code>useCatalogActions.js</code></td>
+        <td><code>useCatalogActions.ts</code></td>
         <td>Điều hướng sản phẩm, chọn danh mục, set query, set sort, route legacy.</td>
       </tr>
       <tr>
-        <td><code>useCartActions.js</code></td>
+        <td><code>useCartActions.ts</code></td>
         <td>Thêm, sửa số lượng, xóa, clear giỏ hàng. Nếu user đăng nhập thì gọi API cart.</td>
       </tr>
       <tr>
-        <td><code>useAuthActions.js</code></td>
+        <td><code>useAuthActions.ts</code></td>
         <td>Đăng nhập, đăng ký, đăng nhập từ popup review, logout, cập nhật profile.</td>
       </tr>
       <tr>
-        <td><code>useReviewActions.js</code></td>
+        <td><code>useReviewActions.ts</code></td>
         <td>Gửi đánh giá. Nếu chưa đăng nhập thì mở popup login.</td>
       </tr>
       <tr>
-        <td><code>useCheckoutActions.js</code></td>
+        <td><code>useCheckoutActions.ts</code></td>
         <td>Tạo đơn hàng, lưu order hiện tại, thêm vào lịch sử, clear cart, chuyển sang trang payment.</td>
       </tr>
       <tr>
-        <td><code>useContactActions.js</code></td>
+        <td><code>useContactActions.ts</code></td>
         <td>Gửi form liên hệ tới backend và hiển thị thông báo.</td>
       </tr>
       <tr>
-        <td><code>useNotificationActions.js</code></td>
+        <td><code>useNotificationActions.ts</code></td>
         <td>Mở thông báo, đánh dấu đã đọc, đánh dấu tất cả đã đọc và xóa thông báo người dùng.</td>
       </tr>
     </tbody>
@@ -671,7 +671,7 @@ useShopActions
 
   <h2>7. Luồng route và page</h2>
 
-  <p><code>AppRoutes.jsx</code> nhận object <code>shop</code> từ <code>App.jsx</code>. Mỗi route truyền đúng dữ liệu và callback cần dùng vào page.</p>
+  <p><code>AppRoutes.tsx</code> nhận object <code>shop</code> từ <code>App.tsx</code>. Mỗi route truyền đúng dữ liệu và callback cần dùng vào page.</p>
 
   <table>
     <thead>
@@ -737,7 +737,7 @@ useShopActions
 
   <h2>8. Luồng API service</h2>
 
-  <p><code>src/services/shopApi.js</code> là lớp duy nhất chịu trách nhiệm gọi backend. Các action handlers không gọi <code>fetch</code> trực tiếp mà gọi qua <code>shopApi</code>.</p>
+  <p><code>src/services/shopApi.ts</code> là lớp duy nhất chịu trách nhiệm gọi backend. Các action handlers không gọi <code>fetch</code> trực tiếp mà gọi qua <code>shopApi</code>.</p>
 
   <pre>
 Page event
@@ -756,7 +756,7 @@ Page event
     <li><code>marseille04_user</code>: thông tin user hiện tại.</li>
   </ul>
 
-  <p>Realtime notification dùng thêm hàm <code>createNotificationStream()</code> trong <code>shopApi.js</code>. Hàm này mở <code>EventSource</code> tới <code>/notifications/stream?token=&lt;jwt-token&gt;</code>, lắng nghe event <code>notification</code> và truyền payload về <code>useShopEffects</code>.</p>
+  <p>Realtime notification dùng thêm hàm <code>createNotificationStream()</code> trong <code>shopApi.ts</code>. Hàm này mở <code>EventSource</code> tới <code>/notifications/stream?token=&lt;jwt-token&gt;</code>, lắng nghe event <code>notification</code> và truyền payload về <code>useShopEffects</code>.</p>
 
   <h2>9. Luồng tải dữ liệu ban đầu</h2>
 
@@ -1019,7 +1019,7 @@ Admin realtime event
 
   <h2>11. Luồng đa ngôn ngữ</h2>
 
-  <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.jsx</code>. Text được tách thành JSON theo namespace trong <code>i18n/translations/vi</code> và <code>i18n/translations/en</code>, sau đó merge qua <code>translations/index.js</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
+  <p>Ngôn ngữ không nằm trong Redux mà dùng React Context riêng tại <code>i18n/LanguageContext.tsx</code>. Text được tách thành JSON theo namespace trong <code>i18n/translations/vi</code> và <code>i18n/translations/en</code>, sau đó merge qua <code>translations/index.ts</code>. Lý do: đây là state UI độc lập, có provider riêng và lưu vào localStorage.</p>
 
   <pre>
 Header click EN/VI
@@ -1037,6 +1037,9 @@ Header click EN/VI
     <li>Nếu thêm action nghiệp vụ, đặt vào <code>hooks/shop/actions/</code> theo domain.</li>
     <li>Page/component nên nhận props từ <code>AppRoutes</code>, hạn chế gọi API trực tiếp trong page nếu nghiệp vụ dùng chung.</li>
     <li>API call nên đi qua <code>shopApi</code>, không gọi <code>fetch</code> rải rác.</li>
+    <li>UI mới ưu tiên Tailwind class trong file TSX; component phức tạp nên tách vào <code>components/ui</code>, <code>components/customer</code> hoặc <code>components/admin</code>.</li>
+    <li>Form mới ưu tiên React Hook Form + Zod để validate nhất quán và giữ type rõ ràng.</li>
+    <li>Bảng quản trị mới ưu tiên <code>DataTable</code> dựa trên TanStack Table để giữ responsive layout ổn định.</li>
     <li>Text UI mới cần thêm key ở cả tiếng Việt và tiếng Anh trong đúng file JSON namespace dưới <code>i18n/translations/</code>.</li>
     <li>Admin route mới phải kiểm tra quyền ở frontend và backend.</li>
   </ul>

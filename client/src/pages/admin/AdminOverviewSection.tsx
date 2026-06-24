@@ -133,7 +133,7 @@ function AdminOverviewSection({
   ]
 
   const panelClass = 'grid min-h-[360px] content-start gap-4 rounded-md border border-line bg-white p-4 shadow-liquid'
-  const listButtonClass = 'grid w-full grid-cols-[auto_1fr] gap-3 rounded-md border border-line bg-white p-3 text-left shadow-soft transition hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:shadow-liquid'
+  const listButtonClass = 'grid w-full grid-cols-[auto_1fr] gap-3 rounded-md border border-line bg-white p-3 text-left shadow-soft transition  hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:shadow-liquid'
   const rankClass = 'inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-primary/20 bg-primary/10 text-sm font-black text-primaryDark'
   const emptyClass = 'rounded-md border border-dashed border-line bg-surfaceMuted p-6 text-center font-extrabold text-muted'
   const panelSkeleton = (
@@ -202,7 +202,7 @@ function AdminOverviewSection({
             </>
           )}
           <div className="flex flex-wrap items-end gap-3">
-            <button className="inline-flex items-center justify-center gap-2 rounded-md border border-primary bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:border-primaryDark hover:bg-primaryDark hover:shadow-panel focus:outline-none focus:ring-4 focus:ring-primary/20" type="submit">{t('admin.applyStats')}</button>
+            <button className="inline-flex items-center justify-center gap-2 rounded-md border hover:text-white border-primary bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:border-primaryDark hover:bg-primaryDark hover:shadow-panel focus:outline-none focus:ring-4 focus:ring-primary/20" type="submit">{t('admin.applyStats')}</button>
             <button type="button" onClick={resetStatsFilters}>{t('admin.clearStats')}</button>
           </div>
         </form>
@@ -255,7 +255,7 @@ function AdminOverviewSection({
                 <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-primaryDark"><ShoppingBag size={15} /> {t('admin.revenue')}</p>
                 <h2 className="text-xl font-black text-ink">{t('admin.revenueByMonth')}</h2>
               </div>
-              <button type="button" className="w-fit border-primary bg-primary text-white hover:border-primaryDark hover:bg-primaryDark" onClick={() => openRevenueOrders()}>
+              <button type="button" className="w-fit border-primary bg-primary text-white  hover:border-primaryDark hover:bg-primaryDark hover:text-white" onClick={() => openRevenueOrders()}>
                 {t('admin.openManagement')}
               </button>
             </div>
@@ -301,7 +301,7 @@ function AdminOverviewSection({
                 <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-primaryDark"><Boxes size={15} /> {t('admin.topSelling')}</p>
                 <h2 className="text-xl font-black text-ink">{t('admin.topProducts')}</h2>
               </div>
-              <button type="button" className="w-fit border-primary bg-primary text-white hover:border-primaryDark hover:bg-primaryDark" onClick={() => onOpenProducts?.()}>
+              <button type="button" className="w-fit border-primary bg-primary text-white hover:border-primaryDark hover:text-white hover:bg-primaryDark" onClick={() => onOpenProducts?.()}>
                 {t('admin.openManagement')}
               </button>
             </div>
@@ -344,7 +344,7 @@ function AdminOverviewSection({
           <section className={panelClass}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="grid gap-1">
-                <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-primaryDark"><Boxes size={15} /> {t('admin.lowSelling')}</p>
+                <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-wide text-primaryDark "><Boxes size={15} /> {t('admin.lowSelling')}</p>
                 <h2 className="text-xl font-black text-ink">{t('admin.leastProducts')}</h2>
               </div>
               <button type="button" className="w-fit border-primary bg-primary text-white hover:border-primaryDark hover:bg-primaryDark" onClick={() => onOpenProducts?.()}>

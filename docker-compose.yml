@@ -34,21 +34,6 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-
-  mcp:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    container_name: marseille04-mcp
-    restart: unless-stopped
-    command: npm run mcp
-    environment:
-      MONGODB_URI: mongodb://mongo:27017/marseille04_shop
-      MONGODB_SERVER_SELECTION_TIMEOUT_MS: 10000
-    depends_on:
-      mongo:
-        condition: service_healthy
-
   client:
     build:
       context: ./client

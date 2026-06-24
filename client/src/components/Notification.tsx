@@ -83,7 +83,7 @@ function NotificationItem({
   )
 
   return (
-    <article className={`flex items-start gap-3 rounded-md border p-3 shadow-soft ${getNotificationClass(type)}`} role="status" aria-live="polite">
+    <article className={`flex items-start gap-3 rounded-md border p-3 shadow-soft ${getNotificationClass(type)}`} role={type === 'error' ? 'alert' : 'status'} aria-live={type === 'error' ? 'assertive' : 'polite'}>
       {canOpen ? (
         <button type="button" className="flex flex-1 items-start gap-3 border-0 bg-transparent p-0 text-left shadow-none" onClick={() => onOpen?.(notice)}>
           {content}
@@ -120,7 +120,7 @@ function Notification({
   if (items.length === 0) return null
 
   return (
-    <div className="fixed right-4 top-20 z-[80] grid w-[min(380px,calc(100vw-2rem))] gap-3">
+    <div className="fixed right-4 top-20 z-[120] grid w-[min(380px,calc(100vw-2rem))] gap-3">
       {items.map((notice) => (
         <NotificationItem
           key={notice.id}

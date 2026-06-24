@@ -111,7 +111,7 @@ function BarChartList<TItem extends Record<string, unknown>>({
             onClick={() => onOpenItem?.(item.item)}
           >
             <span className="flex min-w-0 items-center gap-2">
-              <i className="size-3 shrink-0 rounded-full" style={{ backgroundColor: item.fill }} />
+              <span className="size-3 shrink-0 rounded-full" style={{ backgroundColor: item.fill }} />
               <span className="truncate text-sm font-black text-ink">{item.label}</span>
             </span>
             <strong className="shrink-0 text-sm font-black text-primaryDark">{item.formattedValue}</strong>

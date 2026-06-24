@@ -6,11 +6,13 @@ Marseille04 Shop là web bán hàng thời trang full-stack gồm React client, 
 
 Client:
 
-- React 18, Vite 5
+- React 18, TypeScript/TSX, Vite 5
 - Redux Toolkit, React Redux
 - React Router
 - Lucide React
-- CSS tách theo module giao diện
+- Tailwind CSS, Headless UI, React Hook Form, Zod
+- TanStack Table cho bảng quản trị responsive
+- Recharts cho biểu đồ thống kê
 - Nginx khi chạy production bằng Docker
 
 Server:
@@ -33,6 +35,13 @@ DevOps:
 - `docker-compose.hub.yml` để chạy từ Docker Hub
 - GitHub Actions build/push Docker images tự động
 - MCP server dạng `stdio` để AI client đọc dữ liệu shop từ MongoDB
+
+Brand assets:
+
+- Logo header: `client/public/brand/marseille04-logo-header.png` (`384x96`)
+- Logo footer: `client/public/brand/marseille04-logo-footer.png` (`640x160`)
+- Open Graph image: `client/public/brand/marseille04-logo-og.png` (`1200x630`)
+- App/fav icon: `client/public/favicon.png`, `client/public/brand/marseille04-mark-192.png`, `client/public/brand/marseille04-mark-512.png`
 
 ## Tính năng chính
 
@@ -74,10 +83,17 @@ Admin:
 - Quản lý liên hệ
 - Cập nhật trạng thái liên hệ/yêu cầu hỗ trợ và gửi realtime notification cho khách hàng
 - Quản lý đánh giá sản phẩm, lọc review có/không có ảnh và mở dialog chi tiết review
+- Phạm vi đồ án bổ sung hệ thống kế toán nội bộ: sổ thu/chi, đối soát doanh thu đơn hàng, chi phí, lợi nhuận tạm tính và công nợ
 - Tìm kiếm và lọc trong các mục quản lý
 - Popup thông báo và popup xác nhận xóa
 - Popup nhắc đơn hàng/liên hệ chưa xử lý, click để mở đúng mục quản lý và tự lọc
 - Admin nhận sự kiện realtime khi có đơn hàng mới/cập nhật để dashboard tải lại nhanh
+
+## Phạm vi kế toán trong đồ án
+
+Hệ thống kế toán được thiết kế cho web quản trị ở mức kế toán quản trị nội bộ. Phạm vi gồm ghi nhận doanh thu từ đơn đã thanh toán/hoàn thành, nhập khoản chi, phân loại thu/chi, xem sổ quỹ, lợi nhuận tạm tính, công nợ và báo cáo theo tháng hoặc khoảng ngày.
+
+Phạm vi này không bao gồm hóa đơn điện tử thật, ký số, nộp báo cáo thuế hoặc tích hợp phần mềm kế toán bên thứ ba.
 
 ## Cấu trúc thư mục
 
@@ -92,8 +108,10 @@ Admin:
 │   │   ├── routes/
 │   │   ├── services/
 │   │   ├── store/
-│   │   ├── styles/
 │   │   └── utils/
+│   ├── public/
+│   │   └── brand/
+│   ├── scripts/
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   └── package.json
@@ -454,6 +472,7 @@ Chi tiết: [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd
 - [docs/use-cases-and-main-flows.md](docs/use-cases-and-main-flows.md)
 - [docs/client-code-flow.doc](docs/client-code-flow.doc)
 - [docs/realtime-notifications.md](docs/realtime-notifications.md)
+- [docs/brand-assets.md](docs/brand-assets.md)
 - [docs/docker-hub-guide.md](docs/docker-hub-guide.md)
 - [docs/docker-hub-pull-guide.md](docs/docker-hub-pull-guide.md)
 - [docs/github-actions-docker-cicd.md](docs/github-actions-docker-cicd.md)

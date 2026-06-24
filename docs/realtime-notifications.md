@@ -15,7 +15,7 @@ Tài liệu này mô tả chức năng thông báo realtime cho người dùng k
 
 - Backend: Express, MongoDB, Mongoose.
 - Realtime: Server-Sent Events (SSE) qua `EventSource`.
-- Frontend: React, Redux Toolkit.
+- Frontend: React, TypeScript/TSX, Redux Toolkit.
 - Proxy production: Nginx trong client Docker image.
 
 Không dùng Socket.IO/WebSocket để tránh thêm dependency. SSE phù hợp vì luồng hiện tại chỉ cần server đẩy thông báo một chiều về client.
@@ -38,14 +38,13 @@ Backend:
 
 Frontend:
 
-- `client/src/services/shopApi.js`
-- `client/src/store/slices/userNotificationSlice.js`
-- `client/src/hooks/shop/useShopEffects.js`
-- `client/src/hooks/shop/actions/useNotificationActions.js`
-- `client/src/utils/notificationTarget.js`
-- `client/src/components/Header.jsx`
-- `client/src/pages/StoreAdminPage.jsx`
-- `client/src/styles/header.css`
+- `client/src/services/shopApi.ts`
+- `client/src/store/slices/userNotificationSlice.ts`
+- `client/src/hooks/shop/useShopEffects.ts`
+- `client/src/hooks/shop/actions/useNotificationActions.ts`
+- `client/src/utils/notificationTarget.ts`
+- `client/src/components/Header.tsx`
+- `client/src/pages/StoreAdminPage.tsx`
 
 Proxy:
 

@@ -1,6 +1,6 @@
 # Tài liệu dự án Marseille04 Shop
 
-Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp vụ, luồng code client, realtime notification, MCP server, Docker, Docker Hub và CI/CD của dự án Marseille04 Shop.
+Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp vụ, luồng code client, realtime notification, kế toán nội bộ trong phạm vi đồ án, MCP server, Docker, Docker Hub và CI/CD của dự án Marseille04 Shop.
 
 ## Tài liệu chính
 
@@ -10,6 +10,7 @@ Thư mục này chứa tài liệu phân tích thiết kế, luồng nghiệp v�
 - [Use case và luồng chính](use-cases-and-main-flows.md): actor, use case nghiệp vụ, điều kiện trước/sau và đặc tả các luồng chính.
 - [Client code flow](client-code-flow.doc): tài liệu mô tả luồng code frontend, Redux, router, API service và realtime.
 - [Realtime notifications](realtime-notifications.md): luồng thông báo realtime bằng SSE cho người dùng và sự kiện realtime cho admin.
+- [Brand assets](brand-assets.md): kích thước logo, favicon, Open Graph image và script sinh ảnh.
 
 ## Tài liệu vận hành
 
@@ -69,4 +70,6 @@ http://localhost:5173
 
 - Khi thay đổi báo cáo phân tích thiết kế, cập nhật `docs/generate-system-design-report.mjs` rồi chạy `node docs/generate-system-design-report.mjs` để đồng bộ `.md` và `.docx`.
 - Khi thay đổi API, cập nhật `README.md`, `use-cases-and-main-flows.md` và tài liệu liên quan tới Docker/deploy nếu biến môi trường hoặc endpoint thay đổi.
+- Khi thay đổi phạm vi kế toán nội bộ, cập nhật đồng thời `README.md`, `use-cases-and-main-flows.md` và báo cáo phân tích thiết kế.
 - Khi thay đổi text đa ngôn ngữ, cập nhật thêm `client/src/i18n/translations/README.md`.
+- Khi thay đổi logo/ảnh nhận diện, cập nhật `brand-assets.md` và chạy lại `client/scripts/create-logo-assets.ps1`.

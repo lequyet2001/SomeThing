@@ -135,8 +135,16 @@ function Header({
             className="group border-0 bg-transparent p-0 text-left shadow-none"
             onClick={() => goTo("/")}
           >
-            <span className="block text-xl font-black tracking-wide text-primaryDark transition group-hover:text-primary">Marseille04</span>
-            <span className="hidden text-xs font-black uppercase tracking-wide text-muted sm:block">Shop</span>
+            <span className="relative block h-11 w-44 overflow-hidden rounded-md bg-white">
+              <img
+                className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
+                src="/brand/marseille04-logo-header.png"
+                alt="Marseille04"
+                width={384}
+                height={96}
+              />
+            </span>
+            <span className="sr-only">Marseille04 Shop</span>
           </button>
         </div>
         <button

@@ -42,7 +42,12 @@ export function useAuthActions({
       setNotice(data.message)
       navigate('/')
     } catch (error) {
-      setNotice(getErrorMessage(error))
+      setNotice({
+        dedupeKey: `auth-${mode}-error`,
+        message: getErrorMessage(error, mode === 'login' ? 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.' : 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.'),
+        title: mode === 'login' ? 'Đăng nhập thất bại' : 'Đăng ký thất bại',
+        type: 'error',
+      })
     }
   }
 
@@ -57,7 +62,12 @@ export function useAuthActions({
       setNotice('Đăng nhập thành công. Bạn có thể gửi đánh giá.')
       dispatch(uiActions.setShowReviewLogin(false))
     } catch (error) {
-      setNotice(getErrorMessage(error))
+      setNotice({
+        dedupeKey: 'review-login-error',
+        message: getErrorMessage(error, 'Đăng nhập thất bại. Vui lòng kiểm tra email hoặc mật khẩu.'),
+        title: 'Đăng nhập thất bại',
+        type: 'error',
+      })
     }
   }
 

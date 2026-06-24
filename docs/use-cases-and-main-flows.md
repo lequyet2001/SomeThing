@@ -59,7 +59,7 @@ Các sơ đồ dưới đây mô tả các chức năng đã được tách chi 
 Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 
 - Web khách hàng: xem sản phẩm, tìm kiếm/lọc/sắp xếp, giỏ hàng, đặt hàng, thanh toán, đánh giá, liên hệ hỗ trợ, quản lý hồ sơ và địa chỉ giao hàng.
-- Web quản trị cửa hàng: quản lý kho hàng, danh mục, lịch sử kho, đơn hàng, khách hàng, người dùng, đánh giá, liên hệ/yêu cầu hỗ trợ và xem thống kê.
+- Web quản trị cửa hàng: quản lý kho hàng, danh mục, lịch sử kho, đơn hàng, khách hàng, người dùng, đánh giá, liên hệ/yêu cầu hỗ trợ, kế toán nội bộ và xem thống kê.
 - Backend API: xác thực, lưu dữ liệu MongoDB, upload ảnh, gửi thông báo realtime qua SSE.
 
 ## Actor
@@ -68,7 +68,7 @@ Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 | --- | --- | --- |
 | Khách vãng lai | Người chưa đăng nhập | Xem sản phẩm, tìm kiếm, thêm giỏ cục bộ, gửi liên hệ, đăng ký/đăng nhập |
 | Khách hàng | Người đã đăng nhập | Đồng bộ giỏ hàng, đặt hàng, quản lý hồ sơ/avatar/địa chỉ, xem lịch sử mua hàng, đánh giá sản phẩm, nhận thông báo |
-| Admin | Tài khoản có `role = admin` | Truy cập `/admin/*`, quản lý kho hàng/danh mục/đơn hàng/khách hàng/user/review/liên hệ, xem thống kê |
+| Admin | Tài khoản có `role = admin` | Truy cập `/admin/*`, quản lý kho hàng/danh mục/đơn hàng/khách hàng/user/review/liên hệ/kế toán, xem thống kê |
 | Hệ thống | Backend + MongoDB + SSE | Lưu dữ liệu, xác thực token, đẩy thông báo realtime, phục vụ ảnh upload |
 
 ## Danh sách use case
@@ -93,6 +93,7 @@ Marseille04 Shop là hệ thống bán hàng thời trang gồm:
 | UC-16 | Quản lý người dùng | Admin | `/admin/users` | `GET /api/shop/admin/users`, `PATCH /role` |
 | UC-17 | Quản lý đánh giá | Admin | `/admin/reviews` | `GET /api/shop/admin/reviews`, `DELETE /reviews/:reviewId` |
 | UC-18 | Quản lý liên hệ/yêu cầu hỗ trợ | Admin | `/admin/contacts` | `GET /api/shop/admin/contacts`, `PATCH /status` |
+| UC-19 | Quản lý kế toán nội bộ | Admin | `/admin/accounting` | `GET/POST/PATCH/DELETE /api/shop/admin/accounting/*` |
 
 ## UC-01: Đăng ký tài khoản
 
@@ -557,6 +558,41 @@ Luồng ngoại lệ:
 - Contact của khách vãng lai không có user: chỉ cập nhật trạng thái, không gửi notification tài khoản.
 - Contact không tồn tại: server trả lỗi.
 
+## UC-19: Quản lý kế toán nội bộ
+
+| Thuộc tính | Nội dung |
+| --- | --- |
+| Mục tiêu | Admin theo dõi thu, chi, lợi nhuận, công nợ và đối soát doanh thu đơn hàng trong phạm vi đồ án. |
+| Actor | Admin |
+| Điều kiện trước | Admin đã đăng nhập; hệ thống có đơn hàng hoặc bút toán thu/chi. |
+| Điều kiện sau | Sổ thu/chi và báo cáo kế toán nội bộ được cập nhật theo kỳ lọc. |
+
+Luồng chính:
+
+1. Admin mở `/admin/accounting`.
+2. Client gọi `GET /api/shop/admin/accounting/summary` theo tháng hoặc khoảng ngày.
+3. Server tổng hợp doanh thu từ đơn hàng có trạng thái `paid` hoặc `completed`.
+4. Server lấy danh sách bút toán thu/chi và nhóm theo loại, danh mục, phương thức thanh toán.
+5. Admin xem các chỉ số doanh thu, chi phí, lợi nhuận tạm tính, công nợ và bảng giao dịch.
+6. Admin thêm khoản chi như nhập hàng, vận hành, marketing, hoàn tiền hoặc chi phí khác.
+7. Client gọi `POST /api/shop/admin/accounting/transactions`.
+8. Server validate số tiền, loại bút toán, danh mục, ngày giao dịch và người tạo.
+9. Server lưu bút toán, cập nhật báo cáo theo bộ lọc hiện tại và hiển thị popup kết quả.
+
+Luồng ghi nhận tự động:
+
+1. Admin cập nhật đơn hàng sang `paid` hoặc `completed`.
+2. Server kiểm tra đơn đã có bút toán doanh thu nguồn `order` hay chưa.
+3. Nếu chưa có, server tạo `AccountingTransaction` loại `income`, gắn `orderCode`, `paymentMethod`, `amount` và `source=order`.
+4. Nếu đã có, server không tạo trùng mà cập nhật thông tin cần đối soát nếu trạng thái/phương thức thanh toán thay đổi hợp lệ.
+
+Luồng ngoại lệ:
+
+- Số tiền không hợp lệ hoặc nhỏ hơn hoặc bằng 0: server trả lỗi validate.
+- Category kế toán không tồn tại: yêu cầu admin chọn lại danh mục thu/chi.
+- Đơn đã có bút toán doanh thu: không tạo thêm giao dịch trùng nguồn.
+- Kỳ báo cáo không có dữ liệu: client giữ khung báo cáo và hiển thị trạng thái rỗng.
+
 ## Quy tắc nghiệp vụ chính
 
 - Route `/admin/*` chỉ dành cho user có `role = admin`; frontend redirect và backend vẫn kiểm tra bằng middleware.
@@ -570,6 +606,10 @@ Luồng ngoại lệ:
 - Khi admin cập nhật đơn hàng/liên hệ, notification phải được lưu DB trước khi đẩy realtime.
 - Notification order/contact lưu link đích chi tiết để khi click có thể mở đúng đơn hoặc yêu cầu hỗ trợ trong trang tài khoản.
 - Các thao tác admin thêm/sửa/xóa/cập nhật trạng thái phải hiển thị popup kết quả; thao tác xóa cần popup xác nhận.
+- Hệ thống kế toán trong đồ án là kế toán quản trị nội bộ, không thay thế hóa đơn điện tử, ký số hoặc báo cáo thuế hợp pháp.
+- Doanh thu kế toán chỉ ghi nhận từ đơn `paid` hoặc `completed`; mỗi đơn chỉ có một bút toán doanh thu nguồn `order`.
+- Chi phí kế toán có thể nhập thủ công theo category như nhập hàng, vận hành, marketing, hoàn tiền hoặc chi phí khác.
+- Báo cáo kế toán cần lọc được theo tháng hoặc khoảng ngày và thể hiện doanh thu, chi phí, lợi nhuận tạm tính, công nợ.
 
 ## Đối chiếu tài liệu kỹ thuật
 
