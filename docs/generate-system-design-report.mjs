@@ -16,8 +16,8 @@ const reportMarkdown = `
 |---|---|
 | Tên hệ thống | Marseille04 Shop |
 | Loại hệ thống | Website thương mại điện tử kết hợp trang quản trị cửa hàng |
-| Phạm vi tài liệu | Web client, Backend API, Cơ sở dữ liệu, Docker/CI-CD |
-| Phạm vi loại trừ | Cổng thanh toán thật, tích hợp vận chuyển thật, kế toán/thuế |
+| Phạm vi tài liệu | Web client, Backend API, Cơ sở dữ liệu, kế toán nội bộ, Docker/CI-CD |
+| Phạm vi loại trừ | Cổng thanh toán thật, tích hợp vận chuyển thật, hóa đơn điện tử/khai báo thuế thật |
 | Ngôn ngữ tài liệu | Tiếng Việt |
 | Cơ sở dữ liệu triển khai | MongoDB qua Mongoose |
 | Ghi chú SQL | Phần SQL là mô hình quan hệ tham chiếu phục vụ tài liệu phân tích thiết kế |
@@ -26,7 +26,7 @@ const reportMarkdown = `
 
 ### 1.1 Phân tích bài toán và mục tiêu dự án
 
-Marseille04 Shop là hệ thống bán hàng thời trang trực tuyến. Hệ thống cần hỗ trợ khách hàng tìm kiếm, xem sản phẩm, đăng ký tài khoản, đăng nhập, quản lý giỏ hàng, đặt hàng, theo dõi lịch sử mua hàng, gửi liên hệ hỗ trợ và nhận thông báo khi đơn hàng hoặc yêu cầu hỗ trợ thay đổi trạng thái. Ở phía cửa hàng, quản trị viên cần một không gian quản lý riêng để theo dõi doanh thu, đơn hàng, khách hàng, người dùng, kho hàng, danh mục, đánh giá, liên hệ và các thông báo cần xử lý.
+Marseille04 Shop là hệ thống bán hàng thời trang trực tuyến. Hệ thống cần hỗ trợ khách hàng tìm kiếm, xem sản phẩm, đăng ký tài khoản, đăng nhập, quản lý giỏ hàng, đặt hàng, theo dõi lịch sử mua hàng, gửi liên hệ hỗ trợ và nhận thông báo khi đơn hàng hoặc yêu cầu hỗ trợ thay đổi trạng thái. Ở phía cửa hàng, quản trị viên cần một không gian quản lý riêng để theo dõi doanh thu, đơn hàng, khách hàng, người dùng, kho hàng, danh mục, đánh giá, liên hệ, kế toán nội bộ và các thông báo cần xử lý.
 
 Mục tiêu chính:
 
@@ -34,6 +34,7 @@ Mục tiêu chính:
 - Tách biệt rõ chức năng khách hàng và chức năng quản trị.
 - Cung cấp API backend có xác thực, phân quyền và kết nối MongoDB.
 - Quản lý kho hàng theo sản phẩm, danh mục và lịch sử cập nhật kho.
+- Bổ sung hệ thống kế toán nội bộ để theo dõi thu, chi, lợi nhuận, công nợ và báo cáo tài chính cơ bản cho đồ án.
 - Tự động gửi thông báo khi admin cập nhật trạng thái đơn hàng hoặc liên hệ.
 - Hỗ trợ triển khai bằng Docker và tự động build/push image qua CI/CD.
 
@@ -42,9 +43,9 @@ Mục tiêu chính:
 Phạm vi bao gồm:
 
 - Website khách hàng: trang chủ, cửa hàng, chi tiết sản phẩm, giỏ hàng, thanh toán, liên hệ, tài khoản, thông báo.
-- Website quản trị: tổng quan, đơn hàng, kho hàng, danh mục, lịch sử kho, khách hàng, người dùng, liên hệ, đánh giá.
+- Website quản trị: tổng quan, đơn hàng, kho hàng, danh mục, lịch sử kho, khách hàng, người dùng, liên hệ, đánh giá, kế toán nội bộ.
 - Backend API: xác thực, sản phẩm, giỏ hàng, đơn hàng, đánh giá, liên hệ, thông báo, quản trị.
-- Database: MongoDB lưu người dùng, sản phẩm, giỏ hàng, đơn hàng, đánh giá, liên hệ, thông báo, danh mục, lịch sử kho.
+- Database: MongoDB lưu người dùng, sản phẩm, giỏ hàng, đơn hàng, đánh giá, liên hệ, thông báo, danh mục, lịch sử kho, bút toán thu chi và báo cáo kế toán.
 - Realtime notification: Server-Sent Events cho người dùng và admin.
 - Upload file: ảnh sản phẩm, ảnh mô tả sản phẩm, ảnh review và avatar người dùng.
 - Đa ngôn ngữ: tiếng Việt và tiếng Anh.
@@ -54,7 +55,7 @@ Phạm vi không bao gồm:
 
 - Cổng thanh toán thật với ngân hàng hoặc ví điện tử.
 - Tích hợp vận chuyển thật.
-- Hệ thống kế toán, hóa đơn điện tử và báo cáo thuế.
+- Phát hành hóa đơn điện tử thật, ký số, nộp báo cáo thuế hoặc tích hợp phần mềm kế toán bên thứ ba.
 
 ### 1.3 Tác nhân của hệ thống
 
@@ -62,7 +63,7 @@ Phạm vi không bao gồm:
 |---|---|
 | Khách vãng lai | Người chưa đăng nhập, có thể xem và tìm kiếm sản phẩm, gửi liên hệ, đặt hàng theo thông tin nhập thủ công nếu hệ thống cho phép |
 | Khách hàng | Người đã đăng ký/đăng nhập, có thể quản lý giỏ hàng, địa chỉ, đặt hàng, đánh giá, xem lịch sử mua hàng và nhận thông báo |
-| Quản trị viên | Người có role admin, quản lý toàn bộ nghiệp vụ cửa hàng |
+| Quản trị viên | Người có role admin, quản lý toàn bộ nghiệp vụ cửa hàng, gồm quản lý kế toán nội bộ |
 | Hệ thống thông báo | Thành phần server tạo và đẩy thông báo realtime |
 | Dịch vụ lưu trữ file nội bộ | Thư mục uploads trên server dùng cho ảnh sản phẩm/review/avatar |
 | Docker/CI-CD | Hạ tầng build, đóng gói và triển khai hệ thống |
@@ -96,7 +97,11 @@ Phạm vi không bao gồm:
 | FR-23 | Admin | Quản lý người dùng, nâng/hạ quyền admin |
 | FR-24 | Admin | Quản lý liên hệ và trạng thái xử lý |
 | FR-25 | Admin | Quản lý đánh giá sản phẩm, lọc review có ảnh và xem dialog chi tiết |
-| FR-26 | Quốc tế hóa | Chuyển đổi tiếng Việt/tiếng Anh bằng file JSON |
+| FR-26 | Kế toán | Ghi nhận doanh thu từ đơn đã thanh toán/hoàn thành và tạo bút toán thu tự động |
+| FR-27 | Kế toán | Quản lý khoản chi như nhập hàng, vận hành, marketing, hoàn tiền và chi phí khác |
+| FR-28 | Kế toán | Xem sổ quỹ, công nợ, báo cáo lãi lỗ theo tháng hoặc khoảng ngày |
+| FR-29 | Kế toán | Đối soát doanh thu đơn hàng với phương thức thanh toán và trạng thái đơn |
+| FR-30 | Quốc tế hóa | Chuyển đổi tiếng Việt/tiếng Anh bằng file JSON |
 
 ### 1.5 Yêu cầu phi chức năng
 
@@ -109,10 +114,11 @@ Phạm vi không bao gồm:
 | Bảo mật | CORS cấu hình theo môi trường | CLIENT_ORIGIN trong server env |
 | Hiệu năng | Tải dữ liệu admin không làm lệch giao diện | Loading skeleton và phân trang/lọc |
 | Hiệu năng | Tìm kiếm/lọc phía client và truy vấn server theo mục | Redux cache, API phân trang cho khách hàng/đơn |
-| Khả dụng | Giao diện chạy trên nhiều kích thước màn hình web | CSS responsive và layout quản trị dạng sidebar |
+| Khả dụng | Giao diện chạy trên nhiều kích thước màn hình web | Tailwind responsive, layout quản trị dạng sidebar và bảng/card thích ứng |
 | Dễ bảo trì | Tách module theo page, component, hook, service, slice | Client chia pages/components/hooks/store/services |
 | Mở rộng | API tách theo route/controller/model | Express Router, Controller, Mongoose Model |
 | Theo dõi | Ghi lịch sử kho và trạng thái xử lý | InventoryLog, UserNotification |
+| Kế toán | Số liệu tài chính cần truy vết được nguồn gốc | AccountingTransaction liên kết đơn hàng, chi phí và người tạo |
 | Triển khai | Có thể chạy local hoặc Docker Hub | Dockerfile, docker-compose, CI/CD |
 | Quốc tế hóa | Dễ tìm và sửa text | Translation JSON theo namespace |
 
@@ -123,6 +129,8 @@ Giả định:
 - Website phục vụ một cửa hàng thời trang, chưa cần multi-tenant.
 - Mỗi sản phẩm có legacyId dạng số để giữ tương thích URL và dữ liệu cũ.
 - Thanh toán hiện tại ghi nhận phương thức và trạng thái, chưa tích hợp gateway thật.
+- Kế toán trong phạm vi đồ án là kế toán quản trị nội bộ, phục vụ theo dõi kinh doanh và báo cáo lãi lỗ cơ bản.
+- Doanh thu kế toán được ghi nhận từ các đơn có trạng thái đã thanh toán hoặc hoàn thành; chi phí được nhập thủ công hoặc lấy từ nghiệp vụ kho nếu có dữ liệu giá vốn.
 - Email reset mật khẩu trong môi trường đồ án có thể hiển thị/log token hoặc giả lập gửi email.
 - Ảnh upload lưu tại server local trong thư mục uploads; môi trường production cần cân nhắc object storage.
 - Review cho phép tối đa 4 ảnh, mỗi ảnh nhỏ hơn 2MB; ảnh sản phẩm và ảnh mô tả sản phẩm dùng giới hạn upload ảnh sản phẩm.
@@ -130,10 +138,11 @@ Giả định:
 Ràng buộc:
 
 - Backend sử dụng Node.js/Express và MongoDB.
-- Frontend sử dụng React, Vite, Redux Toolkit và React Router.
+- Frontend sử dụng React, TypeScript/TSX, Vite, Redux Toolkit, React Router và Tailwind CSS.
 - Dữ liệu quản trị phải yêu cầu đăng nhập và role admin.
 - Đơn có trường user được phân loại là khách đã đăng ký; đơn không có user được phân loại là khách chưa đăng ký.
 - Doanh thu chỉ tính từ đơn đã thanh toán hoặc hoàn thành.
+- Báo cáo kế toán không thay thế báo cáo thuế/hóa đơn điện tử hợp pháp.
 - Khi đơn hàng ở trạng thái đang giao hoặc hoàn thành, hệ thống cập nhật tồn kho và ghi lịch sử kho.
 
 ## 2. Phân tích yêu cầu
@@ -146,6 +155,7 @@ Quy trình bán hàng truyền thống thường gồm: khách xem sản phẩm 
 - Tồn kho dễ sai lệch vì không có lịch sử cập nhật rõ ràng.
 - Khách hàng khó tự theo dõi trạng thái đơn hàng.
 - Admin khó thống kê doanh thu, sản phẩm bán chạy, khách hàng tiêu thụ nhiều.
+- Chủ cửa hàng khó đối soát doanh thu, chi phí, lợi nhuận và công nợ nếu chỉ ghi nhận bằng bảng tính rời.
 - Quá trình xử lý liên hệ và đánh giá thiếu trạng thái theo dõi.
 
 ### 2.2 Quy trình nghiệp vụ mới đề xuất
@@ -159,8 +169,10 @@ Quy trình mới:
 5. Hệ thống tạo đơn hàng, lưu thông tin khách, sản phẩm, tổng tiền, trạng thái và phân loại khách đã đăng ký/chưa đăng ký.
 6. Admin xử lý đơn hàng trong trang quản lý.
 7. Khi trạng thái đơn chuyển sang đang giao hoặc hoàn thành, hệ thống trừ kho một lần và ghi InventoryLog.
-8. Khi trạng thái đơn hàng/liên hệ thay đổi, hệ thống tạo UserNotification và đẩy realtime tới người dùng nếu đang online.
-9. Admin xem thống kê theo tháng/khoảng ngày, quản lý khách hàng, đánh giá, liên hệ và người dùng.
+8. Khi đơn hàng đủ điều kiện ghi nhận doanh thu, hệ thống tạo bút toán thu hoặc đưa đơn vào danh sách đối soát kế toán.
+9. Admin nhập các khoản chi như nhập hàng, vận hành, marketing, hoàn tiền hoặc chi phí khác.
+10. Khi trạng thái đơn hàng/liên hệ thay đổi, hệ thống tạo UserNotification và đẩy realtime tới người dùng nếu đang online.
+11. Admin xem thống kê theo tháng/khoảng ngày, quản lý khách hàng, đánh giá, liên hệ, người dùng và báo cáo kế toán nội bộ.
 
 ### 2.3 Danh sách Use Case
 
@@ -184,6 +196,7 @@ Quy trình mới:
 | UC-16 | Quản lý khách hàng | Quản trị viên | Trung bình |
 | UC-17 | Quản lý người dùng và phân quyền | Quản trị viên | Cao |
 | UC-18 | Quản lý liên hệ và đánh giá | Quản trị viên | Trung bình |
+| UC-19 | Quản lý kế toán nội bộ | Quản trị viên | Cao |
 
 ### 2.4 Đặc tả chi tiết Use Case
 
@@ -207,6 +220,7 @@ Quy trình mới:
 | UC-16 Quản lý khách hàng | Admin đăng nhập | Lọc khách theo thời gian; mở chi tiết đơn; chuyển đến sản phẩm/khách tương ứng | Không có đơn theo lọc | Admin phân tích khách hàng |
 | UC-17 Người dùng/role | Admin đăng nhập | Xem người dùng; lọc; nâng/hạ role admin | Không được tự phá admin cuối cùng nếu áp dụng rule mở rộng | Role người dùng thay đổi |
 | UC-18 Liên hệ/đánh giá | Admin đăng nhập | Lọc liên hệ/review; lọc review có ảnh; mở dialog chi tiết review; cập nhật trạng thái liên hệ; xóa review vi phạm | Contact/review không tồn tại | Dữ liệu hỗ trợ và review được quản lý |
+| UC-19 Kế toán nội bộ | Admin đăng nhập | Xem sổ quỹ; hệ thống ghi nhận doanh thu từ đơn hợp lệ; admin nhập chi phí; lọc báo cáo theo tháng/khoảng ngày; xem lãi lỗ và công nợ | Thiếu số tiền, loại bút toán sai, kỳ báo cáo không có dữ liệu | Bút toán kế toán và báo cáo tài chính nội bộ được cập nhật |
 
 ### 2.5 Use Case Diagram
 
@@ -237,6 +251,7 @@ flowchart LR
   UC16((Quản lý khách hàng))
   UC17((Quản lý người dùng))
   UC18((Quản lý liên hệ/đánh giá))
+  UC19((Quản lý kế toán nội bộ))
 
   Guest --> UC01
   Guest --> UC02
@@ -261,6 +276,7 @@ flowchart LR
   Admin --> UC16
   Admin --> UC17
   Admin --> UC18
+  Admin --> UC19
 
   UC14 --> Noti
   UC18 --> Noti
@@ -275,7 +291,7 @@ Hệ thống dùng kiến trúc 3 lớp kết hợp SPA:
 
 | Lớp | Thành phần | Trách nhiệm |
 |---|---|---|
-| Presentation | React + Vite + Redux + React Router | Render UI khách hàng/admin, điều hướng, quản lý state client |
+| Presentation | React + TypeScript + Vite + Redux + React Router + Tailwind | Render UI khách hàng/admin, điều hướng, quản lý state client |
 | Application/API | Node.js + Express | Xác thực, xử lý nghiệp vụ, phân quyền, upload, realtime SSE |
 | Data | MongoDB + Mongoose | Lưu dữ liệu nghiệp vụ và audit log |
 | Deployment | Docker, Docker Compose, GitHub Actions | Đóng gói, chạy local/production, tự động build/push image |
@@ -300,6 +316,7 @@ Lý do chọn kiến trúc:
 | Notification | notificationRoutes, UserNotification, SSE | Thông báo cá nhân và realtime |
 | Admin | adminRoutes, adminController | Dashboard, đơn hàng, khách hàng, user, contact, review |
 | Inventory Admin | inventoryAdminController, InventoryLog | Quản lý kho, category, upload ảnh chính/ảnh mô tả, lịch sử kho |
+| Accounting | accountingController, AccountingTransaction, ExpenseCategory | Ghi nhận thu/chi, đối soát doanh thu, báo cáo lãi lỗ và công nợ nội bộ |
 | Client Store | Redux slices | user, catalog, cart, orders, contacts, reviews, notifications, UI |
 | i18n | translations JSON | Text tiếng Việt/tiếng Anh |
 
@@ -312,7 +329,8 @@ Lý do chọn kiến trúc:
 5. MongoDB trả dữ liệu; controller serialize response về client.
 6. Redux cập nhật state, component tự render lại.
 7. Với cập nhật đơn hàng/liên hệ, server tạo UserNotification và emit SSE.
-8. Client nhận event, thêm thông báo vào Redux và hiển thị popup/badge.
+8. Với đơn hàng đã thanh toán/hoàn thành, server tạo hoặc cập nhật AccountingTransaction để ghi nhận doanh thu nội bộ.
+9. Client nhận event, thêm thông báo vào Redux và hiển thị popup/badge.
 
 ### 3.4 Thiết kế API
 
@@ -368,15 +386,23 @@ Base URL: /api/shop
 | PATCH | /admin/products/:productId | Admin | Sửa sản phẩm/tồn kho |
 | DELETE | /admin/products/:productId | Admin | Xóa sản phẩm |
 | GET | /admin/inventory-history | Admin | Lịch sử kho |
+| GET | /admin/accounting/summary?month&startDate&endDate | Admin | Báo cáo doanh thu, chi phí, lợi nhuận, công nợ |
+| GET | /admin/accounting/transactions?type&category&startDate&endDate | Admin | Danh sách bút toán thu/chi |
+| POST | /admin/accounting/transactions | Admin | Thêm khoản thu/chi thủ công |
+| PATCH | /admin/accounting/transactions/:transactionId | Admin | Sửa bút toán thủ công |
+| DELETE | /admin/accounting/transactions/:transactionId | Admin | Xóa bút toán thủ công |
+| GET | /admin/accounting/expense-categories | Admin | Danh mục chi phí kế toán |
 
 ### 3.5 Công nghệ sử dụng
 
 | Nhóm | Công nghệ | Lý do |
 |---|---|---|
-| Frontend | React, Vite | Build nhanh, SPA dễ mở rộng |
+| Frontend | React, TypeScript/TSX, Vite | Build nhanh, SPA dễ mở rộng, kiểm soát type tốt hơn |
 | State | Redux Toolkit | Quản lý state dùng chung, giảm truyền props sâu |
 | Routing | React Router | Tách route khách hàng/admin rõ ràng |
-| Icon/UI | Lucide React, CSS module theo file | Icon nhất quán, CSS dễ kiểm soát |
+| Styling/UI | Tailwind CSS, Headless UI, Lucide React | Style nằm gần component, dialog/menu dễ truy cập, icon nhất quán |
+| Form validation | React Hook Form, Zod | Validate form rõ ràng, giảm lỗi submit và dễ typed payload |
+| Table/Chart | TanStack Table, Recharts | Bảng quản trị responsive, thống kê có biểu đồ cột/list |
 | Backend | Node.js, Express | API REST dễ triển khai |
 | Database | MongoDB, Mongoose | Schema linh hoạt, phù hợp order/cart/log |
 | Auth | JWT + password hash/salt | Phân quyền stateless |
@@ -403,6 +429,8 @@ Base URL: /api/shop
 | ContactMessage | user, name, email, phone, topic, message, status | Liên hệ/yêu cầu hỗ trợ |
 | UserNotification | user, type, title, message, link, metadata, readAt | Thông báo người dùng |
 | InventoryLog | action, actor, entityType, productId, stock, changes, orderCode | Lịch sử kho/danh mục |
+| AccountingTransaction | type, source, category, amount, paymentMethod, orderCode, note, createdBy | Bút toán thu/chi nội bộ |
+| ExpenseCategory | name, type, description | Danh mục khoản chi/khoản thu dùng cho kế toán |
 
 Ghi chú: customerType là trường API trả về khi serialize order. Hệ thống không cần lưu riêng vì có thể suy ra: có order.user là registered, không có order.user là guest.
 
@@ -422,6 +450,8 @@ Ghi chú: customerType là trường API trả về khi serialize order. Hệ th
 | ContactMessage | _id | user -> User._id |
 | UserNotification | _id | user -> User._id |
 | InventoryLog | _id | productId -> Product.legacyId theo logic |
+| AccountingTransaction | _id | order -> Order._id, createdBy -> User._id |
+| ExpenseCategory | _id, name unique | Không có |
 
 ### 4.3 ERD
 
@@ -440,6 +470,9 @@ erDiagram
   USERS ||--o{ USER_NOTIFICATIONS : receives
   PRODUCTS ||--o{ INVENTORY_LOGS : has
   CATEGORIES ||--o{ PRODUCTS : groups
+  USERS ||--o{ ACCOUNTING_TRANSACTIONS : creates
+  ORDERS ||--o{ ACCOUNTING_TRANSACTIONS : generates
+  EXPENSE_CATEGORIES ||--o{ ACCOUNTING_TRANSACTIONS : classifies
 
   USERS {
     objectId id PK
@@ -474,6 +507,19 @@ erDiagram
     number previousStock
     number newStock
     string orderCode
+  }
+  ACCOUNTING_TRANSACTIONS {
+    objectId id PK
+    string type
+    string source
+    decimal amount
+    string category
+    string orderCode
+  }
+  EXPENSE_CATEGORIES {
+    objectId id PK
+    string name UK
+    string type
   }
 ~~~
 
@@ -654,6 +700,37 @@ CREATE TABLE inventory_log_changes (
   new_value TEXT,
   FOREIGN KEY (inventory_log_id) REFERENCES inventory_logs(id)
 );
+
+CREATE TABLE expense_categories (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(120) NOT NULL UNIQUE,
+  type VARCHAR(20) NOT NULL DEFAULT 'expense',
+  description TEXT,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL,
+  CHECK (type IN ('income', 'expense'))
+);
+
+CREATE TABLE accounting_transactions (
+  id VARCHAR(36) PRIMARY KEY,
+  type VARCHAR(20) NOT NULL,
+  source VARCHAR(30) NOT NULL DEFAULT 'manual',
+  category_id VARCHAR(36),
+  order_id VARCHAR(36),
+  order_code VARCHAR(60),
+  amount DECIMAL(12,2) NOT NULL,
+  payment_method VARCHAR(80),
+  note TEXT,
+  transaction_date TIMESTAMP NOT NULL,
+  created_by VARCHAR(36),
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (category_id) REFERENCES expense_categories(id),
+  FOREIGN KEY (order_id) REFERENCES orders(id),
+  FOREIGN KEY (created_by) REFERENCES users(id),
+  CHECK (type IN ('income', 'expense')),
+  CHECK (source IN ('order', 'manual', 'refund', 'inventory'))
+);
 ~~~
 
 ## 5. Thiết kế UML
@@ -733,6 +810,19 @@ classDiagram
     +String orderCode
     +Change[] changes
   }
+  class AccountingTransaction {
+    +String type
+    +String source
+    +Number amount
+    +String paymentMethod
+    +String orderCode
+    +Date transactionDate
+  }
+  class ExpenseCategory {
+    +String name
+    +String type
+    +String description
+  }
 
   User "1" --> "*" ShippingAddress
   User "1" --> "0..1" Cart
@@ -745,6 +835,9 @@ classDiagram
   User "1" --> "*" ContactMessage
   User "1" --> "*" UserNotification
   Product "1" --> "*" InventoryLog
+  User "1" --> "*" AccountingTransaction
+  Order "1" --> "*" AccountingTransaction
+  ExpenseCategory "1" --> "*" AccountingTransaction
 ~~~
 
 ### 5.2 Sequence Diagram - Đăng nhập
@@ -814,7 +907,30 @@ sequenceDiagram
   API-->>AdminUI: Order mới + message
 ~~~
 
-### 5.5 Activity Diagram - Quy trình mua hàng
+### 5.5 Sequence Diagram - Ghi nhận kế toán nội bộ
+
+~~~mermaid
+sequenceDiagram
+  actor Admin as Quản trị viên
+  participant AdminUI as Admin Orders/Accounting
+  participant API as Admin API
+  participant OrderDB as Order
+  participant Acc as Accounting Service
+  participant AccDB as AccountingTransaction
+
+  Admin->>AdminUI: Cập nhật đơn sang paid hoặc completed
+  AdminUI->>API: PATCH /admin/orders/:orderCode/status
+  API->>OrderDB: Lưu trạng thái đơn hàng
+  API->>Acc: Kiểm tra điều kiện ghi nhận doanh thu
+  Acc->>AccDB: Tạo hoặc cập nhật bút toán income nguồn order
+  API-->>AdminUI: Trả đơn hàng và số liệu mới
+  Admin->>AdminUI: Nhập khoản chi vận hành/nhập hàng
+  AdminUI->>API: POST /admin/accounting/transactions
+  API->>AccDB: Lưu bút toán expense thủ công
+  API-->>AdminUI: Cập nhật báo cáo lãi lỗ
+~~~
+
+### 5.6 Activity Diagram - Quy trình mua hàng
 
 ~~~mermaid
 flowchart TD
@@ -833,7 +949,7 @@ flowchart TD
   K --> L[Kết thúc]
 ~~~
 
-### 5.6 Activity Diagram - Quản lý kho
+### 5.7 Activity Diagram - Quản lý kho
 
 ~~~mermaid
 flowchart TD
@@ -851,7 +967,7 @@ flowchart TD
   K --> L[Mở chi tiết log]
 ~~~
 
-### 5.7 Component Diagram
+### 5.8 Component Diagram
 
 ~~~mermaid
 flowchart LR
@@ -910,6 +1026,7 @@ flowchart LR
 | Admin Users | Admin | Lọc user, đổi role |
 | Admin Contacts | Admin | Lọc và cập nhật trạng thái liên hệ |
 | Admin Reviews | Admin | Lọc đánh giá, lọc review có ảnh, mở dialog chi tiết, xóa đánh giá |
+| Admin Accounting | Admin | Quản lý sổ thu/chi, đối soát doanh thu, chi phí, lợi nhuận và công nợ |
 
 ### 6.2 Đề xuất bố cục UI/UX
 
@@ -917,6 +1034,7 @@ Nguyên tắc:
 
 - Giao diện khách hàng ưu tiên hình ảnh sản phẩm, CTA rõ ràng, giỏ hàng dễ thấy.
 - Giao diện admin ưu tiên đọc dữ liệu nhanh, sidebar bên trái, bảng có filter, loading skeleton khi chưa tải xong.
+- Logo dùng đúng biến thể theo vị trí: header 384x96, footer 640x160, favicon/mark dạng vuông và Open Graph 1200x630.
 - Các thao tác nguy hiểm như xóa sản phẩm/category/review phải có popup xác nhận.
 - Sau thao tác admin phải có toast thông báo thành công/thất bại.
 - Text lấy từ hệ thống i18n JSON để dễ đổi ngôn ngữ.
@@ -971,6 +1089,7 @@ Nguyên tắc:
 | - Users              |                                     |
 | - Contacts           |                                     |
 | - Reviews            |                                     |
+| - Accounting         |                                     |
 +----------------------+-------------------------------------+
 ~~~
 
@@ -984,7 +1103,7 @@ Nguyên tắc:
 | 2. Khách hàng cơ bản | Home, Shop, Product, Auth, Cart | 7-10 ngày |
 | 3. Mua hàng | Checkout, Order, Payment, lịch sử mua | 5-7 ngày |
 | 4. Liên hệ/Review/Thông báo | Contact, Review, Notification, SSE | 5-7 ngày |
-| 5. Admin | Dashboard, Orders, Inventory, Users, Contacts, Reviews | 10-14 ngày |
+| 5. Admin | Dashboard, Orders, Inventory, Users, Contacts, Reviews, Accounting | 12-16 ngày |
 | 6. Hoàn thiện UX | Responsive web, i18n, loading, popup, toast | 5-7 ngày |
 | 7. Dữ liệu/Seed/Docker | Seed data, Docker Hub, CI/CD | 3-5 ngày |
 | 8. Kiểm thử và tài liệu | Test case, sửa lỗi, viết tài liệu | 5-7 ngày |
@@ -996,7 +1115,7 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | Vai trò | Số lượng | Trách nhiệm |
 |---|---:|---|
 | Project Manager/System Analyst | 1 | Khảo sát yêu cầu, quản lý tiến độ, nghiệm thu |
-| Frontend Developer | 1-2 | React UI, Redux, Router, responsive, i18n |
+| Frontend Developer | 1-2 | React/TypeScript UI, Tailwind, Redux, Router, responsive, i18n |
 | Backend Developer | 1 | Express API, MongoDB, auth, admin, SSE |
 | UI/UX Designer | 0.5-1 | Wireframe, style guide, trải nghiệm admin/khách hàng |
 | QA/Tester | 1 | Test case, integration test, UAT |
@@ -1011,6 +1130,8 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | CORS khi dùng tunnel/local API | Trung bình | Cấu hình CLIENT_ORIGIN theo môi trường |
 | Token hết hạn làm SSE lỗi | Trung bình | Đóng stream, yêu cầu đăng nhập lại, retry khi token hợp lệ |
 | Thống kê doanh thu sai trạng thái | Cao | Chỉ tính đơn paid/completed theo rule |
+| Ghi nhận kế toán trùng doanh thu | Cao | Dùng khóa nguồn orderCode/source và chỉ tạo một bút toán income cho mỗi đơn hợp lệ |
+| Báo cáo lãi lỗ sai do thiếu chi phí | Trung bình | Cho phép nhập chi phí thủ công, phân loại category và ghi người tạo/thời điểm |
 | Dữ liệu seed không đồng bộ | Trung bình | Script seed/reset có kiểm soát, giữ admin |
 | Layout admin nhảy khi đổi tab | Trung bình | Loading skeleton và DOM ổn định |
 | Lộ biến môi trường | Cao | .gitignore, .env.example, không commit .env thật |
@@ -1049,6 +1170,9 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 | TC-26 | Loading admin | Vào tab quản lý chưa có dữ liệu | Hiện skeleton, không lệch layout |
 | TC-27 | Đa ngôn ngữ | Chuyển VI/EN | Text đổi theo JSON |
 | TC-28 | Phân loại đơn hàng | Một đơn có user, một đơn không có user | Admin lọc đúng registered/guest |
+| TC-29 | Ghi nhận doanh thu kế toán | Đơn chuyển sang paid/completed | Tạo hoặc cập nhật bút toán income nguồn order |
+| TC-30 | Nhập khoản chi | Chi phí hợp lệ, category hợp lệ | Tạo bút toán expense và báo cáo lãi lỗ cập nhật |
+| TC-31 | Báo cáo kế toán theo kỳ | Chọn tháng/khoảng ngày | Hiển thị doanh thu, chi phí, lợi nhuận và công nợ đúng kỳ |
 
 ### 8.2 Chiến lược Unit Test
 
@@ -1068,6 +1192,7 @@ Tổng ước lượng: 43-62 ngày công tùy số lượng nhân sự và mứ
 - Admin order flow: login admin -> list orders/filter customerType -> update status -> notification created.
 - Inventory flow: create product -> update stock -> check InventoryLog.
 - Contact flow: create contact -> admin update status -> notification stream/list.
+- Accounting flow: paid/completed order -> accounting income transaction -> manual expense -> accounting summary.
 
 ### 8.4 Chiến lược UAT
 
@@ -1090,11 +1215,13 @@ Kịch bản UAT cho admin:
 5. Tạo/sửa/xóa danh mục.
 6. Cập nhật trạng thái đơn hàng.
 7. Kiểm tra tồn kho bị trừ và khách nhận thông báo.
-8. Lọc khách hàng, người dùng, liên hệ, đánh giá; mở dialog chi tiết review có ảnh.
+8. Kiểm tra bút toán doanh thu được ghi nhận trong kế toán.
+9. Nhập khoản chi vận hành, xem báo cáo lãi lỗ theo tháng/khoảng ngày.
+10. Lọc khách hàng, người dùng, liên hệ, đánh giá; mở dialog chi tiết review có ảnh.
 
 ## 9. Kết luận
 
-Thiết kế đề xuất đáp ứng bài toán website bán hàng thời trang có quản trị cửa hàng, quản lý kho, thống kê, thông báo realtime và triển khai Docker. Việc chọn React/Redux ở frontend, Express ở backend và MongoDB ở database phù hợp với yêu cầu phát triển nhanh, dữ liệu linh hoạt và dễ mở rộng. Các quyết định như phân quyền admin, audit log kho hàng, loading skeleton, i18n JSON và SSE giúp hệ thống có tính thực tế cao hơn, dễ bảo trì và phù hợp để phát triển tiếp trong môi trường dự án thật.
+Thiết kế đề xuất đáp ứng bài toán website bán hàng thời trang có quản trị cửa hàng, quản lý kho, thống kê, kế toán nội bộ, thông báo realtime và triển khai Docker. Việc chọn React/TypeScript/Redux/Tailwind ở frontend, Express ở backend và MongoDB ở database phù hợp với yêu cầu phát triển nhanh, dữ liệu linh hoạt và dễ mở rộng. Các quyết định như phân quyền admin, audit log kho hàng, bút toán kế toán có nguồn gốc, loading skeleton, i18n JSON và SSE giúp hệ thống có tính thực tế cao hơn, dễ bảo trì và phù hợp để phát triển tiếp trong môi trường dự án thật.
 `.trim()
 
 function xmlEscape(value) {

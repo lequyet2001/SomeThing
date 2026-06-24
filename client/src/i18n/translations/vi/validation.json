@@ -1,0 +1,18 @@
+{
+  "validation.required": "Vui lòng nhập thông tin này.",
+  "validation.name": "Tên cần có ít nhất 2 ký tự.",
+  "validation.email": "Email không hợp lệ.",
+  "validation.password": "Mật khẩu cần có ít nhất 6 ký tự.",
+  "validation.confirmPassword": "Mật khẩu xác nhận không khớp.",
+  "validation.phone": "Số điện thoại không hợp lệ.",
+  "validation.address": "Địa chỉ cần có ít nhất 5 ký tự.",
+  "validation.topic": "Vui lòng chọn chủ đề.",
+  "validation.message": "Nội dung cần có ít nhất 10 ký tự.",
+  "validation.review": "Đánh giá cần có ít nhất 3 ký tự.",
+  "validation.price": "Giá phải lớn hơn hoặc bằng 0.",
+  "validation.stock": "Tồn kho phải lớn hơn hoặc bằng 0.",
+  "validation.category": "Vui lòng chọn danh mục.",
+  "validation.image": "Vui lòng chọn ảnh sản phẩm.",
+  "validation.description": "Mô tả cần có ít nhất 10 ký tự.",
+  "validation.fixErrors": "Vui lòng kiểm tra lại các trường đang báo lỗi."
+}

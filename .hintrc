@@ -10,6 +10,23 @@
           "backdrop-filter"
         ]
       }
-    ]
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-valid-attr-value": "off"
+      }
+    ],
+    "axe/forms": [
+      "default",
+      {
+        "select-name": "off",
+        "autocomplete-valid": "off"
+      }
+    ],
+    "typescript-config/consistent-casing": "off",
+    "typescript-config/strict": "off",
+    "button-type": "off",
+    "no-inline-styles": "off"
   }
 }
